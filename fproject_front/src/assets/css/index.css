@@ -1,0 +1,285 @@
+*{
+    margin: 0px;
+    padding: 0px;
+    font-family: Arial;
+    box-sizing: border-box;
+}
+  
+a {
+  text-decoration: none;
+  color: #090F24;
+}
+
+li {
+  list-style: none;
+}
+
+
+
+main {
+  margin: 20px auto;
+  display: flex;
+  justify-content: space-between;
+  width: 89.5%;
+  height: 450px;
+}
+
+
+
+main .right_screens {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 29%;
+}
+
+main .right_screens > img {
+  border-radius: 7px;
+  width: 100%;
+  height: 49%;
+}
+
+
+.main_bottom_slider {
+    padding: 30px 82px;
+    background: #F4F5F9;
+    height: 278px;
+    position: relative;
+}
+
+.our_procs {
+    width: 89.5%;
+    margin: 0px auto;
+    padding: 40px 0px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+.our_procs_box {
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 139%;
+  color: #090F24;
+  display: flex;
+}
+
+.our_procs_box img {
+  margin-right: 15px;
+}
+
+.variety_of_products {
+  padding: 60px 5%;
+  background: #F4F5F9;
+  text-align: center;
+}
+
+.variety_of_products > span {
+  color: #ED9BB9;
+}
+
+.variety_of_products .for_grid {
+  display: grid;
+  grid-template-columns: repeat(6, auto);
+  grid-gap: 45px 0px;
+  margin-top: 30px;
+}
+
+.variety_of_products .for_grid .category_box {
+  padding: 25px 0px;
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 142%;
+  color: #090F24;
+  transition: .5s;
+  border-radius: 10px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.variety_of_products .for_grid .category_box:hover {
+  background: #74CCD8;
+  color: white;
+}
+
+.slider_component_main_box {
+  text-align: center;
+  padding: 60px 10% 70px 10%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #090F24;
+  position: relative;
+}
+
+.slider_component_main_box .slider_component_prev {
+  left: 9.5%;
+  top: 347px;
+}
+
+.slider_component_main_box .slider_component_next {
+  right: 9.5%;
+  top: 347px;
+}
+
+.slider_component_main_box > .slider_component {
+  margin-top: 40px;
+  width: 95%;
+}
+
+.slider_component_main_box > .slider_component .swiper-slide {
+  background: white;
+  padding: 15px 15px 20px 15px;
+  border: 1px solid #E4E7EE;
+  border-radius: 15px;
+  min-height: 400px;
+  max-height: 550px;
+  position: relative;
+  transition: .5s;
+  cursor: pointer;
+}
+
+.slider_component_main_box > .slider_component .swiper-slide:hover {
+  background: rgba(126, 126, 126, 0.2);
+}
+
+.slider_component_main_box > .slider_component .swiper-slide .to_like_box {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F4F5F9;
+  opacity: 0.85;
+  border-radius: 50px;
+  top: 15px;
+  right: 15px;
+  width: 55px;
+  height: 55px;
+  cursor: pointer;
+}
+
+.slider_component_main_box > .slider_component .swiper-slide .to_like_box .like {
+  width: 25px;
+  height: 22px;
+  background: #b8b9c6;
+  clip-path: path("M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402m5.726-20.583c-2.203 0-4.446 1.042-5.726 3.238-1.285-2.206-3.522-3.248-5.719-3.248-3.183 0-6.281 2.187-6.281 6.191 0 4.661 5.571 9.429 12 15.809 6.43-6.38 12-11.148 12-15.809 0-4.011-3.095-6.181-6.274-6.181");
+}
+
+.slider_component_main_box > .slider_component .swiper-slide .to_like_box:hover .like {
+  background: #ED9BB9;
+  clip-path: path("M12 4.248c-3.148-5.402-12-3.825-12 2.944 0 4.661 5.571 9.427 12 15.808 6.43-6.381 12-11.147 12-15.808 0-6.792-8.875-8.306-12-2.944z");
+}
+
+.slider_component_main_box > .slider_component .swiper-slide > img {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+  border-radius: none;
+  margin-bottom: 20px;
+}
+
+.slider_component_main_box > .slider_component .swiper-slide .slide_desc {
+  text-align: left;
+}
+
+.slider_component_main_box > .slider_component .swiper-slide .slide_desc > h3 {
+  display: inline;
+}
+
+.slider_component_main_box > .slider_component .swiper-slide .slide_desc > span {
+  text-decoration: line-through;
+  color: #B7B8C5;
+}
+
+.slider_component_main_box > .slider_component .swiper-slide .slide_desc > p {
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 139%;
+}
+
+
+
+
+.sales_slides_box {
+  background: #F4F5F9;
+}
+.sales_slides_box > .slider_component .swiper-slide .slide_desc .delivery_box > img {
+  margin-right: 10px;
+}
+
+.sales_slides_box > .slider_component .swiper-slide .slide_desc .delivery_box > small {
+  color: #686877;
+}
+
+.sales_slides_box .slider_component_prev, .sales_slides_box .slider_component_next {
+  top: 405px;
+}
+
+
+.get_sales_info_form_box {
+  height: 270px;
+  background: #D6F4FA;
+  display: flex;
+  position: relative;
+}
+.get_sales_info_form_box img:first-child{
+  position: absolute;
+  top: -58px;
+  left: 0px;
+  transform: rotateY(4deg);
+}
+.get_sales_info_form_box img:nth-child(2){
+  position: absolute;
+  bottom: -31px;
+  right: 94px;
+  z-index: 1;
+  width: 90px;
+  height: 90px;
+}
+.form_wrapper {
+  width: 70%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background: url('@/assets/img/form_circles.png');
+  background-repeat: no-repeat;
+  background-position: 50% 0%;
+}
+.form_wrapper span {
+  font-size: 16px;
+  color: #393F7B;
+  margin-top: 10px;
+  display: inline-block;
+}
+.form_wrapper form {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+.form_wrapper form input {
+  padding: 11px 22px;
+  color: #B7B8C5;
+  border-radius: 34px;
+  border: 1px solid #50909C;
+  width: 65%;
+  outline: none;
+}
+.form_wrapper form input:focus{
+  border: 1px solid #5e00a1;
+}
+.form_wrapper form button {
+  color: white;
+  border: none;
+  background: #74CCD8;
+  padding: 13px 30px;
+  border-radius: 25px;
+  cursor: pointer;
+}
+.get_sales_info_form_box .right_girl {
+  width: 30%;
+  height: 100%;
+  clip-path: polygon(0 0, 100% 0, 100% 26%, 100% 70%, 100% 86%, 100% 100%, 0 100%, 15% 74%, 0 51%, 16% 28%);
+}
+

@@ -1,0 +1,102 @@
+<template>
+<swiper 
+
+  :modules="modules"
+  :loop="true"
+  :grab-cursor="true"
+  :resistance="false"
+  :speed="700"
+  :autoplay="{delay: 5000}"
+  :pagination="{
+    clickable: true,
+  }"
+  :navigation="{
+    nextEl: '.main_bottom_next',
+    prevEl: '.main_bottom_prev',
+  }"
+  effect="coverflow"
+    
+
+>
+
+    <swiper-slide>
+        <img src="@/assets/img/Banner1.png" alt="">
+    </swiper-slide>
+    <swiper-slide>
+        <img src="@/assets/img/toys.webp" alt="">
+    </swiper-slide>
+    <swiper-slide>
+        <img src="@/assets/img/toys2.webp" alt="">
+    </swiper-slide>
+    <div class="main_bottom_prev swiper-button-prev"></div>
+    <div class="main_bottom_next swiper-button-next"></div>
+    
+</swiper>
+</template>
+
+<script>
+import { EffectCoverflow, Navigation, Pagination, Autoplay} from 'swiper'
+import { Swiper, SwiperSlide } from 'swiper/vue';
+
+import 'swiper/css';
+import 'swiper/css/effect-coverflow'
+import 'swiper/css/pagination';
+
+
+export default {
+    name: 'ui-main-top-slider',
+    components: {
+      Swiper,
+      SwiperSlide,
+    },
+    data(){
+        return {
+            modules: [EffectCoverflow, Navigation, Pagination, Autoplay]
+        }
+    },
+    
+}
+</script>
+
+<style scoped>
+main .swiper {
+  width: 70%;
+  height: 100%;
+  border-radius: 7px;
+  margin: 0px;
+  position: relative;
+}
+
+main .swiper .swiper-button-prev:after, main .swiper .swiper-button-next:after {
+  color: #B7B8C5;
+  font-size: 30px;
+}
+
+main .swiper .swiper-slide {
+  width: 100%;
+  height: 100%;
+}
+
+main .swiper .swiper-slide > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+main .swiper .swiper-pagination {
+  bottom: 5px;
+}
+
+main .swiper .swiper-pagination-bullet {
+  width: 10px;
+  height: 10px;
+  display: inline-block;
+  background: #74CCD8;
+}
+
+.swiper-button-prev:after, .swiper-button-next:after {
+  color: #B7B8C5;
+  font-size: 25px;
+}
+
+</style>
