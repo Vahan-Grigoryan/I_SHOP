@@ -1,0 +1,63 @@
+.compare_container{
+    padding: 13px 5% 70px 5%;
+}
+.compare_container .compare_logo_box{
+    background: #F4F5F9;
+    border-radius: 15px;
+    padding: 40px 20px;
+    text-align: center;
+    margin-top: 35px;
+    position: relative;
+}
+.compare_container .compare_logo_box h2{
+    margin-top: 25px;
+}
+.compare_container .compare_logo_box span{
+    font-size: 15px;
+    color: #686877;
+}
+.clear_all_products{
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    cursor: pointer;
+}
+.compare_container .progressbar{
+    width: 100%;
+    height: 10px;
+    background: #F4F5F9;
+    border-radius: 50px;
+}
+.compare_container .progressbar .bar{
+    background: #74CCD8;
+    
+    border-radius: 50px;
+    height: 100%;
+    cursor: pointer;
+    transition: .5s;
+}
+.compare_container h1{
+    margin: 25px 0px 20px 0px;
+}
+.products_differences{
+    background: #F4F5F9;
+    padding: 40px;
+    border-radius: 15px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

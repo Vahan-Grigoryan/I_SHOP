@@ -1,0 +1,41 @@
+.about_container{
+    width: 90%;
+    margin: 0px auto;
+    padding-top: 15px;
+}
+.about_container:last-child{
+    padding: 15px 0px 60px 0px;
+}
+.content_and_img{
+    display: flex;
+}
+.content_and_img img{
+    margin: 20px 0px 30px 50px;
+    max-height: 300px;
+    border-radius: 15px;
+    
+}
+.about_content h1{
+    margin-top: 30px;
+    margin-bottom: 20px;
+}
+.about_content p, .about_container p{
+    font-size: 17px;
+    line-height: 155.02%;
+    margin-bottom: 30px;
+    color: #686877;
+}
+.photogallery{
+    text-align: center;
+}
+.gallery{
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    grid-gap: 20px;
+    width: 80%;
+    margin: 25px auto;
+    margin-bottom: 70px;
+}
+.gallery img{
+    border-radius: 7px;
+}

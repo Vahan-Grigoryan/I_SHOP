@@ -1,0 +1,29 @@
+.article_container{
+    padding: 13px 80px 70px 80px;
+
+}
+.article_container h1{
+    margin: 50px 0px 20px 0px;
+}
+.article_container p+h1{
+    text-align: center;
+}
+.article_container span{
+    font-size: 14px;
+    line-height: 139.02%;
+    color: #B7B8C5;
+}
+.article_container p{
+    font-size: 17px;
+    line-height: 155.02%;
+    color: #686877;
+    margin-top: 20px;
+}
+.article_gallery{
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    grid-gap: 20px;
+}
+.article_gallery img{
+    margin: 0px auto;
+}
