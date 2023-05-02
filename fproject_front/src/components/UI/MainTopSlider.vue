@@ -7,6 +7,7 @@
   :resistance="false"
   :speed="700"
   :autoplay="{delay: 5000}"
+  :slides-per-view="slidesPerView"
   :pagination="{
     clickable: true,
   }"
@@ -15,21 +16,23 @@
     prevEl: '.main_bottom_prev',
   }"
   effect="coverflow"
-    
+  
 
 >
 
+  <slot>
     <swiper-slide>
-        <img src="@/assets/img/Banner1.png" alt="">
+      <img src="@/assets/img/Banner1.png" alt="">
     </swiper-slide>
     <swiper-slide>
-        <img src="@/assets/img/toys.webp" alt="">
+      <img src="@/assets/img/toys.webp" alt="">
     </swiper-slide>
     <swiper-slide>
-        <img src="@/assets/img/toys2.webp" alt="">
+      <img src="@/assets/img/toys2.webp" alt="">
     </swiper-slide>
     <div class="main_bottom_prev swiper-button-prev"></div>
     <div class="main_bottom_next swiper-button-next"></div>
+  </slot>
     
 </swiper>
 </template>
@@ -49,45 +52,51 @@ export default {
       Swiper,
       SwiperSlide,
     },
+    props: {
+      slidesPerView: {
+        type: Number,
+        default: 1
+      }
+    },
     data(){
-        return {
-            modules: [EffectCoverflow, Navigation, Pagination, Autoplay]
-        }
+      return {
+        modules: [EffectCoverflow, Navigation, Pagination, Autoplay]
+      }
     },
     
 }
 </script>
 
 <style scoped>
-main .swiper {
-  width: 70%;
+.swiper {
+  width: 100%;
   height: 100%;
   border-radius: 7px;
   margin: 0px;
   position: relative;
 }
 
-main .swiper .swiper-button-prev:after, main .swiper .swiper-button-next:after {
+.swiper .swiper-button-prev:after, .swiper .swiper-button-next:after {
   color: #B7B8C5;
   font-size: 30px;
 }
 
-main .swiper .swiper-slide {
+.swiper .swiper-slide {
   width: 100%;
   height: 100%;
 }
 
-main .swiper .swiper-slide > img {
+.swiper .swiper-slide > img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-main .swiper .swiper-pagination {
+.swiper .swiper-pagination {
   bottom: 5px;
 }
 
-main .swiper .swiper-pagination-bullet {
+.swiper .swiper-pagination-bullet {
   width: 10px;
   height: 10px;
   display: inline-block;
