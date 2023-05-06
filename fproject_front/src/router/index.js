@@ -4,12 +4,13 @@ import ProductDetail from '@/views/ProductDetail'
 import FilterProducts from '@/views/FilterProducts'
 import About from '@/views/About'
 import Register from '@/views/Register'
-import Profile from '@/views/Profile'
 import Blog from '@/views/Blog'
 import BlogDetail from '@/views/BlogDetail'
 import BrandsPage from '@/views/BrandsPage'
 import Page404 from '@/views/404'
 import CompareCart from '@/views/CompareCart'
+import Profile from '@/views/Profile'
+import MegaCategory from '@/views/MegaCategory'
 
 
 const routes = [
@@ -39,11 +40,6 @@ const routes = [
     component: Register
   },
   {
-    path: '/profile/:id',
-    name: 'profile',
-    component: Profile
-  },
-  {
     path: '/blog',
     name: 'blog',
     component: Blog
@@ -68,6 +64,17 @@ const routes = [
     name: 'compare',
     component: CompareCart
   },
+  {
+    path: '/profile/:id',
+    name: 'profile',
+    component: Profile
+  },
+  {
+    path: '/mega_category/:id',
+    name: 'mega_category',
+    component: MegaCategory
+  },
+  
 ]
 
 const router = createRouter({

@@ -21,6 +21,11 @@
 </template>
 
 <script>
+// Pagination for this project, used in many places
+// props:
+//      pages_per_view: how many pages are available for redirect in each pagination page
+
+
 export default {
     name: 'ui-pagination',
     props: {

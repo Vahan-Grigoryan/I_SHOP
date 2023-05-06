@@ -11,7 +11,7 @@
                 <input type="text" placeholder="Ваше имя*">
                 <input type="number" placeholder="Телефон">
                 <input type="text" placeholder="Электронная почта*">
-                <textarea name="" id="" cols="30" rows="10" placeholder="Текст сообщения*">
+                <textarea cols="30" rows="10" placeholder="Текст сообщения*">
                     
                 </textarea>
                 <button>
@@ -26,6 +26,8 @@
 </template>
 
 <script>
+// Common component with form whose purpose get messages from users in backend email
+
 export default {
     name: 'ContactUsBox'
 }

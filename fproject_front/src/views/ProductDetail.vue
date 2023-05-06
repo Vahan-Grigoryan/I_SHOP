@@ -1,4 +1,31 @@
 <template>
+<div class="write_feedback_modal_wrapper" v-if="write_feedback_visible"></div>
+<div class="write_feedback_modal" v-if="write_feedback_visible">
+    <img
+    src="@/assets/img/clear.png"
+    class="auth_modal_close_img"
+    @click="write_feedback_visible = false"
+    >
+    <h2>Напишите свой отзыв о продукте:</h2>
+    <input type="text" placeholder="Заголовок*">
+    <textarea name="" id="" cols="30" rows="10" placeholder="Текст отзыва*"></textarea>
+    <div class="set_starts">
+        <span>Ваша оценка:</span>&nbsp;&nbsp;
+        <img 
+        v-for="star_num in 5"
+        src="@/assets/img/star_gray.png"
+        :ref="`feedback_star${ star_num }`"
+        @mouseenter="setStarsUI(star_num)"
+        @mouseleave="delStartsUI"
+        @click="setStarsUI(star_num, for_click=true)"
+        
+        >
+    </div>
+    <button class="feedback_btn">
+        <img src="@/assets/img/star_white.png" alt="">&nbsp;
+        Оставить отзыв
+    </button>
+</div>
 <Header />
 
 <div class="product_detail_container">
@@ -69,36 +96,90 @@
             
             <div class="right_content">
                 <div class="availability_box">
-                    <div style="display: inline-flex;">
-                        <div class="inline">
-                            <img src="@/assets/img/delivery.png" alt=""> &nbsp; &nbsp;
-                            <span>Доставка: 1-2 дня</span>
+                    <div v-if="product_available">
+                        <div style="display: inline-flex;">
+                            <div class="inline">
+                                <img src="@/assets/img/delivery.png" alt=""> &nbsp; &nbsp;
+                                <span>Доставка: 1-2 дня</span>
+                            </div>
+                            &nbsp; &nbsp;
+                            <div class="inline">
+                                <h5>Код товара:</h5> &nbsp; &nbsp;
+                                <span>000433</span>
+                            </div>
                         </div>
-                        &nbsp; &nbsp;
+                        <br>
+                        <br>
+                        <span>
+                            <img src="@/assets/img/ok.png" alt=""> &nbsp;
+                            Есть в наличии
+                        </span>
+                        <br>
+                        <br>
+                        <p>
+                            <img src="@/assets/img/star.png" alt=""> &nbsp;
+                            <img src="@/assets/img/star.png" alt=""> &nbsp;
+                            <img src="@/assets/img/star.png" alt=""> &nbsp;
+                            <img src="@/assets/img/star.png" alt=""> &nbsp;
+                            <img src="@/assets/img/star_gray.png" alt=""> &nbsp;
+                            3 отзыва
+                        </p>
+                        <img src="@/assets/img/brand2.png" alt="" class="brand_logo">
+                    </div>
+                    <div v-else>
+                        <div class="inline">
+                            <img src="@/assets/img/close_red.png" alt=""> &nbsp; &nbsp;
+                            <span style="color:red">Товара в настоящее время нет в наличии</span>
+                        </div>
+                        <br><br>
                         <div class="inline">
                             <h5>Код товара:</h5> &nbsp; &nbsp;
                             <span>000433</span>
                         </div>
+                        <img src="@/assets/img/brand2.png" alt="" class="brand_logo">
                     </div>
-                    <br>
-                    <br>
-                    <span>
-                        <img src="@/assets/img/ok.png" alt=""> &nbsp;
-                        Есть в наличии
-                    </span>
-                    <br>
-                    <br>
-                    <p>
-                        <img src="@/assets/img/star.png" alt=""> &nbsp;
-                        <img src="@/assets/img/star.png" alt=""> &nbsp;
-                        <img src="@/assets/img/star.png" alt=""> &nbsp;
-                        <img src="@/assets/img/star.png" alt=""> &nbsp;
-                        <img src="@/assets/img/star_gray.png" alt=""> &nbsp;
-                        3 отзыва
-                    </p>
-                    <img src="@/assets/img/brand2.png" alt="" class="brand_logo">
+                    
                 </div>
-                <div class="product_detail_info">
+                <ui-select
+                class="similar_products_select"
+                :purpose="'cart_products'"
+                >
+                    <template #row_info>
+                        <h2>Похожие товары</h2>
+                        <img src="@/assets/img/filter_top_arrow.png" alt="">
+                    </template>
+                    <template #products>
+                        <div class="similar_products">
+                            <div 
+                            class="similar_product" 
+                            v-for="_ in 5"
+                            >
+                                <img src="@/assets/img/Rectangle_37.png" alt="">
+                                <div class="similar_product_mini_detail">
+                                    <h3>Прогулочная коляска ABC Design Ping {{ _ }}</h3>
+                                    <br>
+                                    <div class="inline">
+                                        <div class="inline">
+                                            <span class="span_price">1000 €</span>
+                                            &nbsp; &nbsp;
+                                            <span class="span_price_del">2500 €</span>
+                                        </div>
+                                        <button class="buy_btn">
+                                            <img src="@/assets/img/basket_white.png" alt="">
+                                            &nbsp;
+                                            Купить
+                                        </button>
+                                        <div class="like_icon">
+                                            <div class="like"></div>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </ui-select>
+                <div class="product_detail_info" v-if="product_available">
                     <div style="display: flex;align-items: center;justify-content: space-between;">
                         <h2>Размер:</h2>
                         <ui-select 
@@ -249,7 +330,12 @@
                         <span>Tария</span>
                     </div>
                 </div>
-                <button>get more feedbacks</button>
+                <div class="btns">
+                    <button>Больше отзывов</button>
+                    &nbsp; &nbsp;
+                    <button @click="write_feedback_visible = true">Оставить отзыв</button>
+                </div>
+                
             </div>
     </div>
 
@@ -580,18 +666,44 @@ export default {
         return{
             count: 1,
             tab_active: {
-                'desc': false,
+                'desc': true,
                 'characterictics': false,
-                'feedbacks': true
+                'feedbacks': false
             },
-            
+            write_feedback_visible: false,
+            product_available: false,
             options_to_select: ['107см x 234см', '50см x 50см', '60м x 60см', '999см x 999см'],
             selected_option: '107см x 234см',
+            stars_mouse_enter_leave_available: true,
+            pointed_stars: 0
         }
     },
     methods: {
         dec_count(){
             this.count > 1 ? this.count-- : null
+        },
+        setStarsUI(star_num, for_click=false){
+            if (for_click) {
+                this.stars_mouse_enter_leave_available = false
+                this.pointed_stars = star_num
+            }
+            else{
+                this.stars_mouse_enter_leave_available = true
+            }
+            Object.keys(this.$refs).forEach(star_ref_key => {
+                if (star_ref_key.charAt(13) <= star_num) {
+                    this.$refs[star_ref_key][0].src = require('@/assets/img/star.png')
+                }
+            })
+            
+        },
+        delStartsUI(){
+            if (this.stars_mouse_enter_leave_available) {
+                Object.keys(this.$refs).forEach(star_ref => {
+                    this.$refs[star_ref][0].src = require('@/assets/img/star_gray.png')
+                })
+            }
+            
         },
         setActiveTab(tab_name){
             Object.keys(this.tab_active).forEach( key => this.tab_active[key] = false )
@@ -616,6 +728,17 @@ export default {
         main_splide.sync(thumbs_splide)
         main_splide.mount()
         thumbs_splide.mount()
+    },
+    watch: {
+        write_feedback_visible(newValue){
+        let [current_scrollX, current_scrollY] = [scrollX, scrollY]
+        if (newValue) {
+          window.onscroll = function () { window.scrollTo(current_scrollX, current_scrollY); };
+        } 
+        else {
+          window.onscroll = function () { window.scrollTo(scrollX, scrollY); };
+        }
+      }
     }
 }
 </script>

@@ -3,8 +3,10 @@
         <div class="left_info footer_info_box">
             <h4>Контакты</h4><br>
             <div class="footer_info_inline">
+                
                 <img src="@/assets/img/tel.png" alt=""> &nbsp;
-                <span>+38 097 435 6743</span>
+                <a href="tel:+3899887857">+38 097 435 6743</a>
+                
             </div><br>
             <div class="footer_info_inline">
                 <img src="@/assets/img/Whatsup_icon.png" alt=""> &nbsp;
@@ -12,7 +14,7 @@
             </div><br>
             <div class="footer_info_inline">
                 <img src="@/assets/img/Mail.png" alt=""> &nbsp;
-                <span>Kidsshop@gmail.com</span>
+                <a href="mailto:Kidsshop@gmail.com">Kidsshop@gmail.com</a>
             </div><br>
             <div class="footer_info_inline">
                 <img src="@/assets/img/time.svg" alt=""> &nbsp;
@@ -23,19 +25,15 @@
             <h4>Меню сайта</h4>
             <div class="menu_flex">
                 <div class="menu_left">
-                    <span>Каталог</span><br>
-                    <span>О нас</span><br>
+                    <span @click="$router.push('/product_filters')">Каталог</span><br>
+                    <span @click="$router.push('/about')">О нас</span><br>
                     <span>Оплата и доставка</span><br>
-                    <span>Возврат и гарантийный ремонт</span><br>
-                    <span>Защита личных данных</span><br>
-                    <span>Бренды</span><br>
+                    
                 </div>
                 <div class="menu_right">
-                    <span>Правила покупки</span><br>
-                    <span>Отзывы</span><br>
-                    <span>FAQ</span><br>
-                    <span>Блог</span><br>
-                    <span>Контакты</span>
+                    <span @click="$router.push('/register')">Регистрироватся</span><br>
+                    <span @click="$router.push('/blog')">Блог</span><br>
+                    <span @click="$router.push('/brands')">Бренды</span><br>
                 </div>
             </div>
         </div>
@@ -56,7 +54,7 @@
                 </a>
             </div>
             <br>
-            <img src="@/assets/img/Logo.png" alt="" class="footer_logo">
+            <img src="@/assets/img/Logo.png" alt="" class="footer_logo" @click="$router.push('/')">
         </div>
     </footer>
     <div class="protected_permissions_box">
@@ -65,6 +63,8 @@
 </template>
 
 <script>
+// Common footer
+
 export default {
     name: 'ui-footer'
 }
@@ -117,6 +117,7 @@ footer{
 }
 .footer_logo{
     margin-top: 60px;
+    cursor: pointer;
 }
 .protected_permissions_box{
     width: 100%;

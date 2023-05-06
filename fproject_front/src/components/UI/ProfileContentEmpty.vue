@@ -10,6 +10,10 @@
 </template>
 
 <script>
+// If content empty in profile tab, put this component with custom 
+// header, content, button for redirect
+
+
 export default {
     name: 'ui-profile-empty',
     props: {

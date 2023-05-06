@@ -55,6 +55,14 @@
 </template>
 
 <script>
+// Best select for different purposes in this project,
+// used in many places
+// props: 
+//      purpose: define template structure by purpose
+//      selected_option: with purpose=detail can used with v-model in parent component => change select value
+//      options: options for select 
+
+
 export default {
     name: 'ui-select',
     props: {

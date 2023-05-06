@@ -36,16 +36,46 @@
     cursor: pointer;
     transition: .5s;
 }
-.compare_container h1{
+.compare_container .header_and_compare_fields_select{
     margin: 25px 0px 20px 0px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.header_and_compare_fields_select .select{
+    width: 20%;
 }
 .products_differences{
     background: #F4F5F9;
     padding: 40px;
     border-radius: 15px;
 }
-
-
+.product_diff{
+    padding: 20px;
+    border: 3px solid #74CCD8;
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+.product_diff:last-child{
+    margin-bottom: 0;
+}
+.product_diff h3{
+    margin-bottom: 20px;
+}
+.product_diff_charcteristic{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 13px 0px 10px 0px;
+    border-bottom: 1px solid #B7B8C5;
+}
+.product_diff_charcteristic span{
+    font-size: 14px;
+    color: #686877;
+}
+.product_diff_charcteristic:last-child{
+    border: none;
+}
 
 
 

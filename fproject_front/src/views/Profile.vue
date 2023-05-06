@@ -13,30 +13,70 @@
             </div>
             <h3 style="padding: 0px 30px;">Иванова Иванна Ивановна</h3>
             <div class="profile_tabs">
-                <div class="profile_tab">
-                    <img src="@/assets/img/cart_blue.png"> &nbsp; &nbsp;
-                    <!-- <img src="@/assets/img/cart_white.png"> &nbsp; &nbsp;        CHANGE WHEN TAB CLICKED!!!  -->
+                <div 
+                :class="{
+                    profile_tab: true,
+                    profile_tab_clicked: orders_visible
+                }"
+                @mouseenter="setTabVisible('orders')"
+                @mouseleave="setTabInvisible('orders')"
+                @click="profileWhatVisible('orders')"
+                >
+                    <img src="@/assets/img/cart_blue.png" v-if="!orders_visible"> 
+                    <span v-if="!orders_visible">&nbsp; &nbsp;</span>
+                    <img src="@/assets/img/cart_white.png" v-if="orders_visible"> 
+                    <span v-if="orders_visible">&nbsp; &nbsp;</span>
                     <span>Мои заказы</span>
                 </div>
-                <div class="profile_tab">
-                    <img src="@/assets/img/like_blue.png"> &nbsp; &nbsp;
-                    <!-- <img src="@/assets/img/like_white.png"> &nbsp; &nbsp;        CHANGE WHEN TAB CLICKED!!!  -->
+                <div 
+                :class="{
+                    profile_tab: true,
+                    profile_tab_clicked: liked_visible
+                }"
+                @mouseenter="setTabVisible('liked')"
+                @mouseleave="setTabInvisible('liked')"
+                @click="profileWhatVisible('liked')"
+                >
+                    <img src="@/assets/img/like_blue.png" v-if="!liked_visible"> 
+                    <span v-if="!liked_visible">&nbsp; &nbsp;</span>
+                    <img src="@/assets/img/like_white.png" v-if="liked_visible"> 
+                    <span v-if="liked_visible">&nbsp; &nbsp;</span>
                     <span>Список желаний</span>
                 </div>
-                <div class="profile_tab">
-                    <img src="@/assets/img/sale_blue.png"> &nbsp; &nbsp;
-                    <!-- <img src="@/assets/img/sale_white.png"> &nbsp; &nbsp;        CHANGE WHEN TAB CLICKED!!!  -->
+                <div 
+                :class="{
+                    profile_tab: true,
+                    profile_tab_clicked: sales_visible
+                }"
+                @mouseenter="setTabVisible('sales')"
+                @mouseleave="setTabInvisible('sales')"
+                @click="profileWhatVisible('sales')"
+                >
+                    <img src="@/assets/img/sale_blue.png" v-if="!sales_visible"> 
+                    <span v-if="!sales_visible">&nbsp; &nbsp;</span>
+                    <img src="@/assets/img/sale_white.png" v-if="sales_visible"> 
+                    <span v-if="sales_visible">&nbsp; &nbsp;</span>
                     <span>Акции и скидки</span>
                 </div>
-                <div class="profile_tab">
-                    <img src="@/assets/img/settings_blue.png"> &nbsp; &nbsp;
-                    <!-- <img src="@/assets/img/settings_white.png"> &nbsp; &nbsp;    CHANGE WHEN TAB CLICKED!!!  -->
+                <div 
+                :class="{
+                    profile_tab: true,
+                    profile_tab_clicked: register_visible
+                }"
+                @mouseenter="setTabVisible('register')"
+                @mouseleave="setTabInvisible('register')"
+                @click="profileWhatVisible('register')"
+                >
+                    <img src="@/assets/img/settings_blue.png" v-if="!register_visible"> 
+                    <span v-if="!register_visible">&nbsp; &nbsp;</span>
+                    <img src="@/assets/img/settings_white.png" v-if="register_visible"> 
+                    <span v-if="register_visible">&nbsp; &nbsp;</span>
                     <span>Настройки профиля</span>
                 </div>
             </div>
             
         </div>
-        <div class="profile_content_orders" v-if="profile_content == 'orders'">
+        <div class="profile_content_orders" v-if="$store.state.profile_content == 'orders'">
             <h2>История Ваших заказов</h2><br>
             <div class="card_product_explain">
                 <span>№ заказа</span>
@@ -198,7 +238,7 @@
             </ui-select>
                     
         </div>
-        <div class="profile_content_liked" v-if="profile_content == 'liked'">
+        <div class="profile_content_liked" v-else-if="$store.state.profile_content == 'liked'">
             <h1>Список моих желаний</h1><br>
             <div class="liked_products">
                 <div class="swiper-slide">
@@ -335,48 +375,53 @@
                 </div>
             </div>
         </div>
-        <div class="profile_content_sales" v-if="profile_content == 'sales'">
+        <div class="profile_content_sales" v-else-if="$store.state.profile_content == 'sales'">
             <h1>Актуальные акции и скидки</h1>
-            <div class="profile_sales_grid">
-                <div class="sale_box">
-                    <img src="@/assets/img/Rectangle_59.png" alt="">
-                    <br>
-                    <br>
-                    <h4>Акция 2+1</h4>
-                    <br>
-                    <span>При покупке двох единиц товара вы получите третий в подарок!</span>
-                    <strong class="read_detail" @click="$router.push('/about')">
-                        Смотреть товары &nbsp; &nbsp; 
-                        <img src="@/assets/img/arrow_5.png" alt="">
-                    </strong>
-                </div>
-                <div class="sale_box">
-                    <img src="@/assets/img/Rectangle_59.png" alt="">
-                    <br>
-                    <br>
-                    <h4>Акция 2+1</h4>
-                    <br>
-                    <span>При покупке двох единиц товара вы получите третий в подарок!</span>
-                    <strong class="read_detail" @click="$router.push('/about')">
-                        Смотреть товары &nbsp; &nbsp; 
-                        <img src="@/assets/img/arrow_5.png" alt="">
-                    </strong>
-                </div>
-                <div class="sale_box">
-                    <img src="@/assets/img/Rectangle_59.png" alt="">
-                    <br>
-                    <br>
-                    <h4>Акция 2+1</h4>
-                    <br>
-                    <span>При покупке двох единиц товара вы получите третий в подарок!</span>
-                    <strong class="read_detail" @click="$router.push('/about')">
-                        Смотреть товары &nbsp; &nbsp; 
-                        <img src="@/assets/img/arrow_5.png" alt="">
-                    </strong>
+            <ui-select 
+            :purpose="'detail'"
+            v-model:selected_option="current_sale"
+            :options="['>= 25%', '>= 50%', '>= 75%']"
+            />
+            <div class="liked_products">
+                <div 
+                class="swiper-slide"
+                v-for="_ in 4"
+                >
+                    <div class="sale_hit_new_box50">
+                        -90%
+                    </div>
+                    <div class="to_like_box">
+                        <div class="like"></div>
+                    </div>
+                    <img src="@/assets/img/watched_slide_img1.png" alt="">
+                    <div class="slide_desc">
+                        <h3>100 &euro;</h3> &nbsp; <span>200 &euro;</span><br><br>
+                        <p>Safety 1st Timba Natural Wood 3 в 1 Стульчик для кормления + подушка {{ _ }}</p>
+                        <div class="colors">
+                            <div class="color" style="background: red;"></div>
+                            <div class="color" style="background: blue;"></div>
+                            <div class="color" style="background: yellow;"></div>
+                            <div class="color" style="background: greenyellow;"></div>
+                            <div class="color" style="background: teal;"></div>
+                        </div>
+                        <div class="delivery_box">
+                            <img src="@/assets/img/delivery.png" alt="">
+                            <small>Доставка: 1-2 дня</small>
+                        </div>
+                        <div class="rating">
+                            <div class="stars">
+                                <img src="@/assets/img/star.png" class="star" />
+                                <img src="@/assets/img/star.png" class="star" />
+                                <img src="@/assets/img/star.png" class="star" />
+                                <img src="@/assets/img/star_gray.png" class="star" />
+                            </div>
+                            <small>&nbsp; 15 отзывов</small>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <form action="" class="register_form">
+        <form action="" class="register_form" v-else-if="$store.state.profile_content == 'register'">
             <h2>Редактированние личных данных</h2>
             <br>
             <div class="user_info_inputs">
@@ -396,7 +441,7 @@
             </div>
             <button type="submit" class="reg_btn">
                 <img src="@/assets/img/ok3.png" alt=""> &nbsp;
-                Зарегестрироватся
+                Сохранить изменения
             </button>
             <span class="del_acc">
                 Удалить аккаунт
@@ -420,7 +465,40 @@
 export default {
     data(){
         return {
-            profile_content: 'orderss'
+            orders_visible: false,
+            liked_visible: false,
+            sales_visible: false,
+            register_visible: false,
+            orders_clicked: false,
+            liked_clicked: false,
+            sales_clicked: false,
+            register_clicked: false,
+
+            current_sale: 'Select sale',
+        }
+    },
+    methods: {
+        profileWhatVisible(visible_tab){
+            // set tab clicked = true by name
+            Object.keys(this.$data).forEach( key => {
+                if (key.endsWith('clicked') || key.endsWith('visible')) {
+                    this.$data[key] = false
+                }
+            })
+            this.$store.commit('setProfileContent', visible_tab)
+            this.setTabVisible(visible_tab)
+            this.$data[`${visible_tab}_clicked`] = true
+        },
+        setTabVisible(tab_name){
+            // set tab _visible = true by name for styles
+            this.$data[`${tab_name}_visible`] = true
+        },
+        setTabInvisible(tab_name){
+            // set tab _visible = false by name for disable styles
+            if (!this.$data[`${tab_name}_clicked`]) {
+                this.$data[`${tab_name}_visible`] = false
+            }
+            
         }
     }
 }

@@ -37,6 +37,9 @@
 </template>
 
 <script>
+// Second slider from top in Index page, 
+// didn't use anywhere except here
+
 import { Navigation } from 'swiper'
 import { Swiper, SwiperSlide } from 'swiper/vue';
 

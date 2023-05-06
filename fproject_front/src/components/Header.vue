@@ -21,14 +21,12 @@
 </div>
 <header>
     <div class="top_nav">
-        <img src="@/assets/img/Logo.png" alt="" class="logo">
+        <img src="@/assets/img/Logo.png" alt="" class="logo" @click="$router.push('/')">
         <ul>
-          <li><a @click="$router.push('/about')" >О нас</a></li>
-          <li><a href="#">Оплата и доставка</a></li>
-          <li><a href="#">Отзывы</a></li>
-          <li><a href="#">FAQ</a></li>
-          <li><a href="#">Блог</a></li>
-          <li><a href="#">Контакты</a></li>
+          <li><a @click="$router.push('/about')">О нас</a></li>
+          <li><a >Оплата и доставка</a></li>
+          <li><a @click="$router.push('/blog')">Блог</a></li>
+          <li><a @click="$router.push('/brands')">Бренды</a></li>
         </ul>
         <div class="connects">
           <a class="connects__a" href="tel:+3899887857" >+38 097 435 6743</a>
@@ -56,7 +54,7 @@
                 <div 
                 class="left_category" 
                 v-for="category in Object.keys(categories)"
-                @click="showCategories(category)"
+                @mouseenter="showCategories(category)"
                 >
                   <div>
                     <img src="@/assets/img/baby_carriage.png" alt="" width="25" height="25" class="default_img">
@@ -128,15 +126,33 @@
                   <span>N</span>
               </div> -->
         </div>
-        <a href="" class="bottom_nav__liked" :data-count='likes'><img src="@/assets/img/Liked.png" alt=""></a>
-        <a href="" class="bottom_nav__basket" :data-basket='basket'><img src="@/assets/img/Basket.png" alt=""></a>
+        <a 
+        @click="redirectTo('liked')"
+        class="bottom_nav__liked" 
+        :data-count='likes'
+        >
+          <img src="@/assets/img/Liked.png" alt="">
+        </a>
+        <a 
+        @click="redirectTo('orders')"
+        class="bottom_nav__basket"
+        :data-basket='basket'
+        >
+          <img src="@/assets/img/Basket.png" alt="">
+        </a>
     </div>
 </header>
 </template>
 
 <script>
+// Header for project without slots, with dropwdown mega menu and many hrefs
+
+import redirectTo from '@/mixins/redirectToProfilePart'
+
+
 export default {
     name: 'Header',
+    mixins: [redirectTo],
     props: {
       likes: {
         type: [Number],
@@ -259,6 +275,9 @@ header .top_nav {
   justify-content: space-between;
   padding: 0px 5%;
 }
+header .top_nav > img{
+  cursor: pointer;
+}
 header .top_nav ul {
   display: flex;
   align-items: center;
@@ -332,7 +351,7 @@ header .bottom_nav__categories .mega_menu {
   box-shadow: 0px 4px 11px rgba(68, 97, 132, 0.08);
   transform: translateY(100%);
   height: calc(100%/3);
-  z-index: 2;
+  z-index: 999;
 }
 .mega_menu .left_categories {
   background: white;
@@ -543,6 +562,7 @@ header .bottom_nav__liked {
   margin-left: 17.09677%;
   margin-right: 1.93548%;
   position: relative;
+  cursor:pointer
 }
 
 header .bottom_nav__liked::after {
@@ -560,13 +580,16 @@ header .bottom_nav__liked::after {
   font-size: 10px;
   color: white;
   background: linear-gradient(180deg, #ED9BC1 0%, #ED9BB9 100%);
+  cursor:pointer
 }
 
 header .bottom_nav__basket {
   position: relative;
+  cursor:pointer;
 }
 
 header .bottom_nav__basket::after {
+  cursor:pointer;
   content: attr(data-basket);
   top: 0px;
   right: 0px;

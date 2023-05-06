@@ -2,7 +2,7 @@
 # local env files
 .env.local
 .env.*.local
-
+migrations/
 # Log files
 
 # Editor directories and files
