@@ -1,0 +1,21 @@
+.mega_category_container{
+    padding: 15px 5% 70px 5%;
+}
+.mega_category_container h1{
+    text-align: center;
+    margin: 35px 0px;
+}
+.mega_category_subcategories{
+    display: grid;
+    grid-template-columns: repeat(5, auto);
+    grid-gap: 50px;
+
+}
+.mega_category_subcategory{
+    cursor: pointer;
+    text-align: center;
+}
+.mega_category_subcategory img{
+    border-radius: 50%;
+    object-fit: cover;
+}

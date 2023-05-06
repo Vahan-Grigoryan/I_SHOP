@@ -24,12 +24,16 @@
         
 
         <template #bottom_button>
-            <button>Читать блог</button>
+            <button @click="$router.push('/blog')">Читать блог</button>
         </template>
     </mini-products-slider>
 </template>
 
 <script>
+// Component above footer in Index page, common slider,
+// with custom header and bottom_button content
+
+
 export default {
   name: 'ui-href-blog-box',
   props: {

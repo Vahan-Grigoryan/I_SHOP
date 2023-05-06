@@ -24,51 +24,51 @@
         <h1>Широкий ассортимент товаров</h1><br>
         <span>для малышей и мам</span>
         <div class="for_grid">
-            <div class="category_box">
+            <div class="category_box" @click="$router.push('/mega_category/5')">
                 <img src="@/assets/img/cbimg1.png" alt=""><br>
                 <span>Коляски</span>
             </div>
-            <div class="category_box">
+            <div class="category_box" @click="$router.push('/mega_category/5')">
                 <img src="@/assets/img/cbimg2.png" alt=""><br>
                 <span>Автокресла</span>
             </div>
-            <div class="category_box">
+            <div class="category_box" @click="$router.push('/mega_category/5')">
                 <img src="@/assets/img/cbimg3.png" alt=""><br>
                 <span>Детская комната</span>
             </div>
-            <div class="category_box">
+            <div class="category_box" @click="$router.push('/mega_category/5')">
                 <img src="@/assets/img/cbimg4.png" alt=""><br>
                 <span>Транспорт и спорт</span>
             </div>
-            <div class="category_box">
+            <div class="category_box" @click="$router.push('/mega_category/5')">
                 <img src="@/assets/img/cbimg4.png" alt=""><br>
                 <span>Игрушки и игры</span>
             </div>
-            <div class="category_box">
+            <div class="category_box" @click="$router.push('/mega_category/5')">
                 <img src="@/assets/img/cbimg5.png" alt=""><br>
                 <span>Одежда и обувь</span>
             </div>
-            <div class="category_box">
+            <div class="category_box" @click="$router.push('/mega_category/5')">
                 <img src="@/assets/img/cbimg6.png" alt=""><br>
                 <span>Для мамочек</span>
             </div>
-            <div class="category_box">
+            <div class="category_box" @click="$router.push('/mega_category/5')">
                 <img src="@/assets/img/cbimg7.png" alt=""><br>
                 <span>Гигиена и уход</span>
             </div>
-            <div class="category_box">
+            <div class="category_box" @click="$router.push('/mega_category/5')">
                 <img src="@/assets/img/cbimg8.png" alt=""><br>
                 <span>Кормление</span>
             </div>
-            <div class="category_box">
+            <div class="category_box" @click="$router.push('/mega_category/5')">
                 <img src="@/assets/img/cbimg9.png" alt=""><br>
                 <span>Детксие подарки</span>
             </div>
-            <div class="category_box">
+            <div class="category_box" @click="$router.push('/mega_category/5')">
                 <img src="@/assets/img/cbimg10.png" alt=""><br>
                 <span>Елки и игрушки</span>
             </div>
-            <div class="category_box">
+            <div class="category_box" @click="$router.push('/mega_category/5')">
                 <img src="@/assets/img/cbimg11.png" alt=""><br>
                 <span>Подарочные карты</span>
             </div>

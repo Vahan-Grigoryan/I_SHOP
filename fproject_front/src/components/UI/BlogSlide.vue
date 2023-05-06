@@ -30,6 +30,11 @@
 </template>
 
 <script>
+// Blog slide for HrefBlogBox component(slider) and blog page
+// props:
+//      splide_slid: defines purpose of this component
+//      blog: one blog with params to view(see above)
+
 export default {
     name: 'ui-blog-slide',
     props: {

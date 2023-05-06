@@ -35,7 +35,7 @@
                 -90%
             </div>
             <div class="to_like_box">
-                <div class="like"></div>
+                <img src="@/assets/img/trash.png" alt="">
             </div>
             <img src="@/assets/img/watched_slide_img1.png" alt="">
             <div class="slide_desc">
@@ -72,12 +72,38 @@
         <div class="bar"></div>
     </div>
 
-    <h1>Характеристики</h1>
-
+    <div class="header_and_compare_fields_select">
+        <h1>Характеристики</h1>
+        <ui-select 
+        :purpose="'detail'"
+        v-model:selected_option="compare_field"
+        :options="options"
+        />
+    </div>
     
     <div class="products_differences">
-        <div class="product_diff">
+        <div
+        class="product_diff"
+        v-for="_ in 10"
+        >
+            <h3>Очень понравилась коляска! {{ _ }}</h3>
 
+            <div class="product_diff_charcteristic">
+                <h5>Максимальный вес ребенка:</h5>
+                <span>7 кг</span>
+            </div>
+            <div class="product_diff_charcteristic">
+                <h5>Цвет:</h5>
+                <span>Красный, черный, коричневый, синий</span>
+            </div>
+            <div class="product_diff_charcteristic">
+                <h5>Материал:</h5>
+                <span>Водонепроницаемая ткань</span>
+            </div>
+            <div class="product_diff_charcteristic">
+                <h5>Размер:</h5>
+                <span>107см x 234см</span>
+            </div>
         </div>
     </div>
 
@@ -87,18 +113,18 @@
 </template>
 
 <script>
-import { defineComponent, onMounted, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import Splide from '@splidejs/splide'
 
 
-export default defineComponent({
+export default {
     setup() {
         const splide = ref();
-
+        let compare_field = ref('Select field for compare')
+        const options = ['all', 'weight', 'color', 'size']
 
         onMounted( () => {
             const end  = splide.value.splide.Components.Controller.getEnd() + 1;
-            const pbar = document.querySelector('.progressbar')
             const bar = document.querySelector('.bar')
             bar.style.width = `${bar.offsetWidth / end}px`
 
@@ -116,11 +142,12 @@ export default defineComponent({
         
         return {
             splide,
+            compare_field,
+            options,
             splideMoved,
         }
     },
-
-})
+}
 </script>
 
 <style scoped>

@@ -38,6 +38,10 @@
 </template>
 
 <script>
+// First slider from top in Index page, 
+// didn't use anywhere except here
+
+
 import { EffectCoverflow, Navigation, Pagination, Autoplay} from 'swiper'
 import { Swiper, SwiperSlide } from 'swiper/vue';
 

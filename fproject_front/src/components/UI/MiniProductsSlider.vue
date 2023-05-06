@@ -21,6 +21,10 @@
 </template>
 
 <script>
+// Slider component with custom content, header, bottom section in this project,
+// used in many places
+
+
 import { Navigation, Autoplay} from 'swiper'
 import { Swiper, SwiperSlide } from 'swiper/vue';
 

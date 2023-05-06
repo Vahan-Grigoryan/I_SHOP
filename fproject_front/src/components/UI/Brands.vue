@@ -52,12 +52,16 @@
         </div>
     </div>
     <slot name="pagination_or_href">
-        <button>Смотреть все бренды</button>
+        <button @click="$router.push('/brands')">Смотреть все бренды</button>
     </slot> 
 </div>
 </template>
 
 <script>
+// Component for Index and Brands pages,
+// with custom pagination_or_href section
+
+
 export default {
     name: 'ui-brands',
     props: {
@@ -81,6 +85,9 @@ export default {
   display: grid;
   grid-template-columns: auto auto auto auto auto auto;
   grid-gap: 25px;
+}
+.brand{
+    cursor: pointer;
 }
 .brand > p{
   font-size: 15px;
