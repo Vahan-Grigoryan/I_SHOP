@@ -3,5 +3,5 @@ from fapp import drf_views
 
 
 urlpatterns = [
-    path('', drf_views.Index.as_view())
+    path('categories', drf_views.Categories.as_view())
 ]

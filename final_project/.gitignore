@@ -1,12 +1,8 @@
-
-# local env files
 .env.local
 .env.*.local
-migrations/
-# Log files
 
-# Editor directories and files
 .idea
 .vscode
 *.pyc
 
+/fapp/migrations/
