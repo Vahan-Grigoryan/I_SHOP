@@ -2,53 +2,13 @@
 <div class="brands_box">
     <h1 v-if="header_have">Бренды</h1>
     <div class="brands">
-        <div class="brand">
-            <img src="@/assets/img/brand1.png" alt="">
-            <p>Philips Avent</p>
-        </div>
-        <div class="brand">
-            <img src="@/assets/img/brand2.png" alt="">
-            <p>Hipp</p>
-        </div>
-        <div class="brand">
-            <img src="@/assets/img/brand3.png" alt="">
-            <p>Omron</p>
-        </div>
-        <div class="brand">
-            <img src="@/assets/img/brand4.png" alt="">
-            <p>NUK</p>
-        </div>
-        <div class="brand">
-            <img src="@/assets/img/brand5.png" alt="">
-            <p>Nutrilon</p>
-        </div>
-        <div class="brand">
-            <img src="@/assets/img/brand6.png" alt="">
-            <p>Britax Romer</p>
-        </div>
-        <div class="brand">
-            <img src="@/assets/img/brand7.png" alt="">
-            <p>Puky</p>
-        </div>
-        <div class="brand">
-            <img src="@/assets/img/brand8.png" alt="">
-            <p>The name of Brand</p>
-        </div>
-        <div class="brand">
-            <img src="@/assets/img/brand9.png" alt="">
-            <p>Ergobaby</p>
-        </div>
-        <div class="brand">
-            <img src="@/assets/img/brand10.png" alt="">
-            <p>Alvi</p>
-        </div>
-        <div class="brand">
-            <img src="@/assets/img/brand11.png" alt="">
-            <p>Baby Born</p>
-        </div>
-        <div class="brand">
-            <img src="@/assets/img/brand12.png" alt="">
-            <p>Chicco</p>
+        <div 
+        class="brand"
+        v-for="brand in brands"
+        @click="$router.push('to_filters!!!')"
+        >
+            <img :src="brand.image" alt="">
+            <p>{{ brand.name }}</p>
         </div>
     </div>
     <slot name="pagination_or_href">
@@ -65,10 +25,11 @@
 export default {
     name: 'ui-brands',
     props: {
-        header_have:{
+        header_have: {
             type: Boolean,
             default: true
-        }
+        },
+        brands: Array
     }
 }
 </script>

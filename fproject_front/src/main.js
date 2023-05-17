@@ -8,6 +8,7 @@ import ui_components from '@/components/UI/index'
 import VueSplide from '@splidejs/vue-splide';
 
 
+
 App = createApp(App)
 
 const components = [...logic_components, ...ui_components]

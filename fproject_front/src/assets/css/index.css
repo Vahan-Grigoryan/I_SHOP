@@ -53,7 +53,7 @@ main .right_screens > img {
 .variety_of_products .for_grid {
   display: grid;
   grid-template-columns: repeat(6, auto);
-  grid-gap: 45px 0px;
+  grid-gap: 45px 20px;
   margin-top: 30px;
 }
 
@@ -67,6 +67,7 @@ main .right_screens > img {
   border-radius: 10px;
   cursor: pointer;
   width: 100%;
+  
 }
 
 .variety_of_products .for_grid .category_box:hover {
@@ -215,19 +216,40 @@ main .right_screens > img {
   color: #B7B8C5;
   border-radius: 34px;
   border: 1px solid #50909C;
-  width: 65%;
+  width: 100%;
   outline: none;
+}
+.response_msg{
+  position: absolute;
+  width: 100%;
+  margin: 0px auto;
+  top: 0px;
+  background: black;
+  text-align: center;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  box-shadow: 5px 5px 55px rgba(0, 0, 0, .5);
+  transform: translateY(calc(100% + 10px));
+}
+.response_msg_invalid{
+  color: red;
+}
+.response_msg_valid{
+  color: rgb(0, 255, 81);
 }
 .form_wrapper form input:focus{
   border: 1px solid #5e00a1;
 }
 .form_wrapper form button {
+  position: relative;
   color: white;
   border: none;
   background: #74CCD8;
   padding: 13px 30px;
   border-radius: 25px;
   cursor: pointer;
+  transition: .5s;
 }
 .get_sales_info_form_box .right_girl {
   width: 30%;

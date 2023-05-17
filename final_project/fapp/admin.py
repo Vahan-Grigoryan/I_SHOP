@@ -5,8 +5,12 @@ from fapp.models import *
 
 
 class CategoryAdmin(ModelAdmin):
-    list_display = 'name', 'child_categories', 'both_images'
+    list_display = 'name', 'child_categories', 'products', 'both_images', 'id',
     search_fields = 'name',
+
+    def products(self, instance):
+        products = '<br>'.join(list(instance.products.values_list('name', flat=True)))
+        return mark_safe(products)
 
     def child_categories(self, instance):
         children = '<br>'.join( list(instance.child_cats.values_list('name', flat=True)) )
@@ -14,8 +18,10 @@ class CategoryAdmin(ModelAdmin):
 
     def both_images(self, instance):
         html = ''
-        if instance.image and instance.image_replace:
-            html = f'<img src={instance.image.url}>&nbsp;&nbsp;<img src={instance.image_replace.url}>'
+        if instance.image:
+            html = f'<img src={instance.image.url} width="32" height="32">&nbsp;&nbsp;'
+        if instance.image_replace:
+            html += f'<img src={instance.image_replace.url}>'
         return mark_safe(html)
 
 class BrandAdmin(ModelAdmin):
@@ -28,7 +34,7 @@ class BrandAdmin(ModelAdmin):
         return mark_safe(html)
 
 class ProductAdmin(ModelAdmin):
-    list_display = '__str__', 'stars_avg', 'image_miniatures',
+    list_display = '__str__', 'stars_avg', 'image_miniatures', 'id',
     search_fields = 'name',
 
     def image_miniatures(self, instance):
@@ -48,12 +54,12 @@ class ProfileAdmin(ModelAdmin):
         return tuple(instance.orders.values_list('status', flat=True))
 
 class ImageAdmin(ModelAdmin):
-    list_display = 'rel_definition', 'image_miniature',
+    list_display = 'rel_definition', 'thumbnail',
 
     def rel_definition(self, instance):
         return instance.product
 
-    def image_miniature(self, instance):
+    def thumbnail(self, instance):
         return mark_safe(f'<img src={instance.image.url} width="50" height="50" />')
 
 class OrderAdmin(ModelAdmin):
@@ -65,6 +71,7 @@ class OrderAdmin(ModelAdmin):
 
 admin.site.register(User)
 admin.site.register(Comment)
+admin.site.register(IndependentMail)
 admin.site.register(Blog)
 admin.site.register(Order, OrderAdmin)
 admin.site.register(Profile, ProfileAdmin)
