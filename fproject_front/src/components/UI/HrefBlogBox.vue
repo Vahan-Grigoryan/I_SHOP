@@ -10,13 +10,8 @@
         <slot>
             <ui-blog-slide 
             :splide_slide="true"
-            v-for="_ in 3"
-            :blog="{
-                id: _,
-                name: 'Как выбрать коляску ребенку?',
-                date: '25.05.2022',
-                desc: 'Модель Mica предлагает простую установку при помощи основания Isofix с упором в пол и...',
-            }"
+            v-for="blog in blogs"
+            :blog="blog"
             >
 
             </ui-blog-slide>
@@ -36,12 +31,21 @@
 
 export default {
   name: 'ui-href-blog-box',
+  data(){
+    return {
+        blogs: []
+    }
+  },
   props: {
     header_text: {
         type: String,
         default: 'Наш блог'
     }
-  } 
+  },
+  async beforeMount(){
+    const blogs = await this.$store.getters.fetchBlogsIndex()
+    this.blogs = blogs
+  }
 }
 </script>
 

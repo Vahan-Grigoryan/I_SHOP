@@ -24,7 +24,18 @@
     height: 60px;
     display: flex;
     align-items: center;
-    justify-content: center;
+    padding: 3em 0px;
+} 
+.thumbs .splide__list{
+    width: 100%;
+    justify-content: space-around;
+}
+.thumbs .splide__track{
+    width: 100%;
+}
+.thumb{
+    width: fit-content !important;
+    margin: 0px !important;
 }
 .thumb img{
     width: 60px !important;
@@ -44,7 +55,7 @@
 .main_detail_slider__slide img{
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
 }
 .right_content{
     width: 57.5%;
@@ -55,6 +66,12 @@
     border: 1px solid #E4E7EE;
     border-radius: 13px;
     position: relative;
+}
+.availability_box .star_img{
+    margin-right: 5px;
+}
+.availability_box .star_img:last-child{
+    margin-right: 0px;
 }
 .inline{
     display: inline-flex;

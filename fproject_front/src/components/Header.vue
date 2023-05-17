@@ -55,10 +55,11 @@
                 class="left_category" 
                 v-for="category in Object.keys(categories)"
                 @mouseenter="showCategories(category)"
+                @click="selectLeftCategory(category)"
                 >
                   <div>
-                    <img src="@/assets/img/baby_carriage.png" alt="" width="25" height="25" class="default_img">
-                    <img src="@/assets/img/Baby_bed.png" alt="" width="25" height="25" class="replacement_img">
+                    <img :src="getImage(category)" width="25" height="25" class="default_img">
+                    <img :src="getImageReplace(category)" width="25" height="25" class="replacement_img">
                     {{ category }}
                   </div>
                 
@@ -94,6 +95,7 @@
                 <div class="right_category" 
                 v-else
                 v-for="category_value in Object.values(right_categories)"
+                @click="selectRightCategory(category_value)"
                 >
                   <div
                   v-if="categories_visibiltiy[category_value[0]+'_visible']"
@@ -171,38 +173,39 @@ export default {
         mega_menu_visible: false,
         auth_modal_visible: false,
         categories:{
-          tech:{
-            housewifely: [
-              'vacuum_cleaners'
-            ],
-            programming:[
-              'computers', 
-              'phones'
-            ],
-            GGTT:[
-              'GGTTcomputers', 
-              'GGTTphones'
-            ],
+          // tech:{
+          //   housewifely: [
+          //     'vacuum_cleaners'
+          //   ],
+          //   programming:[
+          //     'computers', 
+          //     'phones'
+          //   ],
+          //   GGTT:[
+          //     'GGTTcomputers', 
+          //     'GGTTphones'
+          //   ],
 
             
-          },
-          cloth: {
-            mans: [
-              'trousers',
-              'shorts',
-              'shoes',
-              'cap',
-              'jacket',
-              'gloves',
-              'socks',
-              'leggings',
-              'underpants',
-            ],
-            womens: [
-              'shoes'
-            ]
-          }
+          // },
+          // cloth: {
+          //   mans: [
+          //     'trousers',
+          //     'shorts',
+          //     'shoes',
+          //     'cap',
+          //     'jacket',
+          //     'gloves',
+          //     'socks',
+          //     'leggings',
+          //     'underpants',
+          //   ],
+          //   womens: [
+          //     'shoes'
+          //   ]
+          // }
         },
+        categories_without_images: {},
         categories_visibiltiy: {
           left_categories: {},
           center_categories: {}
@@ -214,7 +217,23 @@ export default {
       }
     },
     methods: {
+      selectLeftCategory(category){
+        this.mega_menu_visible=false
+        this.$router.push(`/mega_category/${category}`)
+        this.$emit('selectedCategory', category)
+      },
+      selectRightCategory(category){
+        this.mega_menu_visible=false
+        
+      },
+      getImage(category){
+        return `http://localhost:8000${this.categories[category]['image']}`
+      },
+      getImageReplace(category){
+        return `http://localhost:8000${this.categories[category]['image_replace']}`
+      },
       showCategories(category, center=false){
+        
         if (center){
           Object.keys(this.categories_visibiltiy['center_categories']).forEach( key => {
             this.categories_visibiltiy[key] = false
@@ -227,13 +246,26 @@ export default {
           })
           this.select_plug1 = false
         }
-        
         this.categories_visibiltiy[category+'_visible']=true
+        
       },
-
     },
-    mounted(){
-      for (let [category_key, category_value] of Object.entries(this.categories)) {
+    async beforeMount(){
+      this.categories = await this.$store.getters.fetchCategories()
+      let categories_without_images = {}
+      Object.keys(this.categories).forEach( left_category_key => {
+        categories_without_images[left_category_key]={}
+        Object.keys(this.categories[left_category_key]).forEach( left_category_content_key => {
+          if (left_category_content_key != 'image' && left_category_content_key != 'image_replace') {
+            categories_without_images[left_category_key][left_category_content_key] = 
+            this.categories[left_category_key][left_category_content_key]
+          }
+        })
+
+      })
+
+      this.categories_without_images = categories_without_images
+      for (let [category_key, category_value] of Object.entries(this.categories_without_images)) {
         this.center_categories = [
           ...this.center_categories, 
           [category_key, [...Object.keys(category_value)]]
@@ -247,7 +279,6 @@ export default {
           ]
         }
       }
-
     },
     watch: {
       auth_modal_visible(newValue){

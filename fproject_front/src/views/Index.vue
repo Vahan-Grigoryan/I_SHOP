@@ -24,11 +24,15 @@
         <h1>Широкий ассортимент товаров</h1><br>
         <span>для малышей и мам</span>
         <div class="for_grid">
-            <div class="category_box" @click="$router.push('/mega_category/5')">
-                <img src="@/assets/img/cbimg1.png" alt=""><br>
-                <span>Коляски</span>
+            <div 
+            class="category_box" 
+            v-for="center_category in center_categories"
+            @click="$router.push('to_filters!!!')"
+            >
+                <img :src="$store.getters.getImageUrl(center_category.image)"><br>
+                <span>{{ center_category.name }}</span>
             </div>
-            <div class="category_box" @click="$router.push('/mega_category/5')">
+            <!-- <div class="category_box" @click="$router.push('/mega_category/5')">
                 <img src="@/assets/img/cbimg2.png" alt=""><br>
                 <span>Автокресла</span>
             </div>
@@ -71,232 +75,92 @@
             <div class="category_box" @click="$router.push('/mega_category/5')">
                 <img src="@/assets/img/cbimg11.png" alt=""><br>
                 <span>Подарочные карты</span>
-            </div>
+            </div> -->
         </div>
     </div>
-
-    <mini-products-slider>
-        <template #header>
-            <h1>Вы уже смотрели</h1>
-        </template>
-        
-        <SplideSlide 
-        class="swiper-slide"
-        v-for="product in products"
-        :key="product.id"
-        @click="$router.push(`/detail/${product.id}`)"
-        >
-            <div 
-            :class="defineSaleNewHit(product.saleNewHit)"
-            v-if=" typeof product.price != 'number' "
-            >
-                {{ product.saleNewHitContent().toUpperCase() }}
-            </div>
-            <div class="to_like_box"> <!-- @click="addOrDelLikes(product.id)" -->
-                <div :class="{
-                    like: true,
-                    // change_purple_permanent: likesPurpleStatus[product.id]
-                }">
-                </div>
-            </div>
-            <img :src="product.image" alt="">
-            <div class="slide_desc">
-                <div v-if="typeof product.price == 'number'">
-                    <h3>{{ product.price }} &euro;</h3><br><br>
-                </div>
-                <div>
-                    <h3>{{ product.price[0] }} &euro;</h3> &nbsp; <span>{{ product.price[1] }} &euro;</span><br><br>
-                </div>
-                
-                <p>{{ product.name }}</p>
-            </div>
-        </SplideSlide>
-
-    </mini-products-slider>
     
-    <mini-products-slider style="background: #F4F5F9;">
+    <mini-products-slider>
         <template #header>
             <h1>Акции и скидки</h1>
         </template>
         
-        <SplideSlide class="swiper-slide">
-                    <div class="sale_hit_new_box">
-                        -90%
+        <SplideSlide 
+        class="swiper-slide"
+        v-for="product in sailed_products"
+        :key="product.id"
+        @click="$router.push(`products/${product.id}`)"
+        >
+            <div :class="defineSaleNewHit('sale')">
+                {{ product.sale_new_hit.slice(4) }}%
+            </div>
+            <div class="to_like_box">
+                <div class="like"></div>
+            </div>
+            <img :src="product.images[0].image">
+            <div class="slide_desc">
+                <h3>{{ product.saled_price ? product.saled_price : product.price }} &dollar;</h3> &nbsp; 
+                <span v-if="product.saled_price">{{ product.price }} &dollar;</span>
+                <br><br>
+                <p>{{ product.name }}</p>
+                <div class="colors">
+                    <div 
+                    class="color" 
+                    v-for="color in product.colors.split(',')"
+                    :style="`background: ${color};`"
+                    >
                     </div>
-                    <div class="to_like_box">
-                        <div class="like"></div>
+                </div>
+                <div class="delivery_box">
+                    <img src="@/assets/img/delivery.png" alt="">
+                    <small>Доставка: &plusmn; {{ product.delivery_days }} дня</small>
+                </div>
+                <div class="rating">
+                    <div class="stars">
+                        <img 
+                        src="@/assets/img/star.png" 
+                        class="star" 
+                        v-for="_ in product.stars_avg"
+                        />
+                        <img 
+                        src="@/assets/img/star_gray.png" 
+                        class="star" 
+                        v-for="_ in 5-product.stars_avg"
+                        />
                     </div>
-                    <img src="@/assets/img/watched_slide_img1.png" alt="">
-                    <div class="slide_desc">
-                        <h3>100 &euro;</h3> &nbsp; <span>200 &euro;</span><br><br>
-                        <p>Safety 1st Timba Natural Wood 3 в 1 Стульчик для кормления + подушка</p>
-                        <div class="colors">
-                            <div class="color" style="background: red;"></div>
-                            <div class="color" style="background: blue;"></div>
-                            <div class="color" style="background: yellow;"></div>
-                            <div class="color" style="background: greenyellow;"></div>
-                            <div class="color" style="background: teal;"></div>
-                        </div>
-                        <div class="delivery_box">
-                            <img src="@/assets/img/delivery.png" alt="">
-                            <small>Доставка: 1-2 дня</small>
-                        </div>
-                        <div class="rating">
-                            <div class="stars">
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star_gray.png" class="star" />
-                            </div>
-                            <small>&nbsp; 15 отзывов</small>
-                        </div>
-                    </div>
-        </SplideSlide>
-        <SplideSlide class="swiper-slide">
-                    <div class="sale_hit_new_box">
-                        -50%
-                    </div>
-                    <div class="to_like_box">
-                        <div class="like"></div>
-                    </div>
-                    <img src="@/assets/img/watched_slide_img1.png" alt="">
-                    <div class="slide_desc">
-                        <h3>100 &euro;</h3> &nbsp; <span>200 &euro;</span><br><br>
-                        <p>Safety 1st Timba Natural Wood 3 в 1 Стульчик для кормления + подушка</p>
-                        <div class="colors">
-                            <div class="color" style="background: maroon;"></div>
-                            <div class="color" style="background: rgb(0, 255, 149);"></div>
-                            <div class="color" style="background: rgb(30, 50, 58);"></div>
-                            <div class="color" style="background: rgb(15, 112, 88);"></div>
-                            <div class="color" style="background: rgb(189, 201, 19);"></div>
-                        </div>
-                        <div class="delivery_box">
-                            <img src="@/assets/img/delivery.png" alt="">
-                            <small>Доставка: 1-2 дня</small>
-                        </div>
-                        <div class="rating">
-                            <div class="stars">
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star_gray.png" class="star" />
-                            </div>
-                            <small>&nbsp; 15 отзывов</small>
-                        </div>
-                    </div>
-        </SplideSlide>
-        <SplideSlide class="swiper-slide">
-                    <div class="sale_hit_new_box">
-                        -70%
-                    </div>
-                    <div class="to_like_box">
-                        <div class="like"></div>
-                    </div>
-                    <img src="@/assets/img/watched_slide_img1.png" alt="">
-                    <div class="slide_desc">
-                        <h3>100 &euro;</h3> &nbsp; <span>200 &euro;</span><br><br>
-                        <p>Safety 1st Timba Natural Wood 3 в 1 Стульчик для кормления + подушка</p>
-                        <div class="colors">
-                            <div class="color" style="background: rgb(127, 153, 9);"></div>
-                            <div class="color" style="background: rgb(84, 84, 179);"></div>
-                            <div class="color" style="background: rgb(23, 173, 86);"></div>
-                            <div class="color" style="background: rgb(47, 255, 245);"></div>
-                            <div class="color" style="background: rgb(2, 48, 48);"></div>
-                        </div>
-                        <div class="delivery_box">
-                            <img src="@/assets/img/delivery.png" alt="">
-                            <small>Доставка: 1-2 дня</small>
-                        </div>
-                        <div class="rating">
-                            <div class="stars">
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star_gray.png" class="star" />
-                            </div>
-                            <small>&nbsp; 15 отзывов</small>
-                        </div>
-                    </div>
-        </SplideSlide>
-        <SplideSlide class="swiper-slide">
-                    <div class="sale_hit_new_box">
-                        -10%
-                    </div>
-                    <div class="to_like_box">
-                        <div class="like"></div>
-                    </div>
-                    <img src="@/assets/img/watched_slide_img1.png" alt="">
-                    <div class="slide_desc">
-                        <h3>100 &euro;</h3> &nbsp; <span>200 &euro;</span><br><br>
-                        <p>Safety 1st Timba Natural Wood 3 в 1 Стульчик для кормления + подушка</p>
-                        <div class="colors">
-                            <div class="color" style="background: violet;"></div>
-                            <div class="color" style="background: gray;"></div>
-                            <div class="color" style="background: aqua;"></div>
-                            <div class="color" style="background: rgb(255, 47, 227);"></div>
-                            <div class="color" style="background: rgb(128, 0, 100);"></div>
-                        </div>
-                        <div class="delivery_box">
-                            <img src="@/assets/img/delivery.png" alt="">
-                            <small>Доставка: 1-2 дня</small>
-                        </div>
-                        <div class="rating">
-                            <div class="stars">
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star_gray.png" class="star" />
-                            </div>
-                            <small>&nbsp; 15 отзывов</small>
-                        </div>
-                    </div>
-        </SplideSlide>
-        <SplideSlide class="swiper-slide">
-                    <div class="sale_hit_new_box">
-                        -50%
-                    </div>
-                    <div class="to_like_box">
-                        <div class="like"></div>
-                    </div>
-                    <img src="@/assets/img/watched_slide_img1.png" alt="">
-                    <div class="slide_desc">
-                        <h3>100 &euro;</h3> &nbsp; <span>200 &euro;</span><br><br>
-                        <p>Safety 1st Timba Natural Wood 3 в 1 Стульчик для кормления + подушка</p>
-                        <div class="colors">
-                            <div class="color" style="background: red;"></div>
-                            <div class="color" style="background: rgb(37, 37, 173);"></div>
-                            <div class="color" style="background: rgb(0, 255, 170);"></div>
-                            <div class="color" style="background: rgb(201, 211, 186);"></div>
-                            <div class="color" style="background: rgb(86, 168, 168);"></div>
-                        </div>
-                        <div class="delivery_box">
-                            <img src="@/assets/img/delivery.png" alt="">
-                            <small>Доставка: 1-2 дня</small>
-                        </div>
-                        <div class="rating">
-                            <div class="stars">
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star_gray.png" class="star" />
-                            </div>
-                            <small>&nbsp; 15 отзывов</small>
-                        </div>
-                    </div>
+                    <small>&nbsp; отзывы: {{ product.comments_count }}</small>
+                </div>
+            </div>
         </SplideSlide>
 
     </mini-products-slider>
 
     <div class="get_sales_info_form_box">
-        <img src="@/assets/img/sale_kupon.png" alt="">
-        <img src="@/assets/img/sale_circle.png" alt="">
+        <img src="@/assets/img/sale_kupon.png">
+        <img src="@/assets/img/sale_circle.png">
         <div class="form_wrapper" action="">
-            <div>
+            <div style="width:80%">
                 <h1>Получайте информацию о скидках первыми</h1>
                 <span>Оформите подписку и вы будете вкурсе всех наших выгодных акций и скидок</span>
-                <form action="" method="post">
-                    <input type="text" placeholder="Ваша электронная почта">
-                    <button><strong>&#10003; Оформить подписку</strong></button>
+                <form @submit.prevent method="post">
+                    <div style="width: 45%;position: relative;">
+                        <input ref="mail_to_mailing_list" type="email" placeholder="Ваша электронная почта" />
+                        <div 
+                        v-if="mailing_list_response" 
+                        :class="{
+                            response_msg: true,
+                            response_msg_invalid: mailing_list_response_invalid,
+                            response_msg_valid: mailing_list_response_valid
+                        }"
+                        >
+                            {{ mailing_list_response }}
+                        </div>
+                    </div>
+                    <button @click="subscribeMailingList">
+                        <strong>&#10003; Оформить подписку</strong>
+                    </button>
+                    <button @click="unsubscribe">
+                        <strong>&#10005; Отказатся от подписки</strong>
+                    </button>
                 </form>
             </div>
             
@@ -309,172 +173,53 @@
             <h1>Популярные товары</h1>
         </template>
         
-        <SplideSlide class="swiper-slide">
-                    <div class="sale_hit_new_box">
-                        -90%
+        <SplideSlide 
+        class="swiper-slide"
+        v-for="product in hit_products"
+        :key="product.id"
+        @click="$router.push(`products/${product.id}`)"
+        >
+            <div :class="defineSaleNewHit('hit')">
+                {{ product.sale_new_hit }}
+            </div>
+            <div class="to_like_box">
+                <div class="like"></div>
+            </div>
+            <img :src="product.images[0].image">
+            <div class="slide_desc">
+                <h3>{{ product.saled_price ? product.saled_price : product.price }} &dollar;</h3> &nbsp; 
+                <span v-if="product.saled_price">{{ product.price }} &dollar;</span>
+                <br><br>
+                <p>{{ product.name }}</p>
+                <div class="colors">
+                    <div 
+                    class="color" 
+                    v-for="color in product.colors.split(',')"
+                    :style="`background: ${color};`"
+                    >
                     </div>
-                    <div class="to_like_box">
-                        <div class="like"></div>
+                </div>
+                <div class="delivery_box">
+                    <img src="@/assets/img/delivery.png" alt="">
+                    <small>Доставка: &plusmn; {{ product.delivery_days }} дня</small>
+                </div>
+                <div class="rating">
+                    <div class="stars">
+                        <img 
+                        src="@/assets/img/star.png" 
+                        class="star" 
+                        v-for="_ in product.stars_avg"
+                        />
+                        <img 
+                        src="@/assets/img/star_gray.png" 
+                        class="star" 
+                        v-for="_ in 5-product.stars_avg"
+                        />
                     </div>
-                    <img src="@/assets/img/watched_slide_img1.png" alt="">
-                    <div class="slide_desc">
-                        <h3>100 &euro;</h3> &nbsp; <span>200 &euro;</span><br><br>
-                        <p>Safety 1st Timba Natural Wood 3 в 1 Стульчик для кормления + подушка</p>
-                        <div class="colors">
-                            <div class="color" style="background: red;"></div>
-                            <div class="color" style="background: blue;"></div>
-                            <div class="color" style="background: yellow;"></div>
-                            <div class="color" style="background: greenyellow;"></div>
-                            <div class="color" style="background: teal;"></div>
-                        </div>
-                        <div class="delivery_box">
-                            <img src="@/assets/img/delivery.png" alt="">
-                            <small>Доставка: 1-2 дня</small>
-                        </div>
-                        <div class="rating">
-                            <div class="stars">
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star_gray.png" class="star" />
-                            </div>
-                            <small>&nbsp; 15 отзывов</small>
-                        </div>
-                    </div>
+                    <small>&nbsp; отзывы: {{ product.comments_count }}</small>
+                </div>
+            </div>
         </SplideSlide>
-        <SplideSlide class="swiper-slide">
-                    <div class="sale_hit_new_box">
-                        -90%
-                    </div>
-                    <div class="to_like_box">
-                        <div class="like"></div>
-                    </div>
-                    <img src="@/assets/img/watched_slide_img1.png" alt="">
-                    <div class="slide_desc">
-                        <h3>100 &euro;</h3> &nbsp; <span>200 &euro;</span><br><br>
-                        <p>Safety 1st Timba Natural Wood 3 в 1 Стульчик для кормления + подушка</p>
-                        <div class="colors">
-                            <div class="color" style="background: red;"></div>
-                            <div class="color" style="background: blue;"></div>
-                            <div class="color" style="background: yellow;"></div>
-                            <div class="color" style="background: greenyellow;"></div>
-                            <div class="color" style="background: teal;"></div>
-                        </div>
-                        <div class="delivery_box">
-                            <img src="@/assets/img/delivery.png" alt="">
-                            <small>Доставка: 1-2 дня</small>
-                        </div>
-                        <div class="rating">
-                            <div class="stars">
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star_gray.png" class="star" />
-                            </div>
-                            <small>&nbsp; 15 отзывов</small>
-                        </div>
-                    </div>
-        </SplideSlide>
-        <SplideSlide class="swiper-slide">
-                    <div class="sale_hit_new_box">
-                        -90%
-                    </div>
-                    <div class="to_like_box">
-                        <div class="like"></div>
-                    </div>
-                    <img src="@/assets/img/watched_slide_img1.png" alt="">
-                    <div class="slide_desc">
-                        <h3>100 &euro;</h3> &nbsp; <span>200 &euro;</span><br><br>
-                        <p>Safety 1st Timba Natural Wood 3 в 1 Стульчик для кормления + подушка</p>
-                        <div class="colors">
-                            <div class="color" style="background: red;"></div>
-                            <div class="color" style="background: blue;"></div>
-                            <div class="color" style="background: yellow;"></div>
-                            <div class="color" style="background: greenyellow;"></div>
-                            <div class="color" style="background: teal;"></div>
-                        </div>
-                        <div class="delivery_box">
-                            <img src="@/assets/img/delivery.png" alt="">
-                            <small>Доставка: 1-2 дня</small>
-                        </div>
-                        <div class="rating">
-                            <div class="stars">
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star_gray.png" class="star" />
-                            </div>
-                            <small>&nbsp; 15 отзывов</small>
-                        </div>
-                    </div>
-        </SplideSlide>
-        <SplideSlide class="swiper-slide">
-                    <div class="sale_hit_new_box">
-                        -90%
-                    </div>
-                    <div class="to_like_box">
-                        <div class="like"></div>
-                    </div>
-                    <img src="@/assets/img/watched_slide_img1.png" alt="">
-                    <div class="slide_desc">
-                        <h3>100 &euro;</h3> &nbsp; <span>200 &euro;</span><br><br>
-                        <p>Safety 1st Timba Natural Wood 3 в 1 Стульчик для кормления + подушка</p>
-                        <div class="colors">
-                            <div class="color" style="background: red;"></div>
-                            <div class="color" style="background: blue;"></div>
-                            <div class="color" style="background: yellow;"></div>
-                            <div class="color" style="background: greenyellow;"></div>
-                            <div class="color" style="background: teal;"></div>
-                        </div>
-                        <div class="delivery_box">
-                            <img src="@/assets/img/delivery.png" alt="">
-                            <small>Доставка: 1-2 дня</small>
-                        </div>
-                        <div class="rating">
-                            <div class="stars">
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star_gray.png" class="star" />
-                            </div>
-                            <small>&nbsp; 15 отзывов</small>
-                        </div>
-                    </div>
-        </SplideSlide>
-        <SplideSlide class="swiper-slide">
-                    <div class="sale_hit_new_box">
-                        -90%
-                    </div>
-                    <div class="to_like_box">
-                        <div class="like"></div>
-                    </div>
-                    <img src="@/assets/img/watched_slide_img1.png" alt="">
-                    <div class="slide_desc">
-                        <h3>100 &euro;</h3> &nbsp; <span>200 &euro;</span><br><br>
-                        <p>Safety 1st Timba Natural Wood 3 в 1 Стульчик для кормления + подушка</p>
-                        <div class="colors">
-                            <div class="color" style="background: red;"></div>
-                            <div class="color" style="background: blue;"></div>
-                            <div class="color" style="background: yellow;"></div>
-                            <div class="color" style="background: greenyellow;"></div>
-                            <div class="color" style="background: teal;"></div>
-                        </div>
-                        <div class="delivery_box">
-                            <img src="@/assets/img/delivery.png" alt="">
-                            <small>Доставка: 1-2 дня</small>
-                        </div>
-                        <div class="rating">
-                            <div class="stars">
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star_gray.png" class="star" />
-                            </div>
-                            <small>&nbsp; 15 отзывов</small>
-                        </div>
-                    </div>
-        </SplideSlide>
-
     </mini-products-slider>
 
     <mini-products-slider style="background: #F4F5F9;">
@@ -482,171 +227,54 @@
             <h1>Новинки</h1>
         </template>
         
-        <SplideSlide class="swiper-slide">
-                    <div class="sale_hit_new_box">
-                        -90%
+        <SplideSlide 
+        class="swiper-slide"
+        v-for="product in new_products"
+        :key="product.id"
+        @click="$router.push(`products/${product.id}`)"
+        >
+            <div :class="defineSaleNewHit('new')">
+                {{ product.sale_new_hit }}
+            </div>
+            <div class="to_like_box">
+                <div class="like"></div>
+            </div>
+            <img :src="product.images[0].image">
+            <div class="slide_desc">
+                <h3>{{ product.saled_price ? product.saled_price : product.price }} &dollar;</h3> &nbsp; 
+                <span v-if="product.saled_price">{{ product.price }} &dollar;</span>
+                <br><br>
+                <p>{{ product.name }}</p>
+                <div class="colors">
+                    <div 
+                    class="color" 
+                    v-for="color in product.colors.split(',')"
+                    :style="`background: ${color};`"
+                    >
                     </div>
-                    <div class="to_like_box">
-                        <div class="like"></div>
+                </div>
+                <div class="delivery_box">
+                    <img src="@/assets/img/delivery.png" alt="">
+                    <small>Доставка: &plusmn; {{ product.delivery_days }} дня</small>
+                </div>
+                <div class="rating">
+                    <div class="stars">
+                        <img 
+                        src="@/assets/img/star.png" 
+                        class="star" 
+                        v-for="_ in product.stars_avg"
+                        />
+                        <img 
+                        src="@/assets/img/star_gray.png" 
+                        class="star" 
+                        v-for="_ in 5-product.stars_avg"
+                        />
                     </div>
-                    <img src="@/assets/img/watched_slide_img1.png" alt="">
-                    <div class="slide_desc">
-                        <h3>100 &euro;</h3> &nbsp; <span>200 &euro;</span><br><br>
-                        <p>Safety 1st Timba Natural Wood 3 в 1 Стульчик для кормления + подушка</p>
-                        <div class="colors">
-                            <div class="color" style="background: red;"></div>
-                            <div class="color" style="background: blue;"></div>
-                            <div class="color" style="background: yellow;"></div>
-                            <div class="color" style="background: greenyellow;"></div>
-                            <div class="color" style="background: teal;"></div>
-                        </div>
-                        <div class="delivery_box">
-                            <img src="@/assets/img/delivery.png" alt="">
-                            <small>Доставка: 1-2 дня</small>
-                        </div>
-                        <div class="rating">
-                            <div class="stars">
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star_gray.png" class="star" />
-                            </div>
-                            <small>&nbsp; 15 отзывов</small>
-                        </div>
-                    </div>
+                    <small>&nbsp; отзывы: {{ product.comments_count }}</small>
+                </div>
+            </div>
         </SplideSlide>
-        <SplideSlide class="swiper-slide">
-                    <div class="sale_hit_new_box">
-                        -90%
-                    </div>
-                    <div class="to_like_box">
-                        <div class="like"></div>
-                    </div>
-                    <img src="@/assets/img/watched_slide_img1.png" alt="">
-                    <div class="slide_desc">
-                        <h3>100 &euro;</h3> &nbsp; <span>200 &euro;</span><br><br>
-                        <p>Safety 1st Timba Natural Wood 3 в 1 Стульчик для кормления + подушка</p>
-                        <div class="colors">
-                            <div class="color" style="background: red;"></div>
-                            <div class="color" style="background: blue;"></div>
-                            <div class="color" style="background: yellow;"></div>
-                            <div class="color" style="background: greenyellow;"></div>
-                            <div class="color" style="background: teal;"></div>
-                        </div>
-                        <div class="delivery_box">
-                            <img src="@/assets/img/delivery.png" alt="">
-                            <small>Доставка: 1-2 дня</small>
-                        </div>
-                        <div class="rating">
-                            <div class="stars">
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star_gray.png" class="star" />
-                            </div>
-                            <small>&nbsp; 15 отзывов</small>
-                        </div>
-                    </div>
-        </SplideSlide>
-        <SplideSlide class="swiper-slide">
-                    <div class="sale_hit_new_box">
-                        -90%
-                    </div>
-                    <div class="to_like_box">
-                        <div class="like"></div>
-                    </div>
-                    <img src="@/assets/img/watched_slide_img1.png" alt="">
-                    <div class="slide_desc">
-                        <h3>100 &euro;</h3> &nbsp; <span>200 &euro;</span><br><br>
-                        <p>Safety 1st Timba Natural Wood 3 в 1 Стульчик для кормления + подушка</p>
-                        <div class="colors">
-                            <div class="color" style="background: red;"></div>
-                            <div class="color" style="background: blue;"></div>
-                            <div class="color" style="background: yellow;"></div>
-                            <div class="color" style="background: greenyellow;"></div>
-                            <div class="color" style="background: teal;"></div>
-                        </div>
-                        <div class="delivery_box">
-                            <img src="@/assets/img/delivery.png" alt="">
-                            <small>Доставка: 1-2 дня</small>
-                        </div>
-                        <div class="rating">
-                            <div class="stars">
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star_gray.png" class="star" />
-                            </div>
-                            <small>&nbsp; 15 отзывов</small>
-                        </div>
-                    </div>
-        </SplideSlide>
-        <SplideSlide class="swiper-slide">
-                    <div class="sale_hit_new_box">
-                        -90%
-                    </div>
-                    <div class="to_like_box">
-                        <div class="like"></div>
-                    </div>
-                    <img src="@/assets/img/watched_slide_img1.png" alt="">
-                    <div class="slide_desc">
-                        <h3>100 &euro;</h3> &nbsp; <span>200 &euro;</span><br><br>
-                        <p>Safety 1st Timba Natural Wood 3 в 1 Стульчик для кормления + подушка</p>
-                        <div class="colors">
-                            <div class="color" style="background: red;"></div>
-                            <div class="color" style="background: blue;"></div>
-                            <div class="color" style="background: yellow;"></div>
-                            <div class="color" style="background: greenyellow;"></div>
-                            <div class="color" style="background: teal;"></div>
-                        </div>
-                        <div class="delivery_box">
-                            <img src="@/assets/img/delivery.png" alt="">
-                            <small>Доставка: 1-2 дня</small>
-                        </div>
-                        <div class="rating">
-                            <div class="stars">
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star_gray.png" class="star" />
-                            </div>
-                            <small>&nbsp; 15 отзывов</small>
-                        </div>
-                    </div>
-        </SplideSlide>
-        <SplideSlide class="swiper-slide">
-                    <div class="sale_hit_new_box">
-                        -90%
-                    </div>
-                    <div class="to_like_box">
-                        <div class="like"></div>
-                    </div>
-                    <img src="@/assets/img/watched_slide_img1.png" alt="">
-                    <div class="slide_desc">
-                        <h3>100 &euro;</h3> &nbsp; <span>200 &euro;</span><br><br>
-                        <p>Safety 1st Timba Natural Wood 3 в 1 Стульчик для кормления + подушка</p>
-                        <div class="colors">
-                            <div class="color" style="background: red;"></div>
-                            <div class="color" style="background: blue;"></div>
-                            <div class="color" style="background: yellow;"></div>
-                            <div class="color" style="background: greenyellow;"></div>
-                            <div class="color" style="background: teal;"></div>
-                        </div>
-                        <div class="delivery_box">
-                            <img src="@/assets/img/delivery.png" alt="">
-                            <small>Доставка: 1-2 дня</small>
-                        </div>
-                        <div class="rating">
-                            <div class="stars">
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star.png" class="star" />
-                                <img src="@/assets/img/star_gray.png" class="star" />
-                            </div>
-                            <small>&nbsp; 15 отзывов</small>
-                        </div>
-                    </div>
-        </SplideSlide>
+        
 
     </mini-products-slider>
 
@@ -674,7 +302,9 @@
         </div>
     </div>
 
-    <ui-brands />
+    <ui-brands 
+    :brands="brands_index"
+    />
 
     <ContactUsBox />
 
@@ -685,6 +315,8 @@
 </template>
 
 <script>
+import axios from 'axios'
+
 export default {
     data(){
         return {
@@ -694,92 +326,15 @@ export default {
                     return name in target ? target[name] : false
                 }
             }),
-            products:[
-                {   
-                    id: 1,
-                    price: 200,
-                    image: '@/assets/img/watched_slide_img1.png',
-                    name: 'Safety 1st Timba Natural Wood 3 в 1 Стульчик для кормления + подушка',
-                    saleNewHit: 'sale', // define left top box type
-                    saleNewHitContent: function() {
-                        let calculation = () => {
-                            if(this.price.length == 2 && this.saleNewHit == 'sale'){
-                                return 100 - Math.round(this.price[0]*100/this.price[1])
-                            }
-                            return null
-                        }
-                        return calculation() ? `-${calculation()}%` : this.saleNewHit
-                    } // define left top box content by params: saleNewHit, price
-                },
-                {   
-                    id: 2,
-                    price: [500, 700],
-                    image: '@/assets/img/watched_slide_img2.png',
-                    name: 'Some desc2...',
-                    saleNewHit: 'new',
-                    saleNewHitContent: function() {
-                        let calculation = () => {
-                            if(this.price.length == 2 && this.saleNewHit == 'sale'){
-                                return 100 - Math.round(this.price[0]*100/this.price[1])
-                            }
-                            return null
-                        }
-                        return calculation() ? `-${calculation()}%` : this.saleNewHit
-                    }
-                    // not all characteristics...
-                },
-                {   
-                    id: 3,
-                    price: [100, 200],
-                    image: '@/assets/img/watched_slide_img3.png',
-                    name: 'Some desc3...',
-                    saleNewHit: 'sale',
-                    saleNewHitContent: function() {
-                        let calculation = () => {
-                            if(this.price.length == 2 && this.saleNewHit == 'sale'){
-                                return 100 - Math.round(this.price[0]*100/this.price[1])
-                            }
-                            return null
-                        }
-                        return calculation() ? `-${calculation()}%` : this.saleNewHit
-                    }
-                    // not all characteristics...
-                },
-                {   
-                    id: 4,
-                    price: [100, 300],
-                    image: '@/assets/img/watched_slide_img3.png',
-                    name: 'Some desc4...',
-                    saleNewHit: 'hit',
-                    saleNewHitContent: function() {
-                        let calculation = () => {
-                            if(this.price.length == 2 && this.saleNewHit == 'sale'){
-                                return 100 - Math.round(this.price[0]*100/this.price[1])
-                            }
-                            return null
-                        }
-                        return calculation() ? `-${calculation()}%` : this.saleNewHit
-                    }
-                    // not all characteristics...
-                },
-                {   
-                    id: 5,
-                    price: [550, 600],
-                    image: '@/assets/img/watched_slide_img3.png',
-                    name: 'Some desc5...',
-                    saleNewHit: 'sale',
-                    saleNewHitContent: function() {
-                        let calculation = () => {
-                            if(this.price.length == 2 && this.saleNewHit == 'sale'){
-                                return 100 - Math.round(this.price[0]*100/this.price[1])
-                            }
-                            return null
-                        }
-                        return calculation() ? `-${calculation()}%` : this.saleNewHit
-                    }
-                    // not all characteristics...
-                }
-            ]
+            center_categories: [],
+            sailed_products: [],
+            hit_products: [],
+            new_products: [],
+            brands_index: [],
+            mailing_list_response: '',
+            mailing_list_response_valid: false,
+            mailing_list_response_invalid: false,
+            
         }
     },
     methods:{
@@ -796,11 +351,67 @@ export default {
         defineSaleNewHit(productSaleNewHit){
             const definition = {
                 sale: {sale_hit_new_box50: true},
-                new: {sale_hit_new_boxhit: true},
-                hit: {sale_hit_new_boxnew: true},
+                new: {sale_hit_new_boxnew: true},
+                hit: {sale_hit_new_boxhit: true},
             } 
             return definition[productSaleNewHit]
+        },
+        check_mailing_list_response(response){
+            if(response.data['Error']){
+                this.mailing_list_response_invalid = true
+                this.mailing_list_response = response.data['Error']
+                setTimeout(() => {
+                    this.mailing_list_response_invalid = false
+                    this.mailing_list_response = ''
+                }, 4000);
+            }
+            else if(response.data['Message']){
+                this.mailing_list_response_valid = true
+                this.mailing_list_response = 'Loading...'
+                this.mailing_list_response = response.data['Message']
+                setTimeout(() => {
+                    this.mailing_list_response_valid = false
+                    this.mailing_list_response = ''
+                }, 4000);
+            }
+        },
+        async subscribeMailingList(){
+            let mail = await this.$refs.mail_to_mailing_list.value.trim()
+            if (mail) {
+                const response = await axios.post(`${this.$store.state.server_href}mailing_list`, {mail:mail})
+                this.check_mailing_list_response(response)
+            }
+            
+            
+            
+        },
+        async unsubscribe(){
+            let mail = await this.$refs.mail_to_mailing_list.value.trim()
+            if (mail) {
+                const response = await axios.post(`${this.$store.state.server_href}mailing_list`, {mail:mail, for_delete:true})
+                this.check_mailing_list_response(response)
+            }
+            
+            
         }
+    },
+    async beforeMount(){
+        this.center_categories = await this.$store.getters.fetchCategories('center')
+        this.sailed_products = await this.$store.getters.fetchProductsBySaleNewHit('sale')
+        this.new_products = await this.$store.getters.fetchProductsBySaleNewHit('NEW')
+        this.hit_products = await this.$store.getters.fetchProductsBySaleNewHit('HIT')
+        this.brands_index = await this.$store.getters.fetchBrandsIndex()
+
+        function setProductsStarsAvg(products) {
+            for (let i = 0; i < products.length; i++) {
+                products[i].stars_avg = products[i].stars_avg
+            }
+        }
+
+        setProductsStarsAvg(this.sailed_products)
+        setProductsStarsAvg(this.new_products)
+        
+
     }
 }
 </script>

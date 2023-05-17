@@ -7,11 +7,11 @@
                 <h1>Свяжитесь с нами</h1>
             </div>
             <p>Отправьте нам сообщение и мы ответим в ближайшее время</p>
-            <form action="" class="contact_us_form">
-                <input type="text" placeholder="Ваше имя*">
-                <input type="number" placeholder="Телефон">
-                <input type="text" placeholder="Электронная почта*">
-                <textarea cols="30" rows="10" placeholder="Текст сообщения*">
+            <form @submit.prevent="send_question" class="contact_us_form">
+                <input v-model="mail_msg_name" type="text" placeholder="Ваше имя*">
+                <input v-model="mail_msg_tel" type="tel" placeholder="Телефон">
+                <input v-model="mail_msg_mail" type="email" placeholder="Электронная почта*">
+                <textarea v-model="mail_msg_body" cols="30" rows="10" placeholder="Текст сообщения*">
                     
                 </textarea>
                 <button>
@@ -27,9 +27,33 @@
 
 <script>
 // Common component with form whose purpose get messages from users in backend email
+import axios from 'axios';
+
 
 export default {
-    name: 'ContactUsBox'
+    name: 'ContactUsBox',
+    data(){
+        return {
+            mail_msg_name: '',
+            mail_msg_tel: '',
+            mail_msg_mail: '',
+            mail_msg_body: '',
+        }
+    },
+    methods: {
+
+        send_question() {
+            if (
+                this.mail_msg_name.trim() &&
+                this.mail_msg_mail.trim() &&
+                this.mail_msg_body.trim() 
+            ) {
+                const send = axios.post(`${this.$store.state.server_href}receive_mail`, this.$data)
+                console.log(send.data);
+            }
+            
+        }
+    }
 }
 </script>
 
@@ -74,6 +98,11 @@ export default {
     padding: 11px 20px;
     width: 100%;
     outline: none;
+}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 .contact_us_form textarea{
     border-radius: 20px;

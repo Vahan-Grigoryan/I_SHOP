@@ -1,19 +1,27 @@
 <template>
-<SplideSlide class="splide_slide" v-if="splide_slide">
-    <img src="@/assets/img/Rectangle_16.png" alt="">
+<SplideSlide 
+class="splide_slide" 
+v-if="splide_slide"
+@click="$router.push(`/blog_detail/${blog.id}`)"
+>
+    <img :src="blog.thumbnail" alt="">
     <div class="blog_slide_content">
-        <span class="date_span">{{ blog.date }}</span>
-        <h4>{{ blog.name }}</h4>
+        <span class="date_span">{{ blog.pub_date }}</span>
+        <h4>{{ blog.header }}</h4>
         <span class="desc">
-            {{ blog.desc }}
+            {{ blog.short_desc }}
         </span>
         <strong class="read_detail">
             Читать подробнее &nbsp; &nbsp; 
-            <img src="@/assets/img/arrow_5.png" alt="">
+            <img src="@/assets/img/arrow_5.png">
         </strong>
     </div>
 </SplideSlide>
-<div class="blog_slide" v-else>
+<div 
+class="blog_slide" 
+v-else
+@click="$router.push(`/blog_detail/${blog.id}`)"
+>
     <img src="@/assets/img/Rectangle_16.png" alt="">
     <div class="blog_slide_content">
         <span class="date_span">{{ blog.date }}</span>
@@ -57,6 +65,12 @@ export default {
     border: 1px solid #74CCD8;
     border-radius: 15px;
     width: 100%;
+}
+.splide_slide > img{
+    width: 180px;
+    height: 240px;
+    object-fit: cover;
+    border-radius: 7px;
 }
 .blog_slide_content{
     margin: 20px 25px;

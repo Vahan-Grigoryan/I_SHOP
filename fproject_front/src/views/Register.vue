@@ -28,6 +28,11 @@
                 <input type="text" placeholder="Улица / Дом / Квартира*">
                 <input type="text" placeholder="Почтовый индекс*">
             </div>
+            <label class="to_mail_list">
+                <input type="checkbox" value="in_mail_list" />
+                &nbsp;
+                Оформить подписку на рассылку писем
+            </label>
             <button type="submit" class="reg_btn">
                 <img src="@/assets/img/ok3.png" alt=""> &nbsp;
                 Зарегестрироватся

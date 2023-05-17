@@ -134,12 +134,15 @@ export default {
   width: 100%;
   margin: 15px 0px;
   display: flex;
-  justify-content: space-between;
 }
 .colors .color {
   border-radius: 50px;
   width: 40px;
   height: 40px;
+  margin-right: 10px;
+}
+.colors .color:last-child {
+  margin-right: 0px;
 }
 .slide_desc .delivery_box {
   display: flex;

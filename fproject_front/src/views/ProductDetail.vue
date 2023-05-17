@@ -30,38 +30,27 @@
 
 <div class="product_detail_container">
     <ui-bread-crumbs />
-    <h1>Bugaboo Butterfly sporta rati, Black/Midnight Black-Midnight Black</h1>
+    <h1>{{ product.name }}</h1>
     <div class="slider_and_content_flex">
-            <div class="left_slider">
-                <Splide
+        <div class="left_slider">
+            <Splide
                 class="main_detail_slider"
                 :options="{ 
                     speed: 1000,
                     rewind: true,
                     pagination: false,
+                    perMove: 1,
                 }"
                 >
-                    <SplideSlide class="main_detail_slider__slide">
-                        <img src="@/assets/img/image_7.png" alt="">
-                    </SplideSlide>
-                    <SplideSlide class="main_detail_slider__slide">
-                        <img src="@/assets/img/toys.webp" alt="">
-                    </SplideSlide>
-                    <SplideSlide class="main_detail_slider__slide">
-                        <img src="@/assets/img/toys2.webp" alt="">
-                    </SplideSlide>
-                    <SplideSlide class="main_detail_slider__slide">
-                        <img src="@/assets/img/image_7.png" alt="">
-                    </SplideSlide>
-                    <SplideSlide class="main_detail_slider__slide">
-                        <img src="@/assets/img/toys.webp" alt="">
-                    </SplideSlide>
-                    <SplideSlide class="main_detail_slider__slide">
-                        <img src="@/assets/img/toys2.webp" alt="">
+                    <SplideSlide 
+                    class="main_detail_slider__slide"
+                    v-for="pImg in product.images"
+                    >
+                        <img :src="pImg.image" alt="">
                     </SplideSlide>
 
-                </Splide>
-                <Splide
+            </Splide>
+            <Splide
                 class="thumbs"
                 :options="{ 
                     speed: 1000,
@@ -69,43 +58,32 @@
                     perPage: 6,
                     pagination: false,
                     isNavigation: true,
+                    perMove: 1,
                     gap: 10
                 }"
                 >
-                    <SplideSlide class="thumb">
-                        <img src="@/assets/img/image_7.png" alt="">
-                    </SplideSlide>
-                    <SplideSlide class="thumb">
-                        <img src="@/assets/img/toys.webp" alt="">
-                    </SplideSlide>
-                    <SplideSlide class="thumb">
-                        <img src="@/assets/img/toys2.webp" alt="">
-                    </SplideSlide>
-                    <SplideSlide class="thumb">
-                        <img src="@/assets/img/image_7.png" alt="">
-                    </SplideSlide>
-                    <SplideSlide class="thumb">
-                        <img src="@/assets/img/toys.webp" alt="">
-                    </SplideSlide>
-                    <SplideSlide class="thumb">
-                        <img src="@/assets/img/toys2.webp" alt="">
+                    <SplideSlide 
+                    class="thumb"
+                    v-for="pImg in product.images"
+                    >
+                        <img :src="pImg.image" alt="">
                     </SplideSlide>
 
-                </Splide>
-            </div>
-            
-            <div class="right_content">
-                <div class="availability_box">
-                    <div v-if="product_available">
+            </Splide>
+        </div>
+        
+        <div class="right_content">
+            <div class="availability_box">
+                <div v-if="product.available">
                         <div style="display: inline-flex;">
                             <div class="inline">
                                 <img src="@/assets/img/delivery.png" alt=""> &nbsp; &nbsp;
-                                <span>Доставка: 1-2 дня</span>
+                                <span>Доставка: &plusmn;{{ product.delivery_days }} дня</span>
                             </div>
                             &nbsp; &nbsp;
                             <div class="inline">
                                 <h5>Код товара:</h5> &nbsp; &nbsp;
-                                <span>000433</span>
+                                <span>{{ product.code }}</span>
                             </div>
                         </div>
                         <br>
@@ -117,16 +95,22 @@
                         <br>
                         <br>
                         <p>
-                            <img src="@/assets/img/star.png" alt=""> &nbsp;
-                            <img src="@/assets/img/star.png" alt=""> &nbsp;
-                            <img src="@/assets/img/star.png" alt=""> &nbsp;
-                            <img src="@/assets/img/star.png" alt=""> &nbsp;
-                            <img src="@/assets/img/star_gray.png" alt=""> &nbsp;
-                            3 отзыва
+
+                            <img 
+                            class="star_img"
+                            src="@/assets/img/star.png" 
+                            v-for="_ in product.stars_avg"
+                            >
+                            <img 
+                            class="star_img"
+                            src="@/assets/img/star_gray.png" 
+                            v-for="_ in 5-product.stars_avg"
+                            >
+                            {{ product.comments_count }} отзыва
                         </p>
-                        <img src="@/assets/img/brand2.png" alt="" class="brand_logo">
-                    </div>
-                    <div v-else>
+                        <img :src="product.brand.image" class="brand_logo">
+                </div>
+                <div v-else>
                         <div class="inline">
                             <img src="@/assets/img/close_red.png" alt=""> &nbsp; &nbsp;
                             <span style="color:red">Товара в настоящее время нет в наличии</span>
@@ -137,12 +121,13 @@
                             <span>000433</span>
                         </div>
                         <img src="@/assets/img/brand2.png" alt="" class="brand_logo">
-                    </div>
-                    
                 </div>
-                <ui-select
+                
+            </div>
+            <ui-select
                 class="similar_products_select"
                 :purpose="'cart_products'"
+                v-if="!product.available"
                 >
                     <template #row_info>
                         <h2>Похожие товары</h2>
@@ -178,21 +163,21 @@
                             </div>
                         </div>
                     </template>
-                </ui-select>
-                <div class="product_detail_info" v-if="product_available">
+            </ui-select>
+            <div class="product_detail_info" v-if="product.available">
                     <div style="display: flex;align-items: center;justify-content: space-between;">
                         <h2>Размер:</h2>
                         <ui-select 
                         style="width: 85%;"
                         v-model:selected_option="selected_option"
                         :purpose="'detail'"
-                        :options="options_to_select"
+                        :options="product.get_resolutions"
                         />
                     </div>
                     <div class="inline product_prices">
                         <div class="price inline">
-                            <h2>1000 €</h2> &nbsp; &nbsp;
-                            <span>2500 €</span> 
+                            <h2>{{ product.price }} €</h2> &nbsp; &nbsp;
+                            <span v-if="product.saled_price">{{ product.saled_price }} €</span> 
                         </div>
                         <div class="count">
                             <button class="inc_dec_btn" @click="dec_count">-</button>
@@ -217,8 +202,8 @@
                         <span>Добавить к сравению</span>
                     </div>
                     
-                </div>
             </div>
+        </div>
     </div>
     <div class="about_product">
             <div class="what_about_product_box">
@@ -649,8 +634,8 @@
         </SplideSlide>
 </mini-products-slider> 
 <ui-href-blog-box 
-    style="padding: 60px 0% 70px 0%;"
-    :header_text="'Актуальные статьи'"
+style="padding: 60px 0% 70px 0%;"
+:header_text="'Актуальные статьи'"
 />
 
 <ui-footer />
@@ -664,6 +649,8 @@ import Splide from '@splidejs/splide'
 export default {
     data(){
         return{
+            product: {},
+            stars_gray: 0,
             count: 1,
             tab_active: {
                 'desc': true,
@@ -671,9 +658,8 @@ export default {
                 'feedbacks': false
             },
             write_feedback_visible: false,
-            product_available: false,
-            options_to_select: ['107см x 234см', '50см x 50см', '60м x 60см', '999см x 999см'],
-            selected_option: '107см x 234см',
+            // options_to_select: ['107см x 234см', '50см x 50см', '60м x 60см', '999см x 999см'],
+            selected_option: '',
             stars_mouse_enter_leave_available: true,
             pointed_stars: 0
         }
@@ -711,11 +697,16 @@ export default {
         }
     },
 
-    mounted(){
+    async beforeMount(){
+        this.product = await this.$store.getters.fetchProductDetail(this.$route.params.product_id)
+        this.product.stars_avg = this.product.stars_avg 
+        this.selected_option = this.product.get_resolutions[0]
+
         const main_splide = new Splide('.main_detail_slider', { 
             speed: 1000,
             rewind: true,
             pagination: false,
+            perMove: 1,
         })
         const thumbs_splide = new Splide('.thumbs', { 
             speed: 1000,
@@ -723,22 +714,23 @@ export default {
             perPage: 6,
             pagination: false,
             isNavigation: true,
+            perMove: 1,
             gap: 10
         })
-        main_splide.sync(thumbs_splide)
+        await main_splide.sync(thumbs_splide)
         main_splide.mount()
         thumbs_splide.mount()
     },
     watch: {
         write_feedback_visible(newValue){
-        let [current_scrollX, current_scrollY] = [scrollX, scrollY]
-        if (newValue) {
-          window.onscroll = function () { window.scrollTo(current_scrollX, current_scrollY); };
-        } 
-        else {
-          window.onscroll = function () { window.scrollTo(scrollX, scrollY); };
-        }
-      }
+            let [current_scrollX, current_scrollY] = [scrollX, scrollY]
+            if (newValue) {
+            window.onscroll = function () { window.scrollTo(current_scrollX, current_scrollY); };
+            } 
+            else {
+            window.onscroll = function () { window.scrollTo(scrollX, scrollY); };
+            }
+        },
     }
 }
 </script>

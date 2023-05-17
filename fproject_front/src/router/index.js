@@ -20,7 +20,7 @@ const routes = [
     component: Index
   },
   {
-    path: '/detail/:product_id',
+    path: '/products/:product_id',
     name: 'productDetail',
     component: ProductDetail
   },
@@ -70,7 +70,7 @@ const routes = [
     component: Profile
   },
   {
-    path: '/mega_category/:id',
+    path: '/mega_category/:category_name',
     name: 'mega_category',
     component: MegaCategory
   },

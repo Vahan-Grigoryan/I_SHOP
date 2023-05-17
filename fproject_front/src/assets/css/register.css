@@ -39,6 +39,16 @@
     border-radius: 57px;
     
 }
+label.to_mail_list{
+    display: inline-flex;
+    align-items: center;
+    margin: 30px 0px 20px 0px;
+}
+.register_form input[type="checkbox"]{
+    accent-color: #74CCD8;
+    width: 15px;
+    height: 15px;
+}
 .register_form input:focus{
     outline: 2px solid #74CCD8;
 }
@@ -96,7 +106,7 @@
     margin-bottom: 15px;
 }
 .adresses input:last-child{
-    margin-bottom: 30px;
+    margin-bottom: 0px;
 }
 .reg_btn{
     padding: 13px 35px;

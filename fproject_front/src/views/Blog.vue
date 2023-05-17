@@ -50,7 +50,7 @@ export default {
     data(){
         return {
             blog_date_filters: ['by newest', 'by latest'],
-            current_date_filter: 'select',
+            current_date_filter: 'sort by',
             blog_ex: {
                 date: '25.05.2022',
                 name: 'Как понять, чего хочет малыш?',

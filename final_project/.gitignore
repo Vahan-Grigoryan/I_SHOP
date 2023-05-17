@@ -6,3 +6,4 @@
 *.pyc
 
 /fapp/migrations/
+/all_statics/

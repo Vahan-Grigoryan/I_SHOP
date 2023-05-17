@@ -1,17 +1,19 @@
 <template>
-<Header />
+<Header 
+@selectedCategory="changeMegaCategory"
+/>
 
 <div class="mega_category_container">
     <ui-bread-crumbs />
-    <h1>Детская комната</h1>
+    <h1>{{ $route.params.category_name }}</h1>
     <div class="mega_category_subcategories">
         <div 
         class="mega_category_subcategory"
-        v-for="_ in 8"
+        v-for="child_category in category_children"
         >
             <img src="@/assets/img/mega_category_subcat.png" alt="">
             <br><br>
-            <span>Детские матрасы</span>
+            <span>{{ child_category.name }}</span>
         </div>
     </div>
 </div>
@@ -66,8 +68,30 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
     
+    data(){
+        return {
+            category_children: [],
+        }
+    },
+    
+    methods: {
+        async fetchCategoryChildren(category_name=this.$route.params.category_name){
+            const category_children = 
+                await axios.get(`${this.$store.state.server_href}/category_children/${category_name}`)
+
+            return category_children.data
+        },
+        async changeMegaCategory(category_name){
+            this.category_children = await this.fetchCategoryChildren(category_name)
+        }
+    },
+    async beforeMount(){
+        this.category_children = await this.fetchCategoryChildren()
+    }
 }
 </script>
 
