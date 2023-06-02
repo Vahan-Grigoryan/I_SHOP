@@ -127,7 +127,6 @@ export default {
             const end  = splide.value.splide.Components.Controller.getEnd() + 1;
             const bar = document.querySelector('.bar')
             bar.style.width = `${bar.offsetWidth / end}px`
-
         } );
         
         function splideMoved() {
@@ -147,6 +146,10 @@ export default {
             splideMoved,
         }
     },
+    async beforeMount(){
+        this.$store.state.pagesInCrumbs.clear()
+        this.$store.state.pagesInCrumbs.add('Compare cart')
+    }
 }
 </script>
 

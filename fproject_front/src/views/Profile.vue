@@ -1,14 +1,15 @@
 <template>
-<Header />
+<Header :key="header_user_state" />
 
 <div class="profile_container">
     <ui-bread-crumbs />
     <div class="profile_info_and_content">
         <div class="profile_info">
-            <img src="@/assets/img/cat_profile.jpg" alt="">
+            <a class="exit_acc" @click="exitAcc">Выйти</a>
+            <img src="@/assets/img/cat_profile.jpg">
             <br>
             <div class="change_img">
-                <img src="@/assets/img/photo-camera.png" alt=""> &nbsp; &nbsp;
+                <img src="@/assets/img/photo-camera.png"> &nbsp; &nbsp;
                 <span>Изменить</span>
             </div>
             <h3 style="padding: 0px 30px;">Иванова Иванна Ивановна</h3>
@@ -421,25 +422,48 @@
                 </div>
             </div>
         </div>
-        <form action="" class="register_form" v-else-if="$store.state.profile_content == 'register'">
+        <form class="register_form" v-else>
             <h2>Редактированние личных данных</h2>
             <br>
             <div class="user_info_inputs">
-                <input type="email" placeholder="Электронная почта*">
-                <input type="tel" placeholder="Номер телефона*">
-                <input type="text" placeholder="Ваше имя*">
-                <input type="text" placeholder="Фамилия*">
-                <input type="password" placeholder="Придумайте пароль (от 6 до 10 символов)*">
+                <input v-model="email" type="email" placeholder="Электронная почта*">
+                <span class="error_message">{{ email_error }}</span>
+                <input v-model="tel" type="number" placeholder="Номер телефона*">
+                <span class="error_message">{{ tel_error }}</span>
+                <div class="first_last_name_row_inputs">
+                    <div class="fn_input_wrapper">
+                        <input v-model="first_name" type="text" placeholder="Ваше имя*">
+                        <span class="error_message">{{ first_name_error }}</span>
+                    </div>
+                    <div class="fn_input_wrapper">
+                        <input v-model="last_name" type="text" placeholder="Фамилия*">
+                        <span class="error_message">{{ last_name_error }}</span>
+                    </div>
+                    
+                </div>
+                
+                <input v-model="password" type="password" placeholder="Придумайте пароль*">
+                <span class="error_message">{{ password_error }}</span>
             </div>
-            <br>
             <br>
             <h2>Адрес для получения доставки</h2>
             <div class="adresses">
-                <input type="text" placeholder="Город / Село / Пагаст / Район*">
-                <input type="text" placeholder="Улица / Дом / Квартира*">
-                <input type="text" placeholder="Почтовый индекс*">
+                <input v-model="city" type="text" placeholder="Город / Село / Пагаст / Район*">
+                <span class="error_message">{{ city_error }}</span>
+                <input v-model="street" type="text" placeholder="Улица / Дом / Квартира*">
+                <span class="error_message">{{ street_error }}</span>
+                <input v-model="post_code" type="number" placeholder="Почтовый индекс*">
+                <span class="error_message">{{ post_code_error }}</span>
             </div>
-            <button type="submit" class="reg_btn">
+            <label class="to_mail_list">
+                <input v-model="in_mailing_list" type="checkbox" />
+                &nbsp;
+                Оформить подписку на рассылку писем
+            </label>
+            <button 
+            class="reg_btn"
+            style="margin-top: 20px;"
+            >
                 <img src="@/assets/img/ok3.png" alt=""> &nbsp;
                 Сохранить изменения
             </button>
@@ -457,6 +481,182 @@
         
     </div>
 </div>
+<mini-products-slider style="padding: 60px 0%;background: rgb(244, 245, 249);">
+        <template #header>
+            <h1>Вы уже смотрели</h1>
+        </template>
+        
+        <SplideSlide class="swiper-slide">
+                    <div class="sale_hit_new_box">
+                        -90%
+                    </div>
+                    <div class="to_like_box">
+                        <div class="like"></div>
+                    </div>
+                    <img src="@/assets/img/watched_slide_img1.png" alt="">
+                    <div class="slide_desc">
+                        <h3>100 &euro;</h3> &nbsp; <span>200 &euro;</span><br><br>
+                        <p>Safety 1st Timba Natural Wood 3 в 1 Стульчик для кормления + подушка</p>
+                        <div class="colors">
+                            <div class="color" style="background: red;"></div>
+                            <div class="color" style="background: blue;"></div>
+                            <div class="color" style="background: yellow;"></div>
+                            <div class="color" style="background: greenyellow;"></div>
+                            <div class="color" style="background: teal;"></div>
+                        </div>
+                        <div class="delivery_box">
+                            <img src="@/assets/img/delivery.png" alt="">
+                            <small>Доставка: 1-2 дня</small>
+                        </div>
+                        <div class="rating">
+                            <div class="stars">
+                                <div style="background: #FFC186;" class="star"></div>
+                                <div style="background: #FFC186;" class="star"></div>
+                                <div style="background: #FFC186;" class="star"></div>
+                                <div style="background: #FFC186;" class="star"></div>
+                                <div class="star"></div>
+                            </div>
+                            <small>15 отзывов</small>
+                        </div>
+                    </div>
+        </SplideSlide>
+        <SplideSlide class="swiper-slide">
+                    <div class="sale_hit_new_box">
+                        -50%
+                    </div>
+                    <div class="to_like_box">
+                        <div class="like"></div>
+                    </div>
+                    <img src="@/assets/img/watched_slide_img1.png" alt="">
+                    <div class="slide_desc">
+                        <h3>100 &euro;</h3> &nbsp; <span>200 &euro;</span><br><br>
+                        <p>Safety 1st Timba Natural Wood 3 в 1 Стульчик для кормления + подушка</p>
+                        <div class="colors">
+                            <div class="color" style="background: maroon;"></div>
+                            <div class="color" style="background: rgb(0, 255, 149);"></div>
+                            <div class="color" style="background: rgb(30, 50, 58);"></div>
+                            <div class="color" style="background: rgb(15, 112, 88);"></div>
+                            <div class="color" style="background: rgb(189, 201, 19);"></div>
+                        </div>
+                        <div class="delivery_box">
+                            <img src="@/assets/img/delivery.png" alt="">
+                            <small>Доставка: 1-2 дня</small>
+                        </div>
+                        <div class="rating">
+                            <div class="stars">
+                                <div style="background: #FFC186;" class="star"></div>
+                                <div style="background: #FFC186;" class="star"></div>
+                                <div style="background: #FFC186;" class="star"></div>
+                                <div style="background: #FFC186;" class="star"></div>
+                                <div style="background: #FFC186;" class="star"></div>
+                            </div>
+                            <small>15 отзывов</small>
+                        </div>
+                    </div>
+        </SplideSlide>
+        <SplideSlide class="swiper-slide">
+                    <div class="sale_hit_new_box">
+                        -70%
+                    </div>
+                    <div class="to_like_box">
+                        <div class="like"></div>
+                    </div>
+                    <img src="@/assets/img/watched_slide_img1.png" alt="">
+                    <div class="slide_desc">
+                        <h3>100 &euro;</h3> &nbsp; <span>200 &euro;</span><br><br>
+                        <p>Safety 1st Timba Natural Wood 3 в 1 Стульчик для кормления + подушка</p>
+                        <div class="colors">
+                            <div class="color" style="background: rgb(127, 153, 9);"></div>
+                            <div class="color" style="background: rgb(84, 84, 179);"></div>
+                            <div class="color" style="background: rgb(23, 173, 86);"></div>
+                            <div class="color" style="background: rgb(47, 255, 245);"></div>
+                            <div class="color" style="background: rgb(2, 48, 48);"></div>
+                        </div>
+                        <div class="delivery_box">
+                            <img src="@/assets/img/delivery.png" alt="">
+                            <small>Доставка: 1-2 дня</small>
+                        </div>
+                        <div class="rating">
+                            <div class="stars">
+                                <div style="background: #FFC186;" class="star"></div>
+                                <div class="star"></div>
+                                <div class="star"></div>
+                                <div class="star"></div>
+                                <div class="star"></div>
+                            </div>
+                            <small>15 отзывов</small>
+                        </div>
+                    </div>
+        </SplideSlide>
+        <SplideSlide class="swiper-slide">
+                    <div class="sale_hit_new_box">
+                        -10%
+                    </div>
+                    <div class="to_like_box">
+                        <div class="like"></div>
+                    </div>
+                    <img src="@/assets/img/watched_slide_img1.png" alt="">
+                    <div class="slide_desc">
+                        <h3>100 &euro;</h3> &nbsp; <span>200 &euro;</span><br><br>
+                        <p>Safety 1st Timba Natural Wood 3 в 1 Стульчик для кормления + подушка</p>
+                        <div class="colors">
+                            <div class="color" style="background: violet;"></div>
+                            <div class="color" style="background: gray;"></div>
+                            <div class="color" style="background: aqua;"></div>
+                            <div class="color" style="background: rgb(255, 47, 227);"></div>
+                            <div class="color" style="background: rgb(128, 0, 100);"></div>
+                        </div>
+                        <div class="delivery_box">
+                            <img src="@/assets/img/delivery.png" alt="">
+                            <small>Доставка: 1-2 дня</small>
+                        </div>
+                        <div class="rating">
+                            <div class="stars">
+                                <div style="background: #FFC186;" class="star"></div>
+                                <div style="background: #FFC186;" class="star"></div>
+                                <div class="star"></div>
+                                <div class="star"></div>
+                                <div class="star"></div>
+                            </div>
+                            <small>15 отзывов</small>
+                        </div>
+                    </div>
+        </SplideSlide>
+        <SplideSlide class="swiper-slide">
+                    <div class="sale_hit_new_box">
+                        -50%
+                    </div>
+                    <div class="to_like_box">
+                        <div class="like"></div>
+                    </div>
+                    <img src="@/assets/img/watched_slide_img1.png" alt="">
+                    <div class="slide_desc">
+                        <h3>100 &euro;</h3> &nbsp; <span>200 &euro;</span><br><br>
+                        <p>Safety 1st Timba Natural Wood 3 в 1 Стульчик для кормления + подушка</p>
+                        <div class="colors">
+                            <div class="color" style="background: red;"></div>
+                            <div class="color" style="background: rgb(37, 37, 173);"></div>
+                            <div class="color" style="background: rgb(0, 255, 170);"></div>
+                            <div class="color" style="background: rgb(201, 211, 186);"></div>
+                            <div class="color" style="background: rgb(86, 168, 168);"></div>
+                        </div>
+                        <div class="delivery_box">
+                            <img src="@/assets/img/delivery.png" alt="">
+                            <small>Доставка: 1-2 дня</small>
+                        </div>
+                        <div class="rating">
+                            <div class="stars">
+                                <div style="background: #FFC186;" class="star"></div>
+                                <div style="background: #FFC186;" class="star"></div>
+                                <div style="background: #FFC186;" class="star"></div>
+                                <div class="star"></div>
+                                <div class="star"></div>
+                            </div>
+                            <small>15 отзывов</small>
+                        </div>
+                    </div>
+        </SplideSlide>
+</mini-products-slider> 
 
 <ui-footer />
 </template>
@@ -473,8 +673,10 @@ export default {
             liked_clicked: false,
             sales_clicked: false,
             register_clicked: false,
-
+            
             current_sale: 'Select sale',
+            user: JSON.parse(localStorage.getItem('current_user')),
+            header_user_state: 'authed',
         }
     },
     methods: {
@@ -499,7 +701,17 @@ export default {
                 this.$data[`${tab_name}_visible`] = false
             }
             
+        },
+        exitAcc(){
+            localStorage.clear()
+            this.header_user_state='exited'
+            this.$router.push('/register')
         }
+    },
+    async beforeMount(){
+        this.$store.state.pagesInCrumbs.clear()
+        this.$store.state.pagesInCrumbs.add('Profile')
+        const user_profile_info = await this.$store.getters.fetchUserProfileInfo(this.user.id)
     }
 }
 </script>

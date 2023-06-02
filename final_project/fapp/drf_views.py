@@ -1,15 +1,43 @@
-from django.core.mail import send_mail
+import json, requests
+
+from django.contrib.sites.shortcuts import get_current_site
+from django.shortcuts import redirect
 from rest_framework import generics
+from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from fapp.business import get_formatted_categories_for_front
-from fapp import serializers
+from fapp import serializers, drf_pagination
 from django_filters import rest_framework as dfilters
-
-from final_project import settings
 from . import filters
 from fapp.models import *
 from fapp import mailing_logic
+
+
+
+class UserDetailProfileInfo(generics.RetrieveAPIView):
+    """User profile info for site profile page"""
+    permission_classes = [IsAuthenticated]
+    queryset = User.objects.distinct()
+    serializer_class = serializers.UserProfileSerializer
+
+
+class UserMiniInfo(generics.RetrieveAPIView):
+    """User mini info for site header"""
+    serializer_class = serializers.UserSerializer
+
+    def get_object(self):
+        """Get user by id or email"""
+        url_params = self.request.GET
+        assert url_params.get('email') or url_params.get('id'), 'Provide id or email field'
+        if url_params.get('email'):
+            obj = get_object_or_404(User, email=url_params.get('email'))
+        elif url_params.get('id'):
+            obj = get_object_or_404(User, id=url_params.get('id'))
+
+        self.check_object_permissions(self.request, obj)
+        return obj
 
 
 class MailingList(APIView):
@@ -21,6 +49,9 @@ class MailingList(APIView):
             mailing_msg = mailing_logic.send_first_mail_and_add_to_mail_list(request.data.get('mail'))
             return Response(mailing_msg, status=200)
 
+class Registration(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = serializers.UserSerializer
 
 class CategoryList(APIView):
 
@@ -37,15 +68,30 @@ class CategoryChildren(APIView):
         sz = serializers.CategorySerializer(children, many=True)
         return Response(sz.data)
 
+class CategoryProducts(APIView):
+    def get(self, request, category_name):
+        """
+        Return products of category(max category level is center).
+        If current_product_id provided, from products it will be excluded.
+        """
+        category = Category.objects.get(name=category_name)
+        current_product_id = request.GET.get('current_product_id')
+
+        if category.child_cats.count():
+            child_cats = category.child_cats.all()
+            products = Product.objects.filter(category__in=child_cats)
+            sz = serializers.ProductsOfCategory(products, many=True)
+            return Response(sz.data)
+
+        else:
+            sz = serializers.ProductsOfCategory(category.products.exclude(id=current_product_id), many=True)
+            return Response(sz.data[:5])
+
 class ProductDetail(generics.RetrieveAPIView):
     queryset = Product.objects.prefetch_related('images')
     serializer_class = serializers.ProductDetailSerializer
 
-    def get(self, request, *args, **kwargs):
-        mailing_logic.send_msg_to_all_mails('TEST T1', 'TEST MSG1')
-        return super().get(request, *args, **kwargs)
-
-class ProductIndexList(generics.ListAPIView):
+class ProductList(generics.ListAPIView):
     serializer_class = serializers.ProductListSerializer
 
     def get_queryset(self):

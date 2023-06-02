@@ -16,4 +16,3 @@ def get_formatted_categories_for_front(categories_position=None):
                 result_categories[category.name][child_cat.name] = tuple(child_cat.child_cats.values_list('name', flat=True))
     
     return result_categories
-            

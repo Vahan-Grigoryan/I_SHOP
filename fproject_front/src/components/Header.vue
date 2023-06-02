@@ -7,12 +7,21 @@
   @click="auth_modal_visible = false"
   >
   <h2>Авторизуйтесь!</h2>
-  <input type="email" placeholder="Электронная почта*">
-  <input type="password" placeholder="Пароль*">
-  <button class="basic_auth">Авторизоватся</button>
+  <span class="error_message" style="text-align: center;">{{ account_not_found }}</span>
+  <input type="email" placeholder="Электронная почта*" v-model="email">
+  <span class="error_message">{{ auth_email_error }}</span>
+  <input type="password" placeholder="Пароль*" v-model="password">
+  <span class="error_message">{{ auth_password_error }}</span>
+  <button 
+  class="basic_auth"
+  type="submit"
+  @click="authUser"
+  >
+    Авторизоватся
+  </button>
   <span class="or_span">Или</span>
   <button class="google_auth">
-    <img src="@/assets/img/Google.png" alt=""> &nbsp;
+    <img src="@/assets/img/Google.png"> &nbsp;
     Войти через Google
   </button>
   <h3>У Вас еще нет аккаунта?</h3>
@@ -21,21 +30,16 @@
 </div>
 <header>
     <div class="top_nav">
-        <img src="@/assets/img/Logo.png" alt="" class="logo" @click="$router.push('/')">
+        <img src="@/assets/img/Logo.png" class="logo" @click="$router.push('/')">
         <ul>
           <li><a @click="$router.push('/about')">О нас</a></li>
-          <li><a >Оплата и доставка</a></li>
+          <li><a @click="toPaymant">Оплата и доставка</a></li>
           <li><a @click="$router.push('/blog')">Блог</a></li>
           <li><a @click="$router.push('/brands')">Бренды</a></li>
         </ul>
         <div class="connects">
           <a class="connects__a" href="tel:+3899887857" >+38 097 435 6743</a>
           <a class="connects__a" href="mailto:Kidsshop@gmail.com">Kidsshop@gmail.com</a>
-        </div>
-        
-        <div class="languages">
-          <a href="" class="deactive">РУ</a>&nbsp;
-          <a href="" class="active">LV</a>
         </div>
     </div>
     <div class="bottom_nav">
@@ -110,37 +114,40 @@
               </div>
             </div>
         </div>
-        <form action="" class="bottom_nav__search_form">
+        <form class="bottom_nav__search_form">
           <img src="@/assets/img/Search.png" alt="">
           <input type="text" placeholder="Введите запрос для поиска">
           <button type="submit">Найти</button>
         </form>
         
         <div class="bottom_nav__profile_box">
-              <div class="log_or_reg">
-                  <img src="@/assets/img/Profile1.png" alt="">
-                  <div>
-                      <a class="login" @click="auth_modal_visible = true">Войти</a><br>
-                      <a class="register" @click="$router.push('/register')">Регистрироватся</a>
-                  </div>
-              </div>
-              <!-- <div class="authorintacated">
-                  <span>N</span>
-              </div> -->
+          <div v-if="user" class="authorintacated" @click="$router.push(`/profile/${user.id}`)">
+            <span>{{ user.first_name.charAt(0).toUpperCase() }}</span>
+          </div>
+          <div v-else class="log_or_reg">
+            <img src="@/assets/img/Profile1.png" alt="">
+            <div>
+              <a class="login" @click="auth_modal_visible = true">Войти</a><br>
+              <a class="register" @click="$router.push('/register')">Регистрироватся</a>
+            </div>
+          </div>
+              
         </div>
         <a 
+        v-if="user"
         @click="redirectTo('liked')"
         class="bottom_nav__liked" 
-        :data-count='likes'
+        :data-count='user.liked_products_count'
         >
-          <img src="@/assets/img/Liked.png" alt="">
+          <img src="@/assets/img/Liked.png">
         </a>
         <a 
+        v-if="user"
         @click="redirectTo('orders')"
         class="bottom_nav__basket"
-        :data-basket='basket'
+        :data-basket='user.ordered_products_count'
         >
-          <img src="@/assets/img/Basket.png" alt="">
+          <img src="@/assets/img/Basket.png">
         </a>
     </div>
 </header>
@@ -150,61 +157,18 @@
 // Header for project without slots, with dropwdown mega menu and many hrefs
 
 import redirectTo from '@/mixins/redirectToProfilePart'
+import axios from 'axios'
 
 
 export default {
     name: 'Header',
     mixins: [redirectTo],
-    props: {
-      likes: {
-        type: [Number],
-        default: 0
-      },
-      basket: {
-        type: [Number],
-        default: 0
-      },
-    },
-    // props: {
-    //   categories: Object
-    // }
     data(){
       return {
+        user: JSON.parse(localStorage.getItem('current_user')),
         mega_menu_visible: false,
         auth_modal_visible: false,
-        categories:{
-          // tech:{
-          //   housewifely: [
-          //     'vacuum_cleaners'
-          //   ],
-          //   programming:[
-          //     'computers', 
-          //     'phones'
-          //   ],
-          //   GGTT:[
-          //     'GGTTcomputers', 
-          //     'GGTTphones'
-          //   ],
-
-            
-          // },
-          // cloth: {
-          //   mans: [
-          //     'trousers',
-          //     'shorts',
-          //     'shoes',
-          //     'cap',
-          //     'jacket',
-          //     'gloves',
-          //     'socks',
-          //     'leggings',
-          //     'underpants',
-          //   ],
-          //   womens: [
-          //     'shoes'
-          //   ]
-          // }
-        },
+        categories:{},
         categories_without_images: {},
         categories_visibiltiy: {
           left_categories: {},
@@ -214,6 +178,13 @@ export default {
         right_categories: [],
         select_plug1: true,
         select_plug2: true,
+        likes: 0,
+        basket: 0,
+        email: '',
+        password: '',
+        auth_email_error: '',
+        auth_password_error: '',
+        account_not_found: ''
       }
     },
     methods: {
@@ -249,9 +220,55 @@ export default {
         this.categories_visibiltiy[category+'_visible']=true
         
       },
+      toPaymant(){
+        if (this.user) {
+          // to payment page...
+        } else {
+          this.auth_modal_visible = true
+        }
+      },
+      async authUser(){
+        
+        try{
+          this.auth_email_error = ''
+          this.auth_password_error = ''
+          this.account_not_found = ''
+          console.log('BEFORE');
+          const createTokens = await axios.post(`${this.$store.state.server_href}auth/jwt/create`, {
+            email: this.email,
+            password: this.password
+          })
+          if (createTokens.data.detail) {
+            this.account_not_found = createTokens.data.detail
+          }else{
+            localStorage.setItem('refresh', createTokens.data.refresh)
+            localStorage.setItem('access', createTokens.data.access)
+            this.$store.commit('updateHeaders')
+          }
+          
+        }catch(err){
+          const response = err.response.data
+          if (response.detail) {
+            this.account_not_found = response.detail
+          } else {
+            Object.keys(response).forEach(key => {
+              this.$data[`auth_${key}_error`]=response[key][0]
+            })
+          }
+          
+        }
+        this.user = await this.$store.getters.commonGETRequestWithAuth(
+          `users_mini_info?email=${this.email}`
+        )
+        localStorage.setItem('current_user', JSON.stringify(this.user))
+        this.auth_modal_visible = false
+        this.$router.push(`/profile/${this.user.id}`)
+      }
     },
     async beforeMount(){
       this.categories = await this.$store.getters.fetchCategories()
+
+
       let categories_without_images = {}
       Object.keys(this.categories).forEach( left_category_key => {
         categories_without_images[left_category_key]={}
@@ -350,6 +367,9 @@ header .top_nav .languages {
 }
 header .top_nav .languages .deactive {
   color: #B7B8C5;
+}
+.error_message{
+  color: red !important;
 }
 header .top_nav .languages .active {
   border-bottom: 1px solid #74CCD8;
@@ -575,9 +595,12 @@ header .bottom_nav__profile_box .register {
 header .bottom_nav__profile_box .authorintacated {
   background: #74CCD8;
   border-radius: 50px;
-  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
   color: white;
-  margin-left: 6.96774%;
   margin-right: 110px;
   cursor: pointer;
 }

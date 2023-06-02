@@ -406,16 +406,34 @@
     display: flex;
     border-bottom: 1px solid #E4E7EE;
     padding: 20px 0px;
+    cursor: pointer;
+    position: relative;
 }
 .similar_product:last-child{
     border: none;
 }
-.similar_product > img{
+.similar_product .preview_img, .similar_product .images_flex img{
     width: 100px;
     height: 100px;
     object-fit: cover;
-    margin-right: 15px;
-    
+    margin-bottom: 15px;
+    border-radius: inherit;
+}
+.similar_product .images_flex img:last-child{
+    margin: 0px;
+}
+.similar_product .images_flex{
+    display: none;
+    position: absolute;
+    border-radius: 10px;
+    background: white;
+    flex-direction: column;
+    left: -40px;
+    top: 0px;
+    border: 2px solid #E4E7EE;
+    z-index: 5;
+    transform: translateY(calc(-50% + 75px)) translateX(-100%);
+    padding: 10px;
 }
 .similar_product_mini_detail{
     width: 100%;

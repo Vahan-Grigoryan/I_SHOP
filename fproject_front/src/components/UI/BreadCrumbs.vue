@@ -1,7 +1,7 @@
 <template>
     <div class="bread_crumbs">
-        <img src="@/assets/img/Home.svg" alt="">
-        <div v-for="category in $store.state.categoriesInCrambs">
+        <img src="@/assets/img/Home.svg">
+        <div v-for="category in $store.state.pagesInCrumbs">
             <img src="@/assets/img/Vector_28.png" class="right_arrow" alt="">
             <span>{{ category }}</span>
         </div>

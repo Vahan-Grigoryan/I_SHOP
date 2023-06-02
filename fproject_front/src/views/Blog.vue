@@ -57,6 +57,10 @@ export default {
                 desc: 'Модель Mica предлагает простую установку при помощи основания Isofix с упором в пол и...'
             },
         }
+    },
+    async beforeMount(){
+        this.$store.state.pagesInCrumbs.clear()
+        this.$store.state.pagesInCrumbs.add('Blog')
     }
 }
 </script>
