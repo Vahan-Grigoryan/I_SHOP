@@ -52,31 +52,36 @@ label.to_mail_list{
 .register_form input:focus{
     outline: 2px solid #74CCD8;
 }
+
+
 .user_info_inputs{
-    display: grid;
-    margin-top: 15px;
-    grid-template-areas: 
-        'email_i email_i email_i email_i email_i email_i'
-        'tel_i tel_i tel_i tel_i tel_i tel_i'
-        'first_name first_name first_name last_name last_name last_name'
-        'password password password password password password'
-    ;
-    grid-gap: 15px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
 }
-.user_info_inputs input:first-child{
-    grid-area: email_i;
+.user_info_inputs > input{
+    margin-bottom: 15px;
 }
-.user_info_inputs input:nth-child(2){
-    grid-area: tel_i;
+.user_info_inputs > input:last-child{
+    margin: -10px 0px 0px 0px;
 }
-.user_info_inputs input:nth-child(3){
-    grid-area: first_name;
+.error_message{
+    text-align: left;
+    margin: -10px 0px 5px 17px;
+    color: red;
+    font-size: 12px;
 }
-.user_info_inputs input:nth-child(4){
-    grid-area: last_name;
+.first_last_name_row_inputs{
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
 }
-.user_info_inputs input:last-child{
-    grid-area: password;
+.fn_input_wrapper{
+    width: 49%;
+    text-align: left;
+}
+.fn_input_wrapper input{
+    width: 100%;
 }
 .google_reg_btn{
     background: white;
@@ -87,7 +92,7 @@ label.to_mail_list{
     font-size: 15px;
     line-height: 20px;
     color: #090F24;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     cursor: pointer;
     margin: 10px auto;
@@ -118,6 +123,7 @@ label.to_mail_list{
     align-items: center;
     margin: 0px auto;
     cursor: pointer;
+    outline: none;
 }
 .register_procs{
     text-align: center;

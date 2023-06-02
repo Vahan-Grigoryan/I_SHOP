@@ -91,6 +91,8 @@ export default {
     },
     async beforeMount(){
         this.category_children = await this.fetchCategoryChildren()
+        this.$store.state.pagesInCrumbs.clear()
+        this.$store.state.pagesInCrumbs.add('Mega category with subcategories')
     }
 }
 </script>

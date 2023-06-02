@@ -355,6 +355,10 @@ export default {
             color_available: false,
             products_sort_option: 'by newest'
         }
+    },
+    async beforeMount(){
+        this.$store.state.pagesInCrumbs.clear()
+        this.$store.state.pagesInCrumbs.add('Search and filter products')
     }
 }
 </script>

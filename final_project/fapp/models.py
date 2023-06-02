@@ -1,12 +1,19 @@
+import math
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.mail import send_mail
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from ckeditor_uploader import fields as ckmediafields
+from django.utils import timezone
 from fapp.custom_managers import MyUserManager
+from final_project import settings
 
 
 class User(AbstractUser):
-    username = models.CharField(max_length=100, null=True, blank=True, unique=True)
+
+    username = models.CharField(max_length=100, null=True, blank=True)
+    email = models.EmailField("Email address", unique=True)
     first_name = models.CharField(verbose_name="first name", max_length=150, unique=True)
     last_name = models.CharField(verbose_name="last name", max_length=150, unique=True)
     tel = models.IntegerField(blank=True)
@@ -18,8 +25,9 @@ class User(AbstractUser):
 
     objects = MyUserManager()
 
-    USERNAME_FIELD = 'first_name'
-    REQUIRED_FIELDS = 'last_name', 'email',
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = 'first_name', 'last_name', 'password'
+
 
     def __str__(self):
         return self.username or f'{self.first_name} {self.last_name}'
@@ -27,6 +35,22 @@ class User(AbstractUser):
     def save(self, *args, **kwargs):
         self.set_password(self.password)
         super().save(*args, **kwargs)
+
+    def liked_products_count(self):
+        return self.liked_products.count()
+
+    def ordered_products_count(self):
+        try:
+            return self.orders.get(status='pending').order_products.count()
+        except ObjectDoesNotExist:
+            return 0
+
+class IndependentMail(models.Model):
+    mail = models.EmailField(verbose_name='Independent mail', unique=True)
+
+    def __str__(self):
+        return self.mail
+
 
 class Brand(models.Model):
     name = models.CharField(max_length=100)
@@ -47,12 +71,6 @@ class Category(models.Model):
 
     class Meta:
         verbose_name_plural = 'Categories'
-
-class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.user.__str__()
 
 class BlogCategory(models.Model):
     name = models.CharField(max_length=100)
@@ -77,11 +95,24 @@ class Blog(models.Model):
 class Order(models.Model):
     status_choices = ('pending', 'pending'), ('rejected', 'rejected'), ('payed', 'payed')
 
+    payment_date = models.DateField(null=True, blank=True)
     status = models.CharField(choices=status_choices, max_length=20, default='pending')
-    profile = models.ForeignKey(Profile, related_name='orders', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='orders', on_delete=models.CASCADE, null=True)
+
+    def save(self):
+        if self.status in ('payed', 'rejected'):
+            self.payment_date = timezone.now()
+        super().save()
+
+
+    def number(self):
+        return f'{self.user.id}-{self.id}'
+
+    def total_prices_sum(self):
+        return self.order_products.aggregate(models.Sum('price'))['price__sum']
 
     def __str__(self):
-        return f'{self.profile.user.__str__()} - {self.status}'
+        return f'{self.user.__str__()} - {self.status}'
 
 class Product(models.Model):
     price = models.IntegerField()
@@ -92,16 +123,51 @@ class Product(models.Model):
     delivery_days = models.IntegerField()
     desc = models.TextField()
     optional_characteristics = models.JSONField(blank=True, null=True)
-    available = models.BooleanField(verbose_name='Product available?')
     brand = models.ForeignKey(Brand, related_name='products', on_delete=models.CASCADE)
     category = models.ForeignKey(Category, related_name='products', on_delete=models.CASCADE)
     code = models.CharField(max_length=6, default='000000')
-    liked_products = models.ManyToManyField(Profile, related_name='liked_products', blank=True)
-    order_products = models.ManyToManyField(Order, related_name='order_products', blank=True)
+    liked_in_users = models.ManyToManyField(User, related_name='liked_products', blank=True)
+    ordered_in_orders = models.ManyToManyField(Order, related_name='order_products', blank=True)
+    quantity = models.IntegerField(
+        validators=[MinValueValidator(0, message='Quantity can\'t be less than 0')],
+        default=1
+    )
+
+    def save(self, **kwargs):
+        print(kwargs)
+        independent_mails = IndependentMail.objects.values_list('mail', flat=True)
+        user_mails = User.objects.filter(in_mailing_list=True).values_list('email', flat=True)
+        # Works fine, but send mails with each product update...
+        # html_msg=\
+        # f"""
+        #     <h1>Price: {self.saled_price or self.price}$<h1>
+        #     <h2>Brand: {self.brand}</h2>
+        #     <p>{self.desc}</p>
+        #     Delivery days: {self.delivery_days} <br>
+        #     <a href="https://127.0.0.1:8080/#/products/{self.id}">See detail</a>
+        # """
+        # send_mail(
+        #     self.name,
+        #     html_msg,
+        #     settings.EMAIL_HOST_USER,
+        #     [*independent_mails, *user_mails],
+        #     html_message=html_msg,
+        # )
+        return super().save(**kwargs)
+
+    @property
+    def available(self):
+        return True if self.quantity >= 1 else False
 
     @property
     def sale_new_hit(self):
-        if self.liked_products.count() >= 10:
+        """
+        Define product top right circle content.
+        If product liked for >=10 user - 'HIT!',
+        if product sale >= 50% - 'saleXX'
+        else 'NEW!'
+        """
+        if self.liked_in_users.count() >= 10:
             return 'HIT!'
         elif self.saled_price and 100 - (self.saled_price / self.price) * 100 >= 50:
             return f'sale{100 - int((self.saled_price / self.price) * 100)}'
@@ -110,9 +176,8 @@ class Product(models.Model):
 
     @property
     def stars_avg(self):
-        all_stars = tuple(self.comments.values_list('stars', flat=True))
-        if all_stars:
-            return sum(all_stars) // len(all_stars)
+        stars_avg = self.comments.aggregate(models.Avg('stars'))['stars__avg']
+        return math.ceil(stars_avg) if stars_avg else stars_avg
 
     @property
     def comments_count(self):
@@ -128,6 +193,7 @@ class Product(models.Model):
 
 class Comment(models.Model):
     product = models.ForeignKey(Product, related_name='comments' ,on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='comments', on_delete=models.CASCADE)
     header = models.CharField(max_length=50)
     text = models.TextField()
     stars = models.IntegerField(
@@ -145,9 +211,4 @@ class Image(models.Model):
     product = models.ForeignKey(Product, related_name='images', on_delete=models.SET_NULL, blank=True, null=True)
     blog = models.ForeignKey(Blog, related_name='images', on_delete=models.SET_NULL, blank=True, null=True)
 
-class IndependentMail(models.Model):
-    mail = models.EmailField(verbose_name='Independent mail', unique=True)
-
-    def __str__(self):
-        return self.mail
 

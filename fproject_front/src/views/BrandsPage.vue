@@ -19,7 +19,10 @@
 
 <script>
 export default {
-    
+    async beforeMount(){
+        this.$store.state.pagesInCrumbs.clear()
+        this.$store.state.pagesInCrumbs.add('Brands')
+    }
 }
 </script>
 

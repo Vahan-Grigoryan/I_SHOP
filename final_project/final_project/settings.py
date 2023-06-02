@@ -10,7 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 import os.path
+from datetime import timedelta
 from pathlib import Path
+from os import getenv as _
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -18,11 +20,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
+SECRET_KEY = _('djapp_secret')
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-4&y4*-a82+m741f#p%tk@xyj*m!ie--hr6&=+&n)_s$g&w=(=z'
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = []
@@ -31,11 +30,14 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'rest_framework',
+    'rest_framework_simplejwt',
+    'social_django',
+    'djoser',
     'django_filters',
     'ckeditor',
     'ckeditor_uploader',
-    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -54,6 +56,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'fapp.middlewares.CommonTroubleshootingMiddleware'
 ]
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -70,6 +73,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
         },
     },
@@ -115,16 +120,22 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru-RU'
 
 TIME_ZONE = 'UTC'
 
 USE_I18N = True
-
+USE_L10N = True
 USE_TZ = True
 
 STATIC_ROOT = 'all_statics/'
@@ -142,7 +153,16 @@ CKEDITOR_UPLOAD_PATH = 'ckmedia/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'fapp.User'
-AUTHENTICATION_BACKENDS = ['fapp.auth_backend.AuthWithFirstLastNamesOnly']
+AUTHENTICATION_BACKENDS = [
+    'fapp.auth_backends.AuthWithEmailAndPasswordOnly',
+    'social_core.backends.google.GoogleOAuth2',
+]
+
+SIMPLE_JWT = {
+    'AUTH_HEADER_TYPES': ('JWT',),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=60),
+}
 
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_SSL = True
@@ -150,6 +170,21 @@ EMAIL_PORT = 465
 EMAIL_HOST_USER = 'vahan.grigoryan.f@gmail.com'
 EMAIL_HOST_PASSWORD = 'xxgckbkqqmrlnabf'
 
+
+DJOSER = {
+    'PASSWORD_RESET_CONFIRM_URL': '#/password/reset/confirm/{uid}/{token}',
+    'USERNAME_RESET_CONFIRM_URL': '#/username/reset/confirm/{uid}/{token}',
+    'ACTIVATION_URL': '#/activate/{uid}/{token}',
+    # 'SEND_ACTIVATION_EMAIL': True,
+    'SERIALIZERS': {
+        'current_user': 'fapp.serializers.UserSerializer'
+    },
+    'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': [
+        'http://localhost:8080',
+    ],
+}
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = _('oauth2_client_id_or_key')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = _('oauth2_secret')
 
 CKEDITOR_CONFIGS = {
     'default': {

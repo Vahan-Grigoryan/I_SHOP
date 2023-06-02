@@ -43,16 +43,6 @@ class ProductAdmin(ModelAdmin):
             html += f'<img src={image_instance.image.url} width="50" height="50" style="margin-right:20px" />'
         return mark_safe(html)
 
-class ProfileAdmin(ModelAdmin):
-    list_display = '__str__', 'liked_products_admin', 'order_products_admin'
-
-
-    def liked_products_admin(self, instance):
-        return list(instance.liked_products.values_list('name', flat=True))
-
-    def order_products_admin(self, instance):
-        return tuple(instance.orders.values_list('status', flat=True))
-
 class ImageAdmin(ModelAdmin):
     list_display = 'rel_definition', 'thumbnail',
 
@@ -63,7 +53,7 @@ class ImageAdmin(ModelAdmin):
         return mark_safe(f'<img src={instance.image.url} width="50" height="50" />')
 
 class OrderAdmin(ModelAdmin):
-    list_display = 'status', 'profile', 'products_in_order',
+    list_display = 'status', 'products_in_order',
 
     def products_in_order(self, instance):
         return tuple(instance.order_products.values_list('name', flat=True))
@@ -74,7 +64,6 @@ admin.site.register(Comment)
 admin.site.register(IndependentMail)
 admin.site.register(Blog)
 admin.site.register(Order, OrderAdmin)
-admin.site.register(Profile, ProfileAdmin)
 admin.site.register(BlogCategory)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Brand, BrandAdmin)

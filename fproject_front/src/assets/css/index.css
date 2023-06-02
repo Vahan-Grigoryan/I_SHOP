@@ -34,10 +34,16 @@ main .right_screens > img {
 
 
 .main_bottom_slider {
-    padding: 30px 82px;
-    background: #F4F5F9;
-    height: 278px;
-    position: relative;
+  padding: 0px !important;
+  background: #F4F5F9;
+  height: 278px;
+  position: relative;
+}
+.main_bottom_slider li > img{
+  width: 256px;
+  height: 178px;
+  object-fit: cover;
+  border-radius: 7px;
 }
 
 .variety_of_products {

@@ -14,9 +14,30 @@
         </div>
     </main>
     
-    <div class="main_bottom_slider">
+    <!-- <div class="main_bottom_slider">
         <ui-main-bottom-slider />
-    </div>
+    </div> -->
+
+    <mini-products-slider 
+    class="main_bottom_slider"
+    
+    >
+        <SplideSlide>
+            <img src="@/assets/img/main_bottom_slide1.png" alt="">
+        </SplideSlide>
+        <SplideSlide>
+            <img src="@/assets/img/Banner1.png" alt="">
+        </SplideSlide>
+        <SplideSlide>
+            <img src="@/assets/img/main_bottom_slide3.png" alt="">
+        </SplideSlide>
+        <SplideSlide>
+            <img src="@/assets/img/main_bottom_slide4.png" alt="">
+        </SplideSlide>
+        <SplideSlide>
+            <img src="@/assets/img/main_bottom_slide2.png" alt="">
+        </SplideSlide>
+    </mini-products-slider>
     
     <ui-our-procs />
 
@@ -32,50 +53,6 @@
                 <img :src="$store.getters.getImageUrl(center_category.image)"><br>
                 <span>{{ center_category.name }}</span>
             </div>
-            <!-- <div class="category_box" @click="$router.push('/mega_category/5')">
-                <img src="@/assets/img/cbimg2.png" alt=""><br>
-                <span>Автокресла</span>
-            </div>
-            <div class="category_box" @click="$router.push('/mega_category/5')">
-                <img src="@/assets/img/cbimg3.png" alt=""><br>
-                <span>Детская комната</span>
-            </div>
-            <div class="category_box" @click="$router.push('/mega_category/5')">
-                <img src="@/assets/img/cbimg4.png" alt=""><br>
-                <span>Транспорт и спорт</span>
-            </div>
-            <div class="category_box" @click="$router.push('/mega_category/5')">
-                <img src="@/assets/img/cbimg4.png" alt=""><br>
-                <span>Игрушки и игры</span>
-            </div>
-            <div class="category_box" @click="$router.push('/mega_category/5')">
-                <img src="@/assets/img/cbimg5.png" alt=""><br>
-                <span>Одежда и обувь</span>
-            </div>
-            <div class="category_box" @click="$router.push('/mega_category/5')">
-                <img src="@/assets/img/cbimg6.png" alt=""><br>
-                <span>Для мамочек</span>
-            </div>
-            <div class="category_box" @click="$router.push('/mega_category/5')">
-                <img src="@/assets/img/cbimg7.png" alt=""><br>
-                <span>Гигиена и уход</span>
-            </div>
-            <div class="category_box" @click="$router.push('/mega_category/5')">
-                <img src="@/assets/img/cbimg8.png" alt=""><br>
-                <span>Кормление</span>
-            </div>
-            <div class="category_box" @click="$router.push('/mega_category/5')">
-                <img src="@/assets/img/cbimg9.png" alt=""><br>
-                <span>Детксие подарки</span>
-            </div>
-            <div class="category_box" @click="$router.push('/mega_category/5')">
-                <img src="@/assets/img/cbimg10.png" alt=""><br>
-                <span>Елки и игрушки</span>
-            </div>
-            <div class="category_box" @click="$router.push('/mega_category/5')">
-                <img src="@/assets/img/cbimg11.png" alt=""><br>
-                <span>Подарочные карты</span>
-            </div> -->
         </div>
     </div>
     
@@ -412,6 +389,21 @@ export default {
         setProductsStarsAvg(this.new_products)
         
 
+    },
+    async beforeCreate(){
+        // let params = new URLSearchParams(document.location.search);
+        // if (params.size) {
+        //     const [state, code] = [params.get('state'), params.get('code')] 
+        //     console.log(state, code);
+        //     const auth = await axios.post(
+        //     `${this.$store.state.server_href}/auth/o/google-oauth2/?state=${state}&code=${code}`,
+        //     {
+        //         headers: {
+        //             'Content-Type': 'application/x-www-form-urlencoded'
+        //         }
+        //     })
+        //     console.log(auth.data);
+        // }
     }
 }
 </script>
