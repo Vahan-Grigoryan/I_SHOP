@@ -14,4 +14,8 @@ urlpatterns = [
     path('blogs_index', drf_views.BlogIndexList.as_view()),
     path('products_index', drf_views.ProductList.as_view()),
     path('products/<int:pk>', drf_views.ProductDetail.as_view()),
+    path('comments', drf_views.CommentCreating.as_view()),
+    path('filter_products', drf_views.FilteredProducts.as_view()),
+    path('available_filters', drf_views.AvailableFilters.as_view()),
+
 ]

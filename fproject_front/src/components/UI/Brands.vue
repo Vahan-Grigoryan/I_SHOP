@@ -5,10 +5,10 @@
         <div 
         class="brand"
         v-for="brand in brands"
-        @click="$router.push('to_filters!!!')"
+        @click="toFiltersPage(brand.name)"
         >
-            <img :src="brand.image" alt="">
-            <p>{{ brand.name }}</p>
+          <img :src="brand.image" alt="">
+          <p>{{ brand.name }}</p>
         </div>
     </div>
     <slot name="pagination_or_href">
@@ -30,6 +30,12 @@ export default {
             default: true
         },
         brands: Array
+    },
+    methods: {
+      toFiltersPage(brand_name){
+        this.$router.push('/product_filters')
+        this.$emit('selectedBrand', brand_name)
+      }
     }
 }
 </script>

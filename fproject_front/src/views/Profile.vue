@@ -1,5 +1,5 @@
 <template>
-<Header :key="header_user_state" />
+<!-- <Header :key="header_user_state" /> -->
 
 <div class="profile_container">
     <ui-bread-crumbs />
@@ -658,10 +658,12 @@
         </SplideSlide>
 </mini-products-slider> 
 
-<ui-footer />
+
 </template>
 
 <script>
+import emitsForApp from '@/mixins/emitsForApp'
+
 export default {
     data(){
         return {
@@ -676,9 +678,10 @@ export default {
             
             current_sale: 'Select sale',
             user: JSON.parse(localStorage.getItem('current_user')),
-            header_user_state: 'authed',
+            
         }
     },
+    mixins: [emitsForApp],
     methods: {
         profileWhatVisible(visible_tab){
             // set tab clicked = true by name
@@ -703,15 +706,20 @@ export default {
             
         },
         exitAcc(){
-            localStorage.clear()
-            this.header_user_state='exited'
+            localStorage.removeItem('access')
+            localStorage.removeItem('refresh')
+            localStorage.removeItem('current_user')
+            this.$emit('rerender_header')
             this.$router.push('/register')
         }
     },
     async beforeMount(){
         this.$store.state.pagesInCrumbs.clear()
         this.$store.state.pagesInCrumbs.add('Profile')
-        const user_profile_info = await this.$store.getters.fetchUserProfileInfo(this.user.id)
+        const user_profile_info = await this.$store.dispatch(
+            'commonGETRequestWithAuth', 
+            `users_profile/${this.user.id}`
+        )
     }
 }
 </script>

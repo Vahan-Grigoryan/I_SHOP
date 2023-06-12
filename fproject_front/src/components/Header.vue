@@ -99,11 +99,11 @@
                 <div class="right_category" 
                 v-else
                 v-for="category_value in Object.values(right_categories)"
-                @click="selectRightCategory(category_value)"
                 >
                   <div
                   v-if="categories_visibiltiy[category_value[0]+'_visible']"
                   v-for="right_category in category_value[1]"
+                  @click="selectRightCategory(right_category)"
                   >
                     <a>
                       {{ right_category }}
@@ -116,7 +116,12 @@
         </div>
         <form class="bottom_nav__search_form">
           <img src="@/assets/img/Search.png" alt="">
-          <input type="text" placeholder="Введите запрос для поиска">
+          <input 
+          type="text"
+          placeholder="Введите запрос(>2 символов)"
+          @input="change_search_text"
+          :value="search_text"
+          >
           <button type="submit">Найти</button>
         </form>
         
@@ -155,10 +160,9 @@
 
 <script>
 // Header for project without slots, with dropwdown mega menu and many hrefs
-
+import emitsForApp from '@/mixins/emitsForApp'
 import redirectTo from '@/mixins/redirectToProfilePart'
 import axios from 'axios'
-
 
 export default {
     name: 'Header',
@@ -184,18 +188,34 @@ export default {
         password: '',
         auth_email_error: '',
         auth_password_error: '',
-        account_not_found: ''
+        account_not_found: '',
+        
       }
     },
+    props: {
+      left_cat: String,
+      right_cat: String,
+      search_text: '',
+    },
+    emits: ['update:search_text', 'update:left_cat', 'update:right_cat'],
+    mixins: [emitsForApp],
     methods: {
       selectLeftCategory(category){
         this.mega_menu_visible=false
         this.$router.push(`/mega_category/${category}`)
-        this.$emit('selectedCategory', category)
+        this.$emit('update:left_cat', category)
       },
-      selectRightCategory(category){
+      selectRightCategory(right_category){
         this.mega_menu_visible=false
-        
+        this.$router.push('/product_filters')
+        this.$emit('update:right_cat', right_category)
+      },
+      change_search_text(e){
+        // If user input search text, emit event for pass user text to page FilterProducts 
+        if (e.target.value.length>2 || e.target.value.length==0) {
+          this.$router.push('/product_filters')
+          this.$emit('update:search_text', e.target.value)
+        }
       },
       getImage(category){
         return `http://localhost:8000${this.categories[category]['image']}`
@@ -233,7 +253,6 @@ export default {
           this.auth_email_error = ''
           this.auth_password_error = ''
           this.account_not_found = ''
-          console.log('BEFORE');
           const createTokens = await axios.post(`${this.$store.state.server_href}auth/jwt/create`, {
             email: this.email,
             password: this.password
@@ -257,17 +276,20 @@ export default {
           }
           
         }
-        this.user = await this.$store.getters.commonGETRequestWithAuth(
+        this.user = await this.$store.dispatch(
+          'commonGETRequestWithAuth',
           `users_mini_info?email=${this.email}`
         )
         localStorage.setItem('current_user', JSON.stringify(this.user))
         this.auth_modal_visible = false
         this.$router.push(`/profile/${this.user.id}`)
-      }
+      },
+      // change_search_query(e){
+      //   this.$emit('update:search_text', e.target.value)
+      // }
     },
     async beforeMount(){
-      this.categories = await this.$store.getters.fetchCategories()
-
+      this.categories = JSON.parse(localStorage.getItem('cats_formated'))
 
       let categories_without_images = {}
       Object.keys(this.categories).forEach( left_category_key => {
@@ -305,7 +327,7 @@ export default {
         else {
           window.onscroll = function () { window.scrollTo(scrollX, scrollY); };
         }
-      }
+      },
     }
 }
 </script>

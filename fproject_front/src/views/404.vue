@@ -1,5 +1,5 @@
 <template>
-<Header />
+
 
 <div class="container_404">
     <ui-bread-crumbs />
@@ -12,7 +12,7 @@
     />
 </div>
 
-<ui-footer />
+
 </template>
 
 <script>

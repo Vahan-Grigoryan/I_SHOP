@@ -16,6 +16,5 @@
     text-align: center;
 }
 .mega_category_subcategory img{
-    border-radius: 50%;
     object-fit: cover;
 }

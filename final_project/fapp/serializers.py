@@ -1,5 +1,4 @@
 import re
-
 from rest_framework import serializers
 from fapp.models import *
 
@@ -17,7 +16,7 @@ class UserForCommentSerializer(serializers.ModelSerializer):
         fields = 'first_name', 'last_name', 'photo'
 
 class CommentSerializer(serializers.ModelSerializer):
-    user = UserForCommentSerializer()
+    user = UserForCommentSerializer(read_only=True)
     class Meta:
         model = Comment
         exclude = 'product', 'id'
@@ -49,7 +48,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = '__all__'
+        exclude = 'liked_in_users', 'ordered_in_orders'
 
 class ProductListSerializer(serializers.ModelSerializer):
     images = ImageSerializer(many=True)
@@ -59,7 +58,7 @@ class ProductListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        exclude = 'resolution', 'optional_characteristics', 'code', 'brand', 'category', 'liked_in_users', 'ordered_in_orders'
+        exclude = 'resolution', 'optional_characteristics', 'code', 'brand', 'category', 'liked_in_users', 'ordered_in_orders', 'quantity'
 
 class ProductsOfCategory(serializers.ModelSerializer):
     images = ImageSerializer(many=True)
@@ -69,7 +68,7 @@ class ProductsOfCategory(serializers.ModelSerializer):
 
 class OrderSerializer(serializers.ModelSerializer):
     order_products = ProductListSerializer(many=True)
-    number = serializers.CharField()
+    code = serializers.CharField()
     total_prices_sum = serializers.IntegerField()
     class Meta:
         model = Order
@@ -97,3 +96,4 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = '__all__'
+

@@ -1,5 +1,5 @@
 <template>
-<Header />
+
 
 <div class="brands_container">
     <ui-bread-crumbs />
@@ -14,15 +14,18 @@
     </template>
 </ui-brands>
 
-<ui-footer />
+
 </template>
 
 <script>
+import emitsForApp from '@/mixins/emitsForApp';
+
 export default {
     async beforeMount(){
         this.$store.state.pagesInCrumbs.clear()
         this.$store.state.pagesInCrumbs.add('Brands')
-    }
+    },
+    mixins: [emitsForApp]
 }
 </script>
 

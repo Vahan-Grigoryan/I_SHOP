@@ -88,6 +88,7 @@ export default {
 .swiper .swiper-slide {
   width: 100%;
   height: 100%;
+  cursor: grab;
 }
 
 .swiper .swiper-slide > img {

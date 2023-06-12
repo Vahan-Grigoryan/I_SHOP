@@ -1,5 +1,5 @@
 <template>
-<Header />
+
 <div class="blog_container">
     <ui-bread-crumbs />
 
@@ -42,10 +42,12 @@
     </div>
 </div>
 
-<ui-footer />
+
 </template>
 
 <script>
+import emitsForApp from '@/mixins/emitsForApp';
+
 export default {
     data(){
         return {
@@ -61,7 +63,8 @@ export default {
     async beforeMount(){
         this.$store.state.pagesInCrumbs.clear()
         this.$store.state.pagesInCrumbs.add('Blog')
-    }
+    },
+    mixins: [emitsForApp],
 }
 </script>
 

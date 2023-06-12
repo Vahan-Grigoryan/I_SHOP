@@ -1,4 +1,4 @@
-from fapp.models import Category
+from fapp.models import Brand, Category, Product
 
 
 def get_formatted_categories_for_front(categories_position=None):
@@ -7,7 +7,7 @@ def get_formatted_categories_for_front(categories_position=None):
         center_categories = Category.objects.filter(parent__isnull=False, child_cats__isnull=False).distinct()
         result_categories = tuple(center_categories.values('name', 'image'))
     else:
-        left_categories = Category.objects.filter(parent__isnull=True)
+        left_categories = Category.objects.filter(parent__isnull=True).prefetch_related('child_cats')
         for category in left_categories:
             result_categories[category.name] = {}
             result_categories[category.name]['image'] = category.image.url
@@ -16,3 +16,16 @@ def get_formatted_categories_for_front(categories_position=None):
                 result_categories[category.name][child_cat.name] = tuple(child_cat.child_cats.values_list('name', flat=True))
     
     return result_categories
+
+def get_available_filters():
+    brands = Brand.objects.values_list('name', flat=True)
+    colors_raw = Product.objects.values_list('colors', flat=True).prefetch_related()
+    colors = []
+    for color_str in colors_raw:
+        colors = [*colors, *color_str.split(',')]
+
+    colors = set(map(lambda color: color.strip(), colors))
+    return {
+        'brands': brands,
+        'colors': colors,
+    }

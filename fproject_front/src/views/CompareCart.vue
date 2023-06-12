@@ -1,5 +1,5 @@
 <template>
-<Header />
+
 
 <div class="compare_container">
     <ui-bread-crumbs />
@@ -109,12 +109,13 @@
 
 </div>
 
-<ui-footer />
+
 </template>
 
 <script>
 import { onMounted, ref } from 'vue';
 import Splide from '@splidejs/splide'
+import emitsForApp from '@/mixins/emitsForApp';
 
 
 export default {
@@ -149,7 +150,8 @@ export default {
     async beforeMount(){
         this.$store.state.pagesInCrumbs.clear()
         this.$store.state.pagesInCrumbs.add('Compare cart')
-    }
+    },
+    mixins: [emitsForApp],
 }
 </script>
 

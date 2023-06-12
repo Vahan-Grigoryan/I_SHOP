@@ -1,13 +1,11 @@
-import json, requests
-
-from django.contrib.sites.shortcuts import get_current_site
-from django.shortcuts import redirect
+from django.db.models import Subquery, OuterRef
+from . import drf_pagination
 from rest_framework import generics
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from fapp.business import get_formatted_categories_for_front
+from fapp import business
 from fapp import serializers, drf_pagination
 from django_filters import rest_framework as dfilters
 from . import filters
@@ -21,7 +19,6 @@ class UserDetailProfileInfo(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     queryset = User.objects.distinct()
     serializer_class = serializers.UserProfileSerializer
-
 
 class UserMiniInfo(generics.RetrieveAPIView):
     """User mini info for site header"""
@@ -39,9 +36,10 @@ class UserMiniInfo(generics.RetrieveAPIView):
         self.check_object_permissions(self.request, obj)
         return obj
 
-
 class MailingList(APIView):
+    """View for add mail in Independent mail_list(possible to receive new product info without registration)"""
     def post(self, request):
+        """Add or del(if exists) Independent mail logic"""
         if request.data.get('for_delete'):
             mailing_msg = mailing_logic.del_mail_from_mail_list(request.data.get('mail'))
             return Response(mailing_msg, status=202)
@@ -50,37 +48,41 @@ class MailingList(APIView):
             return Response(mailing_msg, status=200)
 
 class Registration(generics.CreateAPIView):
+    """Common registration"""
     queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
 
 class CategoryList(APIView):
-
+    """Return nested/center categories"""
     def get(self, request):
         if request.GET.get('categories_position') == 'center':
-            format_categories = get_formatted_categories_for_front(categories_position='center')
+            # return only center(without children and parents) categories for index front page
+            format_categories = business.get_formatted_categories_for_front(categories_position='center')
         else:
-            format_categories = get_formatted_categories_for_front()
+            # return nested all categories
+            format_categories = business.get_formatted_categories_for_front()
         return Response(format_categories)
 
 class CategoryChildren(APIView):
+    """Return children categories(only 1 level) of pointed category for mega_category front page"""
     def get(self, request, category_name):
         children = Category.objects.get(name=category_name).child_cats.all()
         sz = serializers.CategorySerializer(children, many=True)
         return Response(sz.data)
 
 class CategoryProducts(APIView):
+    """
+    Return products of category(max category level is center).
+    If current_product_id provided, from products it will be excluded.
+    """
     def get(self, request, category_name):
-        """
-        Return products of category(max category level is center).
-        If current_product_id provided, from products it will be excluded.
-        """
         category = Category.objects.get(name=category_name)
         current_product_id = request.GET.get('current_product_id')
 
         if category.child_cats.count():
             child_cats = category.child_cats.all()
             products = Product.objects.filter(category__in=child_cats)
-            sz = serializers.ProductsOfCategory(products, many=True)
+            sz = serializers.ProductListSerializer(products, many=True)
             return Response(sz.data)
 
         else:
@@ -92,6 +94,7 @@ class ProductDetail(generics.RetrieveAPIView):
     serializer_class = serializers.ProductDetailSerializer
 
 class ProductList(generics.ListAPIView):
+    """Products list specified by sale_new_hit property in model class for front index page"""
     serializer_class = serializers.ProductListSerializer
 
     def get_queryset(self):
@@ -113,6 +116,7 @@ class BlogIndexList(generics.ListAPIView):
     serializer_class = serializers.BlogSerializer
 
 class ReceiveQuestion(APIView):
+    """This is used for receive question from user in the form at the bottom of the front index page"""
     def post(self, request):
         if request.data.get('mail_msg_tel'):
             send_mail(
@@ -131,3 +135,34 @@ class ReceiveQuestion(APIView):
                 fail_silently=False,
             )
         return Response(status=200)
+
+class CommentCreating(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Comment.objects.all()
+    serializer_class = serializers.CommentSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user_id=self.request.data.get('user_id'), product_id=self.request.data.get('product_id'))
+
+class AvailableFilters(APIView):
+    def get(self, request):
+        """Return all available filters for filters front page except categories"""
+        available_filters = business.get_available_filters()
+        return Response(available_filters)
+
+
+class FilteredProducts(generics.ListAPIView):
+    """
+    Return filtered products by url params.
+    If not param in url return all products.
+    """
+    serializer_class = serializers.ProductListSerializer
+    pagination_class = drf_pagination.FilteredProductsPagination
+    filter_backends = (dfilters.DjangoFilterBackend,)
+    filterset_class = filters.ProductFilter
+
+    def get_queryset(self):
+        if self.request.GET.get('sort_by') == 'latest':
+            return Product.objects.order_by('id').prefetch_related()
+        else:
+            return Product.objects.order_by('-id').prefetch_related()

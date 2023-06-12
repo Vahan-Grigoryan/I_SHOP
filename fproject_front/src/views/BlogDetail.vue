@@ -1,5 +1,5 @@
 <template>
-<Header />
+
 
 <div class="article_container">
     <ui-bread-crumbs />
@@ -27,15 +27,18 @@
 <ui-href-blog-box 
 :header_text="'Похожие статьи'"
 />
-<ui-footer />
+
 </template>
 
 <script>
+import emitsForApp from '@/mixins/emitsForApp';
+
 export default {
     async beforeMount(){
         this.$store.state.pagesInCrumbs.clear()
         this.$store.state.pagesInCrumbs.add('Article')
-    }
+    },
+    mixins: [emitsForApp],
 }
 </script>
 

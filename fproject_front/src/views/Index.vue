@@ -1,7 +1,7 @@
 <template>
-    <Header 
+    <!-- <Header 
     v-model:likes="likes.length" 
-    />
+    /> -->
 
     <main>
         <ui-main-top-slider style="width: 70%" />
@@ -13,10 +13,6 @@
             <img src="@/assets/img/Banner2.png" alt="">
         </div>
     </main>
-    
-    <!-- <div class="main_bottom_slider">
-        <ui-main-bottom-slider />
-    </div> -->
 
     <mini-products-slider 
     class="main_bottom_slider"
@@ -48,7 +44,7 @@
             <div 
             class="category_box" 
             v-for="center_category in center_categories"
-            @click="$router.push('to_filters!!!')"
+            @click="toFiltersPage(center_category.name)"
             >
                 <img :src="$store.getters.getImageUrl(center_category.image)"><br>
                 <span>{{ center_category.name }}</span>
@@ -61,54 +57,12 @@
             <h1>Акции и скидки</h1>
         </template>
         
-        <SplideSlide 
-        class="swiper-slide"
+        <ui-slide
         v-for="product in sailed_products"
         :key="product.id"
-        @click="$router.push(`products/${product.id}`)"
+        :product="product"
         >
-            <div :class="defineSaleNewHit('sale')">
-                {{ product.sale_new_hit.slice(4) }}%
-            </div>
-            <div class="to_like_box">
-                <div class="like"></div>
-            </div>
-            <img :src="product.images[0].image">
-            <div class="slide_desc">
-                <h3>{{ product.saled_price ? product.saled_price : product.price }} &dollar;</h3> &nbsp; 
-                <span v-if="product.saled_price">{{ product.price }} &dollar;</span>
-                <br><br>
-                <p>{{ product.name }}</p>
-                <div class="colors">
-                    <div 
-                    class="color" 
-                    v-for="color in product.colors.split(',')"
-                    :style="`background: ${color};`"
-                    >
-                    </div>
-                </div>
-                <div class="delivery_box">
-                    <img src="@/assets/img/delivery.png" alt="">
-                    <small>Доставка: &plusmn; {{ product.delivery_days }} дня</small>
-                </div>
-                <div class="rating">
-                    <div class="stars">
-                        <img 
-                        src="@/assets/img/star.png" 
-                        class="star" 
-                        v-for="_ in product.stars_avg"
-                        />
-                        <img 
-                        src="@/assets/img/star_gray.png" 
-                        class="star" 
-                        v-for="_ in 5-product.stars_avg"
-                        />
-                    </div>
-                    <small>&nbsp; отзывы: {{ product.comments_count }}</small>
-                </div>
-            </div>
-        </SplideSlide>
-
+        </ui-slide>
     </mini-products-slider>
 
     <div class="get_sales_info_form_box">
@@ -117,7 +71,7 @@
         <div class="form_wrapper" action="">
             <div style="width:80%">
                 <h1>Получайте информацию о скидках первыми</h1>
-                <span>Оформите подписку и вы будете вкурсе всех наших выгодных акций и скидок</span>
+                <span>Оформите подписку на рассылку(без регистрации) и вы будете вкурсе всех наших новых продуктов</span>
                 <form @submit.prevent method="post">
                     <div style="width: 45%;position: relative;">
                         <input ref="mail_to_mailing_list" type="email" placeholder="Ваша электронная почта" />
@@ -150,53 +104,12 @@
             <h1>Популярные товары</h1>
         </template>
         
-        <SplideSlide 
-        class="swiper-slide"
+        <ui-slide
         v-for="product in hit_products"
         :key="product.id"
-        @click="$router.push(`products/${product.id}`)"
+        :product="product"
         >
-            <div :class="defineSaleNewHit('hit')">
-                {{ product.sale_new_hit }}
-            </div>
-            <div class="to_like_box">
-                <div class="like"></div>
-            </div>
-            <img :src="product.images[0].image">
-            <div class="slide_desc">
-                <h3>{{ product.saled_price ? product.saled_price : product.price }} &dollar;</h3> &nbsp; 
-                <span v-if="product.saled_price">{{ product.price }} &dollar;</span>
-                <br><br>
-                <p>{{ product.name }}</p>
-                <div class="colors">
-                    <div 
-                    class="color" 
-                    v-for="color in product.colors.split(',')"
-                    :style="`background: ${color};`"
-                    >
-                    </div>
-                </div>
-                <div class="delivery_box">
-                    <img src="@/assets/img/delivery.png" alt="">
-                    <small>Доставка: &plusmn; {{ product.delivery_days }} дня</small>
-                </div>
-                <div class="rating">
-                    <div class="stars">
-                        <img 
-                        src="@/assets/img/star.png" 
-                        class="star" 
-                        v-for="_ in product.stars_avg"
-                        />
-                        <img 
-                        src="@/assets/img/star_gray.png" 
-                        class="star" 
-                        v-for="_ in 5-product.stars_avg"
-                        />
-                    </div>
-                    <small>&nbsp; отзывы: {{ product.comments_count }}</small>
-                </div>
-            </div>
-        </SplideSlide>
+        </ui-slide>
     </mini-products-slider>
 
     <mini-products-slider style="background: #F4F5F9;">
@@ -204,53 +117,12 @@
             <h1>Новинки</h1>
         </template>
         
-        <SplideSlide 
-        class="swiper-slide"
+        <ui-slide
         v-for="product in new_products"
         :key="product.id"
-        @click="$router.push(`products/${product.id}`)"
+        :product="product"
         >
-            <div :class="defineSaleNewHit('new')">
-                {{ product.sale_new_hit }}
-            </div>
-            <div class="to_like_box">
-                <div class="like"></div>
-            </div>
-            <img :src="product.images[0].image">
-            <div class="slide_desc">
-                <h3>{{ product.saled_price ? product.saled_price : product.price }} &dollar;</h3> &nbsp; 
-                <span v-if="product.saled_price">{{ product.price }} &dollar;</span>
-                <br><br>
-                <p>{{ product.name }}</p>
-                <div class="colors">
-                    <div 
-                    class="color" 
-                    v-for="color in product.colors.split(',')"
-                    :style="`background: ${color};`"
-                    >
-                    </div>
-                </div>
-                <div class="delivery_box">
-                    <img src="@/assets/img/delivery.png" alt="">
-                    <small>Доставка: &plusmn; {{ product.delivery_days }} дня</small>
-                </div>
-                <div class="rating">
-                    <div class="stars">
-                        <img 
-                        src="@/assets/img/star.png" 
-                        class="star" 
-                        v-for="_ in product.stars_avg"
-                        />
-                        <img 
-                        src="@/assets/img/star_gray.png" 
-                        class="star" 
-                        v-for="_ in 5-product.stars_avg"
-                        />
-                    </div>
-                    <small>&nbsp; отзывы: {{ product.comments_count }}</small>
-                </div>
-            </div>
-        </SplideSlide>
+        </ui-slide>
         
 
     </mini-products-slider>
@@ -287,11 +159,12 @@
 
     <ui-href-blog-box />
 
-    <ui-footer />
+    
     
 </template>
 
 <script>
+import emitsForApp from '@/mixins/emitsForApp'
 import axios from 'axios'
 
 export default {
@@ -314,6 +187,7 @@ export default {
             
         }
     },
+    mixins: [emitsForApp],
     methods:{
         addOrDelLikes(product_id){
             // if (this.likes.includes(product_id)) {
@@ -324,14 +198,6 @@ export default {
             //     this.likes.push(product_id)
             //     this.likesPurpleStatus[product_id] = product_id
             // }
-        },
-        defineSaleNewHit(productSaleNewHit){
-            const definition = {
-                sale: {sale_hit_new_box50: true},
-                new: {sale_hit_new_boxnew: true},
-                hit: {sale_hit_new_boxhit: true},
-            } 
-            return definition[productSaleNewHit]
         },
         check_mailing_list_response(response){
             if(response.data['Error']){
@@ -370,14 +236,25 @@ export default {
             }
             
             
+        },
+        toFiltersPage(center_category){
+            const cats_formated = JSON.parse(localStorage.getItem('cats_formated'))
+            for(let [lcat_key, lcat_value] of Object.entries(cats_formated)){
+                for(let [ccat_key, ccat_value] of Object.entries(lcat_value).splice(2)){
+                    if (ccat_key == center_category) {
+                        this.$emit('selectedCenterCategory', `${lcat_key},${ccat_key}`)
+                        this.$router.push('/product_filters')
+                    }
+                }
+            }
         }
     },
     async beforeMount(){
-        this.center_categories = await this.$store.getters.fetchCategories('center')
-        this.sailed_products = await this.$store.getters.fetchProductsBySaleNewHit('sale')
-        this.new_products = await this.$store.getters.fetchProductsBySaleNewHit('NEW')
-        this.hit_products = await this.$store.getters.fetchProductsBySaleNewHit('HIT')
-        this.brands_index = await this.$store.getters.fetchBrandsIndex()
+        this.center_categories = await this.$store.dispatch('fetchCategories', 'center')
+        this.sailed_products = await this.$store.dispatch('fetchProductsBySaleNewHit', 'sale')
+        this.new_products = await this.$store.dispatch('fetchProductsBySaleNewHit', 'NEW')
+        this.hit_products = await this.$store.dispatch('fetchProductsBySaleNewHit', 'HIT')
+        this.brands_index = await this.$store.dispatch('fetchBrandsIndex')
 
         function setProductsStarsAvg(products) {
             for (let i = 0; i < products.length; i++) {
@@ -387,8 +264,6 @@ export default {
 
         setProductsStarsAvg(this.sailed_products)
         setProductsStarsAvg(this.new_products)
-        
-
     },
     async beforeCreate(){
         // let params = new URLSearchParams(document.location.search);
