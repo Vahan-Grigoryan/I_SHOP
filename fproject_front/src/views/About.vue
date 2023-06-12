@@ -1,5 +1,5 @@
 <template>
-    <Header />
+    
     <div class="about_container">
         <ui-bread-crumbs />
         <div class="content_and_img">
@@ -34,15 +34,18 @@
         </div>
     </div>
     <ContactUsBox />
-    <ui-footer />
+    
 </template>
 
 <script>
+import emitsForApp from '@/mixins/emitsForApp';
+
 export default {
     async beforeMount(){
         this.$store.state.pagesInCrumbs.clear()
         this.$store.state.pagesInCrumbs.add('About')
-    }
+    },
+    mixins: [emitsForApp],
 }
 </script>
 

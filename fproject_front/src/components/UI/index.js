@@ -10,10 +10,13 @@ import MySelect from '@/components/UI/MySelect'
 import OurProcs from '@/components/UI/OurProcs'
 import ProfileContentEmpty from '@/components/UI/ProfileContentEmpty'
 import Pagination from '@/components/UI/Pagination'
+import SaleNewHit from '@/components/UI/DetectSaleNewHit'
+import Slide from '@/components/UI/Slide'
 
 
 export default [
     MainTopSlider, MainBottomSlider, MiniProductsSlider, Brands,
     HrefBlogBox, BlogSlide, Footer, BreadCrumbs, MySelect, 
-    OurProcs, ProfileContentEmpty, Pagination
+    OurProcs, ProfileContentEmpty, Pagination, SaleNewHit,
+    Slide
 ]

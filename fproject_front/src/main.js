@@ -8,9 +8,8 @@ import ui_components from '@/components/UI/index'
 import VueSplide from '@splidejs/vue-splide';
 
 
-
 App = createApp(App)
-
+App.config.unwrapInjectedRef = true
 const components = [...logic_components, ...ui_components]
 components.forEach( component => {
     App.component(component.name, component)

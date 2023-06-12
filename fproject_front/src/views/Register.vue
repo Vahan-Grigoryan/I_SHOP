@@ -1,5 +1,5 @@
 <template>
-<Header :key="header_rerender_key" />
+<!-- <Header :key="header_rerender_key" /> -->
 <ui-bread-crumbs style="padding-left: 5%;margin-top: 15px;" />
 <div class="reg_container">
     <h1>Регистрация аккаунта</h1>
@@ -80,10 +80,11 @@
     </div>
 </div>
 
-<ui-footer />
+
 </template>
 
 <script>
+import emitsForApp from '@/mixins/emitsForApp'
 import axios from 'axios'
 
 export default {
@@ -106,9 +107,9 @@ export default {
             city_error: '',
             street_error: '',
             post_code_error: '',
-            header_rerender_key: 0,
         }
     },
+    mixins: [emitsForApp],
     methods: {
         async register_user(){
             try{
@@ -122,7 +123,7 @@ export default {
                 localStorage.setItem('refresh', tokens.data.refresh)
                 localStorage.setItem('access', tokens.data.access)
                 localStorage.setItem('current_user', JSON.stringify(user.data))
-                this.header_rerender_key++
+                this.$emit('rerender_header')
                 Object.keys(this.$data).forEach( key => this.$data[key] = '')
             }catch(error){
                 const response = error.response.data

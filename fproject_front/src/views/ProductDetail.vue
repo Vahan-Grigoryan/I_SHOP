@@ -7,8 +7,8 @@
     @click="write_feedback_visible = false"
     >
     <h2>Напишите свой отзыв о продукте:</h2>
-    <input type="text" placeholder="Заголовок*">
-    <textarea name="" id="" cols="30" rows="10" placeholder="Текст отзыва*"></textarea>
+    <input type="text" placeholder="Заголовок*" v-model="comment_header">
+    <textarea name="" id="" cols="30" rows="10" placeholder="Текст отзыва*" v-model="comment_text"></textarea>
     <div class="set_starts">
         <span>Ваша оценка:</span>&nbsp;&nbsp;
         <img 
@@ -21,12 +21,11 @@
         
         >
     </div>
-    <button class="feedback_btn">
-        <img src="@/assets/img/star_white.png" alt="">&nbsp;
+    <button class="feedback_btn" @click="writeComment">
+        <img src="@/assets/img/star_white.png">&nbsp;
         Оставить отзыв
     </button>
 </div>
-<Header />
 
 <div class="product_detail_container">
     <ui-bread-crumbs />
@@ -194,10 +193,22 @@
                     <h2>Размер:</h2>
                     <ui-select 
                     style="width: 85%;"
-                    v-model:selected_option="selected_option"
+                    v-model:selected_option="selected_resolution"
                     :purpose="'detail'"
                     :options="product.get_resolutions"
                     />
+                </div>
+                <div style="display: flex;align-items: center;justify-content: space-between;">
+                    <h2>Цвета:</h2>
+                    <div class="colors">
+                        <div 
+                        v-for="color in product.colors.split(',')"
+                        :class="getColorClass(color)" 
+                        :style="`background: ${color};`"
+                        @click="selected_color = color"
+                        >
+                        </div>
+                    </div>
                 </div>
                 <div class="inline product_prices">
                     <div class="price inline">
@@ -208,6 +219,13 @@
                         <button class="inc_dec_btn" @click="decCount">-</button>
                         <input type="number" v-model="count">
                         <button class="inc_dec_btn" @click="incCount">+</button>
+
+                        <div :class="{
+                            disable_message: true,
+                            to_shake: count_disable_shake_class
+                        }">
+                            Махимально доступно {{ product.quantity }}
+                        </div>
                     </div>
                 </div>
                 <br>
@@ -276,7 +294,7 @@
             v-if="product.comments.length"
             v-for="comment in current_product_comments"
             >
-                <h3>{{ comment.header }}</h3>
+                <h3>{{ comment.comment_header }}</h3>
                 <div class="rating">
                     <div class="stars">
                         <img src="@/assets/img/star.png" v-for="_ in comment.stars">
@@ -294,7 +312,8 @@
                 </div>
             </div>
             <div v-else style="text-align: center;">
-                <h1>Пока отзывов нет, будь первым!</h1>
+                <h1 v-if="user">Пока отзывов нет, будь первым!</h1>
+                <h2 v-else>Пока отзывов нет, зарегесстрируйся чтобы написать отзыв!</h2>
                 <br>
             </div>
             <div class="btns">
@@ -303,7 +322,7 @@
                 @click="add2comments(current_product_comments.length-1)"
                 >Больше отзывов</button>
                 &nbsp; &nbsp;
-                <button @click="write_feedback_visible = true">Оставить отзыв</button>
+                <button @click="write_feedback_visible = true" v-if="user">Оставить отзыв</button>
             </div>
             
         </div>
@@ -315,36 +334,47 @@
 style="padding: 60px 0% 70px 0%;margin-top: 0px;"
 />
 
-<ui-footer />
+
 </template>
 
 <script>
 import '@splidejs/vue-splide/css/sea-green'
 import Splide from '@splidejs/splide'
+import emitsForApp from '@/mixins/emitsForApp'
 
 
 export default {
     data(){
         return{
+            user: JSON.parse(localStorage.getItem('current_user')),
             product: {},
             current_product_comments: [],
             similar_products: [],
-            stars_gray: 0,
             count: 1,
+            count_disable_shake_class: false,
             tab_active: {
                 'desc': true,
                 'characterictics': false,
                 'feedbacks': false
             },
             write_feedback_visible: false,
-            selected_option: '',
+            selected_resolution: '',
+            selected_color: '',
             stars_mouse_enter_leave_available: true,
-            pointed_stars: 0,
             preview_images_visibles: {},
-
+            comment_header: '',
+            comment_text: '',
+            stars: 0,
         }
     },
+    mixins: [emitsForApp],
     methods: {
+        getColorClass(color){
+            return {
+                color: true,
+                color_selected: color === this.selected_color
+            }
+        },
         decCount(){
             this.count > 1 ? this.count-- : null
         },
@@ -354,7 +384,7 @@ export default {
         setStarsUI(star_num, for_click=false){
             if (for_click) {
                 this.stars_mouse_enter_leave_available = false
-                this.pointed_stars = star_num
+                this.stars = star_num
             }
             else{
                 this.stars_mouse_enter_leave_available = true
@@ -379,7 +409,7 @@ export default {
             this.tab_active[tab_name] = true
         },
         add2comments(last_el_index) { 
-            const two_comments = this.product.comments.slice(last_el_index+1, last_el_index+2)
+            const two_comments = this.product.comments.slice(last_el_index+1, last_el_index+3)
             this.current_product_comments.push(...two_comments)
         },
         setSimilarProductPreviewImagesVisible(product_id, value){
@@ -389,11 +419,14 @@ export default {
         },
         async getProduct(id){
             this.$router.push(`/products/${id}`)
-            this.product = await this.$store.getters.fetchProductDetail(id)
+            this.product = await this.$store.dispatch('fetchProductDetail', id)
             this.product.stars_avg = this.product.stars_avg 
-            this.selected_option = this.product.get_resolutions[0]
+            this.selected_resolution = this.product.get_resolutions[0]
             this.current_product_comments = this.product.comments.slice(0, 2)
-            this.similar_products = await this.$store.getters.fetchCategoryProducts(this.product.category, this.product.id)
+            this.similar_products = await this.$store.dispatch('fetchCategoryProducts', {
+                category_name: this.product.category,
+                product_id: this.product.id
+            })
             for (let i = 0; i < this.similar_products.length; i++) {
                 if (this.similar_products[i].images.length > 1) {
                     this.preview_images_visibles[this.similar_products[i].id] = 'none'
@@ -419,6 +452,21 @@ export default {
             await main_splide.sync(thumbs_splide)
             main_splide.mount()
             thumbs_splide.mount()
+        },
+        async writeComment(){
+            const createComment = await this.$store.dispatch('commonPOSTRequestWithAuth', {
+                url_after_server_domain: 'comments',
+                post_data: {
+                    user_id: this.user.id,
+                    product_id: this.$route.params.product_id,
+                    header: this.comment_header,
+                    text: this.comment_text,
+                    stars: this.stars
+                }
+            })
+            this.product.comments.length++
+            this.current_product_comments.unshift(createComment)
+            this.write_feedback_visible = false
         }
     },
 
@@ -431,12 +479,25 @@ export default {
         write_feedback_visible(newValue){
             let [current_scrollX, current_scrollY] = [scrollX, scrollY]
             if (newValue) {
-            window.onscroll = function () { window.scrollTo(current_scrollX, current_scrollY); };
+                window.onscroll = function () { window.scrollTo(current_scrollX, current_scrollY); };
+                
             } 
             else {
-            window.onscroll = function () { window.scrollTo(scrollX, scrollY); };
+                window.onscroll = function () { window.scrollTo(scrollX, scrollY); };
             }
         },
+        count(newValue){
+            console.log(newValue);
+            if(newValue > this.product.quantity){
+                this.count = this.product.quantity
+                this.count_disable_shake_class = true
+                setTimeout(() => {
+                    this.count_disable_shake_class = false
+                }, 3000)
+            }else if(newValue < 0){
+                this.count = 1
+            }
+        }
     }
 }
 </script>

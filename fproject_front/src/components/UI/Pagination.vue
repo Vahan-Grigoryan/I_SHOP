@@ -1,19 +1,24 @@
 <template>
 <div class="pagination">
-    <button class="prevnextpage_btn">
+    <button 
+    class="prevnextpage_btn"
+    @click="$emit('paginated_to', page_active-1)"
+    >
         <img src="@/assets/img/prevnextbtn.png" alt="">
     </button>
     
     <a 
-    class="page_a"
-    v-for="_ in pages_per_view"
-    @click="goToPage(_)"
-    :ref="`page_${_}`"
+    v-for="page in pages_per_view"
+    :class="getClasses(page)"
+    @click="$emit('paginated_to', page)"
     >
-        {{ _ }}
+        {{ page }}
     </a>
 
-    <button class="prevnextpage_btn">
+    <button 
+    class="prevnextpage_btn"
+    @click="$emit('paginated_to', page_active+1)"
+    >
         <img src="@/assets/img/prevnextbtn.png" alt="">
     </button>
     
@@ -29,17 +34,16 @@
 export default {
     name: 'ui-pagination',
     props: {
-        pages_per_view: Number
+        pages_per_view: Number,
+        page_active: Number,
     },
     methods: {
-        goToPage(page){
-            Object.keys(this.$refs).forEach( page_key => {
-                this.$refs[page_key][0].classList.remove('pagination_a_active')
-            })
-            console.log(this.$refs[`page_${page}`][0].classList.add('pagination_a_active'))
-            // CONTINUOUS...
+        getClasses(page){
+            return {
+                page_a: true,
+                pagination_a_active: this.page_active == page
+            }
         },
-        // PREV, NEXT BUTTONS LOGIC...
     },
 }
 </script>

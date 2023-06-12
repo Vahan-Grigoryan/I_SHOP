@@ -43,7 +43,7 @@ export default {
     }
   },
   async beforeMount(){
-    const blogs = await this.$store.getters.fetchBlogsIndex()
+    const blogs = await this.$store.dispatch('fetchBlogsIndex')
     this.blogs = blogs
   }
 }

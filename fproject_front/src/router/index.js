@@ -17,62 +17,62 @@ const routes = [
   {
     path: '',
     name: 'index',
-    component: Index
+    component: Index,
   },
   {
     path: '/products/:product_id',
     name: 'productDetail',
-    component: ProductDetail
+    component: ProductDetail,
   },
   {
     path: '/product_filters',
     name: 'productFilters',
-    component: FilterProducts
+    component: FilterProducts,
   },
   {
     path: '/about',
     name: 'about',
-    component: About
+    component: About,
   },
   {
     path: '/register',
     name: 'register',
-    component: Register
+    component: Register,
   },
   {
     path: '/blog',
     name: 'blog',
-    component: Blog
+    component: Blog,
   },
   {
     path: '/blog_detail/:id',
     name: 'blog_detail',
-    component: BlogDetail
+    component: BlogDetail,
   },
   {
     path: '/brands',
     name: 'brands',
-    component: BrandsPage
+    component: BrandsPage,
   },
   {
     path: '/404',
     name: '404',
-    component: Page404
+    component: Page404,
   },
   {
     path: '/compare_cart',
     name: 'compare',
-    component: CompareCart
+    component: CompareCart,
   },
   {
     path: '/profile/:id',
     name: 'profile',
-    component: Profile
+    component: Profile,
   },
   {
     path: '/mega_category/:category_name',
     name: 'mega_category',
-    component: MegaCategory
+    component: MegaCategory,
   },
   
 ]
