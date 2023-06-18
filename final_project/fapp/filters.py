@@ -58,9 +58,14 @@ class ProductFilter(dfilters.FilterSet):
         # qs = Product.objects.none()
         # for color in colors:
         #     qs |= queryset.filter(colors__icontains=color)
-        #     print(qs)
         # return qs
 
     class Meta:
         model = Product
         fields = 'categories', 'brands', 'priceGte', 'priceLte', 'colors'
+
+class BlogFilters(dfilters.FilterSet):
+    category = dfilters.CharFilter(field_name='category__name')
+    class Meta:
+        model = Blog
+        fields = 'category',

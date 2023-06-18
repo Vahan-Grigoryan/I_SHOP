@@ -21,7 +21,7 @@
     color: #090F24;
     cursor: pointer;
 }
-.active_article_category{
+.active_blog_category{
     background: #74CCD8;
     color: white !important;
     cursor: default !important;
@@ -40,7 +40,10 @@
     width: 60%;
     margin: 0px auto;
 }
-
+.category_span:hover{
+    color: white !important;
+    background: #74CCD8;
+}
 
 
 

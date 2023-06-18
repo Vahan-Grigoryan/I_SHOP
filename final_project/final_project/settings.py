@@ -56,7 +56,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'fapp.middlewares.CommonTroubleshootingMiddleware'
+    # 'fapp.middlewares.CommonTroubleshootingMiddleware'
 ]
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -154,12 +154,14 @@ CKEDITOR_UPLOAD_PATH = 'ckmedia/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'fapp.User'
 AUTHENTICATION_BACKENDS = [
-    'fapp.auth_backends.AuthWithEmailAndPasswordOnly',
     'social_core.backends.google.GoogleOAuth2',
+    'django.contrib.auth.backends.ModelBackend',
+    'fapp.auth_backends.AuthWithEmailAndPasswordOnly',
 ]
 
+
 SIMPLE_JWT = {
-    'AUTH_HEADER_TYPES': ('JWT',),
+    'AUTH_HEADER_TYPES': ('JWT', 'Bearer'),
     "ACCESS_TOKEN_LIFETIME": timedelta(days=5),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=60),
 }
@@ -181,10 +183,13 @@ DJOSER = {
     },
     'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': [
         'http://localhost:8080',
+        'http://localhost:8000/oauth_registration',
+        'http://127.0.0.1:8000/oauth_registration',
     ],
 }
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = _('oauth2_client_id_or_key')
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = _('oauth2_secret')
+
 
 CKEDITOR_CONFIGS = {
     'default': {

@@ -32,10 +32,20 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         exclude = 'id', 'parent',
 
-class BlogSerializer(serializers.ModelSerializer):
+class BlogListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Blog
         exclude = 'category', 'desc'
+
+class BlogDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Blog
+        exclude = 'id', 'short_desc', 'category'
+
+class BlogCategoryListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BlogCategory
+        fields = '__all__'
 
 class ProductDetailSerializer(serializers.ModelSerializer):
     images = ImageSerializer(many=True)
@@ -81,7 +91,20 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = User
         fields = 'liked_products', 'orders'
 
-class UserSerializer(serializers.ModelSerializer):
+class UserMiniInfoSerializer(serializers.ModelSerializer):
+    liked_products_count = serializers.IntegerField(read_only=True)
+    ordered_products_count = serializers.IntegerField(read_only=True)
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'first_name',
+            'photo',
+            'liked_products_count',
+            'ordered_products_count',
+        )
+
+class UserCreationSerializer(serializers.ModelSerializer):
     liked_products_count = serializers.IntegerField(read_only=True)
     ordered_products_count = serializers.IntegerField(read_only=True)
 
@@ -91,9 +114,15 @@ class UserSerializer(serializers.ModelSerializer):
             return value
         raise serializers.ValidationError("Пароль должен содержать как минимум 8 символов, одно число ")
 
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        instance = super().create(validated_data)
+        instance.set_password(password)
+        instance.save()
+        return instance
+
 
 
     class Meta:
         model = User
         fields = '__all__'
-

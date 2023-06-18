@@ -153,6 +153,7 @@
 
     <ui-brands 
     :brands="brands_index"
+    @selectedBrand="brand => $emit('selectedBrand', brand)"
     />
 
     <ContactUsBox />
