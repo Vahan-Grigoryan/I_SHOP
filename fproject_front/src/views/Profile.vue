@@ -1,6 +1,4 @@
 <template>
-<!-- <Header :key="header_user_state" /> -->
-
 <div class="profile_container">
     <ui-bread-crumbs />
     <div class="profile_info_and_content">
@@ -667,6 +665,7 @@ import emitsForApp from '@/mixins/emitsForApp'
 export default {
     data(){
         return {
+            user: null,
             orders_visible: false,
             liked_visible: false,
             sales_visible: false,
@@ -677,8 +676,7 @@ export default {
             register_clicked: false,
             
             current_sale: 'Select sale',
-            user: JSON.parse(localStorage.getItem('current_user')),
-            
+
         }
     },
     mixins: [emitsForApp],
@@ -705,10 +703,14 @@ export default {
             }
             
         },
-        exitAcc(){
-            localStorage.removeItem('access')
-            localStorage.removeItem('refresh')
-            localStorage.removeItem('current_user')
+        async exitAcc(){
+            await cookieStore.delete('access')
+            await cookieStore.delete('refresh')
+            await cookieStore.delete('user_id')
+            await cookieStore.delete('user_first_name')
+            await cookieStore.delete('user_photo')
+            await cookieStore.delete('user_liked_products_count')
+            await cookieStore.delete('user_ordered_products_count')
             this.$emit('rerender_header')
             this.$router.push('/register')
         }
@@ -716,6 +718,8 @@ export default {
     async beforeMount(){
         this.$store.state.pagesInCrumbs.clear()
         this.$store.state.pagesInCrumbs.add('Profile')
+
+        this.user = await this.$store.getters.getUser()
         const user_profile_info = await this.$store.dispatch(
             'commonGETRequestWithAuth', 
             `users_profile/${this.user.id}`

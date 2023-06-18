@@ -12,6 +12,7 @@
             :splide_slide="true"
             v-for="blog in blogs"
             :blog="blog"
+            @change_blog="(id) => $emit('change_blog', id)"
             >
 
             </ui-blog-slide>

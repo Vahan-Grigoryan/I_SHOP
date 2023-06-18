@@ -3,17 +3,12 @@
 
 <div class="article_container">
     <ui-bread-crumbs />
-    <h1>Подбираем правильное питание для ребенка</h1>
-    <span>25.05.2022</span>
+    <h1>{{ blog.header }}</h1>
+    <span>{{ blog.pub_date }}</span>
 
-    <p>
-        Причина успеха этой страницы «О нас» для бизнеса проста — она рассказывает потенциальному покупателю историю. Если у вас есть замечательная история о том, как ваш продукт или услуга должен изменить жизнь людей к лучшему, непременно поделитесь ею.
-        Эта веб-страница является прекрасным местом для жизни в любых ее проявлениях. Реалистичные истории очеловечивают бренд, предоставляя контекст и значение для вашего продукта. Более того, хорошими историями хочется делиться — это означает, что пользователи с большей вероятностью будут рекламировать вас.
-        Компания по производству гамаков Yellow Leaf рассказывают пользователям о продукте, описывая, как простой хендмейд меняет жизнь мастеров и их семей в Таиланде. Страница разбита на отдельные истории и разделы, в которых сочетаются блоки текста и легкоусвояемая графика, рисуя прекрасные и человечные образы.
-        Авторы четко дают понять преимущества продукта чуть ли не для всего мира, заканчивая месседж словами «Это основа для светлого будущего, построенная вручную».
-    </p>
+    <p ref="blog_content"></p>
 
-    <h1>Фотоотчет</h1>
+    <!-- <h1>Фотоотчет</h1>
     <div class="article_gallery">
         <img src="@/assets/img/Rectangle_19-3.png" alt="">
         <img src="@/assets/img/Rectangle_19-3.png" alt="">
@@ -21,10 +16,11 @@
         <img src="@/assets/img/Rectangle_19-3.png" alt="">
         <img src="@/assets/img/Rectangle_19-3.png" alt="">
         <img src="@/assets/img/Rectangle_19-3.png" alt="">
-    </div>
+    </div> -->
 </div>
 
 <ui-href-blog-box 
+@change_blog="getBlog"
 :header_text="'Похожие статьи'"
 />
 
@@ -34,7 +30,22 @@
 import emitsForApp from '@/mixins/emitsForApp';
 
 export default {
+    data(){
+        return {
+            blog: {}
+        }
+    },
+    methods: {
+        async getBlog(id){
+            window.scrollTo(0,0)
+            this.blog = await this.$store.dispatch('fetchBlog', id)
+            this.blog.desc = this.blog.desc.replaceAll('/media', `${this.$store.state.server_href}media`)
+            this.$refs['blog_content'].innerHTML = this.blog.desc
+        }
+    },
     async beforeMount(){
+        this.getBlog(this.$route.params.id)
+
         this.$store.state.pagesInCrumbs.clear()
         this.$store.state.pagesInCrumbs.add('Article')
     },

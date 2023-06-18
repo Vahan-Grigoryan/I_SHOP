@@ -32,7 +32,7 @@
             <span>Или</span>
             <br>
             <a 
-            @click="oauth_registration"
+            :href="`${$store.state.server_href}oauth_registration?from_url=${$route.path}`"
             class="google_reg_btn"
             >
                 <img src="@/assets/img/Google.png"> &nbsp;
@@ -80,7 +80,6 @@
     </div>
 </div>
 
-
 </template>
 
 <script>
@@ -120,28 +119,32 @@ export default {
                 })
                 const user = await axios.post(`${this.$store.state.server_href}registration`, this.$data)
                 const tokens = await axios.post(`${this.$store.state.server_href}auth/jwt/create`, this.$data)
-                localStorage.setItem('refresh', tokens.data.refresh)
-                localStorage.setItem('access', tokens.data.access)
-                localStorage.setItem('current_user', JSON.stringify(user.data))
+                await cookieStore.set('access', tokens.data['access'])
+                await cookieStore.set('refresh', tokens.data['refresh'])
+                await cookieStore.set('user_id', user.data['id'])
+                await cookieStore.set('user_first_name', user.data['first_name'])
+                await cookieStore.set('user_photo', user.data['photo'])
+                await cookieStore.set('user_liked_products_count', user.data['liked_products_count'])
+                await cookieStore.set('user_ordered_products_count', user.data['ordered_products_count'])
+
                 this.$emit('rerender_header')
+                this.$router.push(`/profile/${(await cookieStore.get('user_id')).value}`)
                 Object.keys(this.$data).forEach( key => this.$data[key] = '')
             }catch(error){
                 const response = error.response.data
                 Object.keys(response).forEach( key => this.$data[`${key}_error`] = response[key][0])
             }
         },
-        async oauth_registration(){
-            //countinuous...
-            const auth_url = await axios.get(
-                `${this.$store.state.server_href}auth/o/google-oauth2/?redirect_uri=http://localhost:8080`
-            )
-            console.log(auth_url.data);
-        }
     },
     async beforeMount(){
         this.$store.state.pagesInCrumbs.clear()
         this.$store.state.pagesInCrumbs.add('Registration')
-    }
+
+        const user_id = (await cookieStore.get('user_id')).value
+        if (user_id) {
+            this.$router.push(`/profile/${user_id}`)
+        }
+    },
 }
 </script>
 

@@ -13,14 +13,14 @@ from final_project import settings
 class User(AbstractUser):
     username = models.CharField(max_length=100, null=True, blank=True)
     email = models.EmailField("Email address", unique=True)
-    first_name = models.CharField(verbose_name="first name", max_length=150, unique=True)
-    last_name = models.CharField(verbose_name="last name", max_length=150, unique=True)
-    tel = models.IntegerField(blank=True)
+    first_name = models.CharField(verbose_name="first name", max_length=150)
+    last_name = models.CharField(verbose_name="last name", max_length=150)
+    tel = models.IntegerField(blank=True, null=True)
     photo = models.ImageField(upload_to='images/', blank=True, null=True)
-    city = models.CharField(max_length=100)
-    street = models.CharField(max_length=150)
+    city = models.CharField(max_length=100, null=True)
+    street = models.CharField(max_length=150, null=True)
     in_mailing_list=models.BooleanField(default=False)
-    post_code = models.IntegerField()
+    post_code = models.IntegerField(null=True)
 
     # This need for create_user works with first_name, last_name, password
     objects = MyUserManager()
@@ -28,13 +28,9 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = 'first_name', 'last_name', 'password'
 
-
     def __str__(self):
         return self.username or f'{self.first_name} {self.last_name}'
 
-    def save(self, *args, **kwargs):
-        self.set_password(self.password)
-        super().save(*args, **kwargs)
 
     def liked_products_count(self):
         return self.liked_products.count()

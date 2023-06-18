@@ -20,10 +20,13 @@
     Авторизоватся
   </button>
   <span class="or_span">Или</span>
-  <button class="google_auth">
+  <a  
+  class="google_auth" 
+  :href="`${$store.state.server_href}oauth_registration?from_url=${$route.path}`"
+  >
     <img src="@/assets/img/Google.png"> &nbsp;
     Войти через Google
-  </button>
+  </a>
   <h3>У Вас еще нет аккаунта?</h3>
   <span>Зарегистрированным пользователям возвращается <strong>0,5%</strong> от стоимости покупки</span>
   <button class="or_reg_btn" @click="$router.push('/register')">Зарегестрироватся</button>
@@ -126,8 +129,14 @@
         </form>
         
         <div class="bottom_nav__profile_box">
-          <div v-if="user" class="authorintacated" @click="$router.push(`/profile/${user.id}`)">
-            <span>{{ user.first_name.charAt(0).toUpperCase() }}</span>
+          <div 
+          v-if="user" 
+          class="authorintacated" 
+          :style="getUserBackground"
+          @click="$router.push(`/profile/${user.id}`)"
+          >
+            <span v-if="this.user.photo !== 'None' && this.user.photo !== 'null'"></span>
+            <span v-else>{{ user.first_name.charAt(0).toUpperCase() }}</span>
           </div>
           <div v-else class="log_or_reg">
             <img src="@/assets/img/Profile1.png" alt="">
@@ -169,7 +178,7 @@ export default {
     mixins: [redirectTo],
     data(){
       return {
-        user: JSON.parse(localStorage.getItem('current_user')),
+        user: null,
         mega_menu_visible: false,
         auth_modal_visible: false,
         categories:{},
@@ -248,7 +257,16 @@ export default {
         }
       },
       async authUser(){
-        
+        // Common Auth
+        // After submit:
+        // 1)Create request to ...auth/jwt/create for getting tokens, after this`
+        //    if account not found, show error message in this.account_not_found,
+        //    if account found, set relevant cookies.
+        // 
+        // 2)Create request to ...users_mini_info?email=${this.email} few info about acc, after this
+        //    set relevant cookies,
+        //    update component user with await this.$store.getters.getUser(),
+        //    redirect to profile page.
         try{
           this.auth_email_error = ''
           this.auth_password_error = ''
@@ -259,10 +277,21 @@ export default {
           })
           if (createTokens.data.detail) {
             this.account_not_found = createTokens.data.detail
-          }else{
-            localStorage.setItem('refresh', createTokens.data.refresh)
-            localStorage.setItem('access', createTokens.data.access)
-            this.$store.commit('updateHeaders')
+          }else{  
+            await cookieStore.set('access', createTokens.data['access'])
+            await cookieStore.set('refresh', createTokens.data['refresh'])
+            const cookies = await this.$store.dispatch(
+              'commonGETRequestWithAuth',
+              `users_mini_info?email=${this.email}`
+            )
+            await cookieStore.set('user_id', cookies['id'])
+            await cookieStore.set('user_first_name', cookies['first_name'])
+            await cookieStore.set('user_photo', cookies['photo'])
+            await cookieStore.set('user_liked_products_count', cookies['liked_products_count'])
+            await cookieStore.set('user_ordered_products_count', cookies['ordered_products_count'])
+            this.user = await this.$store.getters.getUser()
+            this.auth_modal_visible = false
+            this.$router.push(`/profile/${this.user.id}`)
           }
           
         }catch(err){
@@ -276,21 +305,27 @@ export default {
           }
           
         }
-        this.user = await this.$store.dispatch(
-          'commonGETRequestWithAuth',
-          `users_mini_info?email=${this.email}`
-        )
-        localStorage.setItem('current_user', JSON.stringify(this.user))
-        this.auth_modal_visible = false
-        this.$router.push(`/profile/${this.user.id}`)
       },
-      // change_search_query(e){
-      //   this.$emit('update:search_text', e.target.value)
-      // }
+      
+    },
+    computed: {
+      getUserBackground(){
+        if (this.user.photo !== 'None' && this.user.photo !== 'null') {
+          return {
+            background: `url("${this.$store.getters.getImageUrl(this.user.photo)}") 50% 50% / cover no-repeat`,
+          }
+        } else {
+          return {
+            background: `#74CCD8`,
+          }
+        }
+        
+      },
     },
     async beforeMount(){
       this.categories = JSON.parse(localStorage.getItem('cats_formated'))
-
+      this.user = await this.$store.getters.getUser()
+      
       let categories_without_images = {}
       Object.keys(this.categories).forEach( left_category_key => {
         categories_without_images[left_category_key]={}
@@ -615,7 +650,6 @@ header .bottom_nav__profile_box .register {
 }
 
 header .bottom_nav__profile_box .authorintacated {
-  background: #74CCD8;
   border-radius: 50px;
   display: flex;
   align-items: center;

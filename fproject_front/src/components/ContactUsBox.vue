@@ -49,7 +49,6 @@ export default {
                 this.mail_msg_body.trim()
             ) {
                 const send = axios.post(`${this.$store.state.server_href}receive_mail`, this.$data)
-                console.log(send.data);
             }
             
         }

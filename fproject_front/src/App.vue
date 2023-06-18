@@ -69,20 +69,25 @@ export default {
     }
   },
   async beforeMount(){
+    // this.$store.getters.delCookie('tokens')
     localStorage.setItem('cats_formated', JSON.stringify(await this.$store.dispatch('fetchCategories')))
     
-    if (localStorage.getItem('current_user')) {
+    if (await cookieStore.get('access')) {
       try{
         const access_token = await axios.post(`${this.$store.state.server_href}auth/jwt/refresh`, {
-          refresh: localStorage.getItem('refresh')
+          refresh: (await cookieStore.get('refresh')).value
         })
-        localStorage.setItem('access', access_token.data.access)
-        this.$store.commit('updateHeaders')
+        await cookieStore.set('access', access_token.data.access)
+        // this.$store.commit('updateHeaders')
       }catch(error){
         if (error.response.data.code === "token_not_valid"){
-          localStorage.removeItem('access')
-          localStorage.removeItem('refresh')
-          localStorage.removeItem('current_user')
+          await cookieStore.delete('access')
+          await cookieStore.delete('refresh')
+          await cookieStore.delete('user_id')
+          await cookieStore.delete('user_first_name')
+          await cookieStore.delete('user_photo')
+          await cookieStore.delete('user_liked_products_count')
+          await cookieStore.delete('user_ordered_products_count')
         }
         if (this.$route.name === 'profile') this.$router.push('/register');
       }

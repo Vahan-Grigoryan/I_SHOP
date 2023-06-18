@@ -1,5 +1,10 @@
-from django.db.models import Subquery, OuterRef
+import json
+import re
+
+from django.http import HttpResponseRedirect
+from django.shortcuts import redirect
 from . import drf_pagination
+import requests
 from rest_framework import generics
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
@@ -22,16 +27,23 @@ class UserDetailProfileInfo(generics.RetrieveAPIView):
 
 class UserMiniInfo(generics.RetrieveAPIView):
     """User mini info for site header"""
-    serializer_class = serializers.UserSerializer
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.UserMiniInfoSerializer
 
     def get_object(self):
-        """Get user by id or email"""
+        """Get user by id, email or username(for Google)"""
         url_params = self.request.GET
-        assert url_params.get('email') or url_params.get('id'), 'Provide id or email field'
+        assert (
+            url_params.get('email') or
+            url_params.get('id') or
+            url_params.get('username')
+        ), 'Provide id, email or username field'
         if url_params.get('email'):
             obj = get_object_or_404(User, email=url_params.get('email'))
         elif url_params.get('id'):
             obj = get_object_or_404(User, id=url_params.get('id'))
+        elif url_params.get('username'):
+            obj = get_object_or_404(User, username=url_params.get('username'))
 
         self.check_object_permissions(self.request, obj)
         return obj
@@ -50,7 +62,53 @@ class MailingList(APIView):
 class Registration(generics.CreateAPIView):
     """Common registration"""
     queryset = User.objects.all()
-    serializer_class = serializers.UserSerializer
+    serializer_class = serializers.UserCreationSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=201, headers=headers)
+
+
+class OAuthRegistration(APIView):
+    rs = requests.Session()
+    from_url = ''
+
+    @classmethod
+    def get(cls, request):
+        code = request.GET.get('code')
+        if code:
+
+            raw_query = ''
+            for key, value in request.GET.items():
+                raw_query += f'{key}={value}&'
+
+            authenticate = cls.rs.post(
+                f'http://127.0.0.1:8000/auth/o/google-oauth2/?{raw_query[:-1]}',
+            )
+
+            username = authenticate.json()['user']
+            user = User.objects.get(username=username)
+            sz_user = serializers.UserMiniInfoSerializer(user)
+
+            response = HttpResponseRedirect(cls.from_url)
+            for key, value in sz_user.data.items():
+                response.set_cookie(f'user_{key}', value)
+            response.set_cookie('access', authenticate.json()['access'])
+            response.set_cookie('refresh', authenticate.json()['refresh'])
+
+            return response
+        else:
+            cls.from_url = f"{request.META['HTTP_REFERER']}#{request.GET.get('from_url')}"
+            view_uri = request.build_absolute_uri('/oauth_registration')
+            auth_url = cls.rs.get(f'http://127.0.0.1:8000/auth/o/google-oauth2?redirect_uri={view_uri}')
+            auth_url = auth_url.json()['authorization_url']
+            return redirect(auth_url)
+
+
 
 class CategoryList(APIView):
     """Return nested/center categories"""
@@ -111,9 +169,29 @@ class BrandIndexList(generics.ListAPIView):
     queryset = Brand.objects.all()[:12]
     serializer_class = serializers.BrandSerializer
 
+class BlogCategoryList(generics.ListAPIView):
+    queryset = BlogCategory.objects.all()
+    serializer_class = serializers.BlogCategoryListSerializer
+
 class BlogIndexList(generics.ListAPIView):
-    queryset = Blog.objects.all()[:6]
-    serializer_class = serializers.BlogSerializer
+    queryset = Blog.objects.all()
+    serializer_class = serializers.BlogListSerializer
+
+class BlogList(generics.ListAPIView):
+    serializer_class = serializers.BlogListSerializer
+    pagination_class = drf_pagination.BlogsPagination
+    filter_backends = (dfilters.DjangoFilterBackend,)
+    filterset_class = filters.BlogFilters
+
+    def get_queryset(self):
+        if self.request.GET.get('sort_by') == 'latest':
+            return Blog.objects.order_by('id').prefetch_related()
+        else:
+            return Blog.objects.order_by('-id').prefetch_related()
+
+class BlogDetail(generics.RetrieveAPIView):
+    queryset = Blog.objects.all()
+    serializer_class = serializers.BlogDetailSerializer
 
 class ReceiveQuestion(APIView):
     """This is used for receive question from user in the form at the bottom of the front index page"""
@@ -150,7 +228,6 @@ class AvailableFilters(APIView):
         available_filters = business.get_available_filters()
         return Response(available_filters)
 
-
 class FilteredProducts(generics.ListAPIView):
     """
     Return filtered products by url params.
@@ -166,3 +243,4 @@ class FilteredProducts(generics.ListAPIView):
             return Product.objects.order_by('id').prefetch_related()
         else:
             return Product.objects.order_by('-id').prefetch_related()
+

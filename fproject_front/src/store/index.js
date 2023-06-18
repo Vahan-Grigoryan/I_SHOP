@@ -6,8 +6,11 @@ export default createStore({
   state: {
     pagesInCrumbs: new Set(),
     profile_content: 'orders',
+    cookies: document.cookie.split('; ').map( raw_cookie => raw_cookie.split('=') ),
     server_href: 'http://localhost:8000/',
-    headers: {'Authorization': `JWT ${localStorage.getItem('access')}`},
+    headers: async () => {
+      return {'Authorization': `JWT ${(await cookieStore.get('access')).value}`}
+    },
   },
   getters: {
     getImageUrl: state => after_server_domain => {
@@ -19,17 +22,35 @@ export default createStore({
       } else {
         return state.server_href + after_server_domain.slice(1)
       }
+    },
+    getUser: state => async () => {
+      if (await cookieStore.get('user_id')) {
+        return {
+          id: (await cookieStore.get('user_id')).value,
+          first_name: (await cookieStore.get('user_first_name')).value,
+          photo: (await cookieStore.get('user_photo')).value,
+          liked_products_count: (await cookieStore.get('user_liked_products_count')).value,
+          ordered_products_count: (await cookieStore.get('user_ordered_products_count')).value,
+        } 
+      }
+      return null
       
     },
+    // delCookie: state => key => {
+    //   const cookie = state.cookies.find(cookie => cookie[0] === key)
+    //   const [lIndex, rIndex] = [document.cookie.indexOf(cookie[0])-1, document.cookie.indexOf(cookie[1])+cookie[1].length+1]
+    //   const [lSide, rSide] = [document.cookie.slice(0, lIndex), document.cookie.slice(rIndex)];
+    //   document.cookie = lSide+rSide
+    // },
     
   },
   mutations: {
     setProfileContent(state, profile_content_value){
       state.profile_content = profile_content_value
     },
-    updateHeaders(state){
-      state.headers = {'Authorization': `JWT ${localStorage.getItem('access')}`}
-    },
+    // updateHeaders(state, token_type='JWT'){
+    //   state.headers = {'Authorization': `${token_type} ${localStorage.getItem('access')}`}
+    // },
     
   },
   actions: {
@@ -75,6 +96,18 @@ export default createStore({
       const blogs = await axios.get(`${state.server_href}blogs_index`)
       return blogs.data
     },
+    async fetchBlogs({state}, urlParams){
+      const blogs = await axios.get(`${state.server_href}blogs?${urlParams}`)
+      return blogs.data
+    },
+    async fetchBlog({state}, id){
+      const blogs = await axios.get(`${state.server_href}blogs/${id}`)
+      return blogs.data
+    },
+    async fetchBlogCategories({state}){
+      const categories = await axios.get(`${state.server_href}blog_categories`)
+      return categories.data
+    },
     async fetchAvailableFilters({state}){
       const filters = await axios.get(`${state.server_href}available_filters`)
       return filters.data
@@ -84,10 +117,10 @@ export default createStore({
       return filteredProducts.data
     },
     async commonGETRequestWithAuth({state}, url_after_server_domain){
-      if (localStorage.getItem('access')) {
+      if (await cookieStore.get('access')) {
         try{
           const page = await axios.get(state.server_href + url_after_server_domain, {
-            headers: state.headers
+            headers: await state.headers()
           })
           return page.data
         }catch(err){
@@ -98,10 +131,10 @@ export default createStore({
       }
     },
     async commonPOSTRequestWithAuth({state}, {url_after_server_domain, post_data}){
-      if (localStorage.getItem('access')) {
+      if (await cookieStore.get('access')) {
         try{
           const page = await axios.post(state.server_href + url_after_server_domain, post_data, {
-            headers: state.headers
+            headers: await state.headers()
           })
           return page.data
         }catch(err){

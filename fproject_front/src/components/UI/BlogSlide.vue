@@ -11,7 +11,7 @@ v-if="splide_slide"
         <span class="desc">
             {{ blog.short_desc }}
         </span>
-        <strong class="read_detail">
+        <strong class="read_detail" @click="toBlogDetail(blog.id)">
             Читать подробнее &nbsp; &nbsp; 
             <img src="@/assets/img/arrow_5.png">
         </strong>
@@ -22,16 +22,16 @@ class="blog_slide"
 v-else
 @click="$router.push(`/blog_detail/${blog.id}`)"
 >
-    <img src="@/assets/img/Rectangle_16.png" alt="">
+    <img :src="$store.getters.getImageUrl(blog.thumbnail)" alt="">
     <div class="blog_slide_content">
-        <span class="date_span">{{ blog.date }}</span>
-        <h4>{{ blog.name }}</h4>
+        <span class="date_span">{{ blog.pub_date }}</span>
+        <h4>{{ blog.header }}</h4>
         <span class="desc">
-            {{ blog.desc }}
+            {{ blog.short_desc }}
         </span>
-        <strong class="read_detail">
+        <strong class="read_detail" @click="toBlogDetail(blog.id)">
             Читать подробнее &nbsp; &nbsp; 
-            <img src="@/assets/img/arrow_5.png" alt="">
+            <img src="@/assets/img/arrow_5.png">
         </strong>
     </div>
 </div>
@@ -53,6 +53,12 @@ export default {
         blog: {
             type: Object
         }
+    },
+    methods: {
+        toBlogDetail(id){
+            this.$router.push(`/blog_detail/${id}`)
+            this.$emit('change_blog', id)
+        }
     }
 }
 </script>
@@ -66,7 +72,7 @@ export default {
     border-radius: 15px;
     width: 100%;
 }
-.splide_slide > img{
+.splide_slide > img, .blog_slide > img{
     width: 180px;
     height: 240px;
     object-fit: cover;
