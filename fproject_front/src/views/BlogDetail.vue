@@ -8,15 +8,6 @@
 
     <p ref="blog_content"></p>
 
-    <!-- <h1>Фотоотчет</h1>
-    <div class="article_gallery">
-        <img src="@/assets/img/Rectangle_19-3.png" alt="">
-        <img src="@/assets/img/Rectangle_19-3.png" alt="">
-        <img src="@/assets/img/Rectangle_19-3.png" alt="">
-        <img src="@/assets/img/Rectangle_19-3.png" alt="">
-        <img src="@/assets/img/Rectangle_19-3.png" alt="">
-        <img src="@/assets/img/Rectangle_19-3.png" alt="">
-    </div> -->
 </div>
 
 <ui-href-blog-box 
@@ -37,6 +28,9 @@ export default {
     },
     methods: {
         async getBlog(id){
+            // Get blog by id,
+            // in desc replace all images urls to valid urls
+            // update blog content
             window.scrollTo(0,0)
             this.blog = await this.$store.dispatch('fetchBlog', id)
             this.blog.desc = this.blog.desc.replaceAll('/media', `${this.$store.state.server_href}media`)

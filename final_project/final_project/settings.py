@@ -179,7 +179,7 @@ DJOSER = {
     'ACTIVATION_URL': '#/activate/{uid}/{token}',
     # 'SEND_ACTIVATION_EMAIL': True,
     'SERIALIZERS': {
-        'current_user': 'fapp.serializers.UserSerializer'
+        'current_user': 'fapp.serializers.UserMiniInfoSerializer'
     },
     'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': [
         'http://localhost:8080',

@@ -65,10 +65,12 @@ export default {
     },
     methods: {
         getPagesCount(){
+            // Available pages for pagination
             const count = Math.ceil(this.blogs.count / 2)
             return count <= 1 ? '' : count
         },
         async paginateTo(paginated_to=1){
+            // Paginate to pagination page consider selected category and sort_by
             if (this.blogs_of_category) {
                 try{
                     this.blogs = await this.$store.dispatch(
@@ -96,6 +98,8 @@ export default {
     mixins: [emitsForApp],
     watch: {
         async blogs_of_category(newValue){
+            // blogs_of_category = selected category
+            // If it changed get new blogs of pointed category or all blogs(with sort_by)
             this.current_page=1
             if (newValue) {
                 this.blogs = await this.$store.dispatch(
@@ -110,6 +114,7 @@ export default {
             }
         },
         async sort_by(newValue){
+            // If sort_by changed get new blogs(by selected category if needed)
             if (this.blogs_of_category) {
                 this.blogs = await this.$store.dispatch(
                     'fetchBlogs', 

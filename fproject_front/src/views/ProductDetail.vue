@@ -285,7 +285,7 @@
                 </div>
             </div>
             <div v-else style="text-align: center;">
-                <h1>Владелец продукта не предоставил информацию про характеристики</h1>
+                <h2>Владелец продукта не предоставил информацию про характеристики</h2>
             </div>
         </div>
         <div class="about_product_content_feedbacks" v-else-if="tab_active['feedbacks']">
@@ -301,6 +301,8 @@
                         <img src="@/assets/img/star_gray.png" v-for="_ in 5-comment.stars">
                     </div>
                 </div>
+                <br>
+                <h4>{{ comment.header }}</h4>
                 <span>
                     {{ comment.text }}
                 </span>
@@ -313,10 +315,9 @@
             </div>
             <div v-else style="text-align: center;">
                 <h1 v-if="user">Пока отзывов нет, будь первым!</h1>
-                <h2 v-else>Пока отзывов нет, зарегесстрируйся чтобы написать отзыв!</h2>
-                <br>
+                <h2 v-else>Пока отзывов нет, зарегестрируйся чтобы написать отзыв!</h2>
             </div>
-            <div class="btns">
+            <div class="btns" v-if="product.comments.length != current_product_comments.length || user">
                 <button 
                 v-if="product.comments.length != current_product_comments.length"
                 @click="add2comments(current_product_comments.length-1)"
@@ -370,6 +371,7 @@ export default {
     mixins: [emitsForApp],
     methods: {
         getColorClass(color){
+            // If any product available color clicked wrap in border it
             return {
                 color: true,
                 color_selected: color === this.selected_color
@@ -382,6 +384,7 @@ export default {
             this.count < this.product.quantity ? this.count++ : null
         },
         setStarsUI(star_num, for_click=false){
+            // Need for commenting product
             if (for_click) {
                 this.stars_mouse_enter_leave_available = false
                 this.stars = star_num
@@ -397,6 +400,7 @@ export default {
             
         },
         delStartsUI(){
+            // Need for commenting product
             if (this.stars_mouse_enter_leave_available) {
                 Object.keys(this.$refs).forEach(star_ref => {
                     this.$refs[star_ref][0].src = require('@/assets/img/star_gray.png')
@@ -405,31 +409,42 @@ export default {
             
         },
         setActiveTab(tab_name){
+            // Need for set active tab(desc, characteristics, comments)
             Object.keys(this.tab_active).forEach( key => this.tab_active[key] = false )
             this.tab_active[tab_name] = true
         },
         add2comments(last_el_index) { 
+            // Add 2 comments in comments list
             const two_comments = this.product.comments.slice(last_el_index+1, last_el_index+3)
             this.current_product_comments.push(...two_comments)
         },
         setSimilarProductPreviewImagesVisible(product_id, value){
+            // Need for show beautiful all images preview on each product in similar products
             if (this.preview_images_visibles[product_id]) {
                 this.preview_images_visibles[product_id]=value
             }
         },
         async getProduct(id){
+            // Get product by id and redurect to relevant route path,
+            // auto-select first resolution,
+            // get firts comment pairs,
+            // get similar products if product not available
             this.$router.push(`/products/${id}`)
-            this.product = await this.$store.dispatch('fetchProductDetail', id)
+            this.product = await this.$store.dispatch('fetchProduct', id)
             this.product.stars_avg = this.product.stars_avg 
             this.selected_resolution = this.product.get_resolutions[0]
             this.current_product_comments = this.product.comments.slice(0, 2)
-            this.similar_products = await this.$store.dispatch('fetchCategoryProducts', {
-                category_name: this.product.category,
-                product_id: this.product.id
-            })
-            for (let i = 0; i < this.similar_products.length; i++) {
-                if (this.similar_products[i].images.length > 1) {
-                    this.preview_images_visibles[this.similar_products[i].id] = 'none'
+            if (!this.product.available) {
+                this.similar_products = await this.$store.dispatch('fetchCategoryProducts', {
+                    category_name: this.product.category,
+                    product_id: this.product.id
+                })
+
+                // If product(in similar products have only 1 image left menu not show)
+                for (let i = 0; i < this.similar_products.length; i++) {
+                    if (this.similar_products[i].images.length > 1) {
+                        this.preview_images_visibles[this.similar_products[i].id] = 'none'
+                    }
                 }
             }
 
@@ -454,6 +469,10 @@ export default {
             thumbs_splide.mount()
         },
         async writeComment(){
+            // Create comment,
+            // add created comment top,
+            // comment creation modal close,
+            // set all inputs empty
             const createComment = await this.$store.dispatch('commonPOSTRequestWithAuth', {
                 url_after_server_domain: 'comments',
                 post_data: {
@@ -467,6 +486,9 @@ export default {
             this.product.comments.length++
             this.current_product_comments.unshift(createComment)
             this.write_feedback_visible = false
+            this.comment_header = ''
+            this.comment_text = ''
+            this.stars = 0
         }
     },
 
@@ -477,6 +499,7 @@ export default {
     },
     watch: {
         write_feedback_visible(newValue){
+            // If write feedback modal visible block scroll opportunity
             let [current_scrollX, current_scrollY] = [scrollX, scrollY]
             if (newValue) {
                 window.onscroll = function () { window.scrollTo(current_scrollX, current_scrollY); };
@@ -487,7 +510,7 @@ export default {
             }
         },
         count(newValue){
-            console.log(newValue);
+            // Follow product count and valid it
             if(newValue > this.product.quantity){
                 this.count = this.product.quantity
                 this.count_disable_shake_class = true

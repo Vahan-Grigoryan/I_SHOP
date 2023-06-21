@@ -1,6 +1,3 @@
-import json
-import re
-
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 from . import drf_pagination
@@ -64,14 +61,6 @@ class Registration(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = serializers.UserCreationSerializer
 
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=201, headers=headers)
-
 
 class OAuthRegistration(APIView):
     rs = requests.Session()
@@ -79,6 +68,11 @@ class OAuthRegistration(APIView):
 
     @classmethod
     def get(cls, request):
+        """
+        OAuth2:
+        Redirect user to page where he can select google account,
+        after select redirect user to relevant front page(where come from) with tokens and user data in cookies
+        """
         code = request.GET.get('code')
         if code:
 
@@ -178,6 +172,7 @@ class BlogIndexList(generics.ListAPIView):
     serializer_class = serializers.BlogListSerializer
 
 class BlogList(generics.ListAPIView):
+    """Show all blogs and filter"""
     serializer_class = serializers.BlogListSerializer
     pagination_class = drf_pagination.BlogsPagination
     filter_backends = (dfilters.DjangoFilterBackend,)
@@ -220,7 +215,10 @@ class CommentCreating(generics.CreateAPIView):
     serializer_class = serializers.CommentSerializer
 
     def perform_create(self, serializer):
-        serializer.save(user_id=self.request.data.get('user_id'), product_id=self.request.data.get('product_id'))
+        serializer.save(
+            user_id=self.request.data.get('user_id'),
+            product_id=self.request.data.get('product_id')
+        )
 
 class AvailableFilters(APIView):
     def get(self, request):

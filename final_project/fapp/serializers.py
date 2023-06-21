@@ -6,11 +6,13 @@ from fapp.models import *
 
 
 class ImageSerializer(serializers.ModelSerializer):
+    """For other serializers(models) where one model can have 1+ images"""
     class Meta:
         model = Image
         fields = 'image',
 
 class UserForCommentSerializer(serializers.ModelSerializer):
+    """For few user info in comment"""
     class Meta:
         model = User
         fields = 'first_name', 'last_name', 'photo'
@@ -27,7 +29,6 @@ class BrandSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class CategorySerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Category
         exclude = 'id', 'parent',
@@ -48,6 +49,7 @@ class BlogCategoryListSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ProductDetailSerializer(serializers.ModelSerializer):
+    """Fields below need for show any model functions value"""
     images = ImageSerializer(many=True)
     stars_avg = serializers.IntegerField()
     available = serializers.BooleanField()
@@ -71,12 +73,14 @@ class ProductListSerializer(serializers.ModelSerializer):
         exclude = 'resolution', 'optional_characteristics', 'code', 'brand', 'category', 'liked_in_users', 'ordered_in_orders', 'quantity'
 
 class ProductsOfCategory(serializers.ModelSerializer):
+    """Few product info in similar products"""
     images = ImageSerializer(many=True)
     class Meta:
         model = Product
         fields = 'id', 'name', 'price', 'saled_price', 'images'
 
 class OrderSerializer(serializers.ModelSerializer):
+    """Order with products"""
     order_products = ProductListSerializer(many=True)
     code = serializers.CharField()
     total_prices_sum = serializers.IntegerField()
@@ -98,6 +102,7 @@ class UserMiniInfoSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'id',
+            'email',
             'first_name',
             'photo',
             'liked_products_count',

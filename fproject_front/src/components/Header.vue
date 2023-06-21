@@ -135,7 +135,7 @@
           :style="getUserBackground"
           @click="$router.push(`/profile/${user.id}`)"
           >
-            <span v-if="this.user.photo !== 'None' && this.user.photo !== 'null'"></span>
+            <span v-if="!['None', 'null', null].includes(user.photo)"></span>
             <span v-else>{{ user.first_name.charAt(0).toUpperCase() }}</span>
           </div>
           <div v-else class="log_or_reg">
@@ -178,7 +178,7 @@ export default {
     mixins: [redirectTo],
     data(){
       return {
-        user: null,
+        user: JSON.parse(localStorage.getItem('current_user')),
         mega_menu_visible: false,
         auth_modal_visible: false,
         categories:{},
@@ -202,6 +202,7 @@ export default {
       }
     },
     props: {
+      // Props for interacting with header(other page components through App.vue)
       left_cat: String,
       right_cat: String,
       search_text: '',
@@ -210,11 +211,15 @@ export default {
     mixins: [emitsForApp],
     methods: {
       selectLeftCategory(category){
+        // If left category clicked mega menu visible = false, and redirect to /mega_category.
+        // Emit left category update for mega_category page component
         this.mega_menu_visible=false
         this.$router.push(`/mega_category/${category}`)
         this.$emit('update:left_cat', category)
       },
       selectRightCategory(right_category){
+        // If right category clicked mega menu visible = false, and redirect to /product_filters.
+        // Emit right category update for product_filters page component
         this.mega_menu_visible=false
         this.$router.push('/product_filters')
         this.$emit('update:right_cat', right_category)
@@ -227,13 +232,16 @@ export default {
         }
       },
       getImage(category){
+        // Get left category image url
         return `http://localhost:8000${this.categories[category]['image']}`
       },
       getImageReplace(category){
+        // Get left category replace image url
         return `http://localhost:8000${this.categories[category]['image_replace']}`
       },
       showCategories(category, center=false){
-        
+        // If left category hover - show center categories
+        // If center category hover - show right categories
         if (center){
           Object.keys(this.categories_visibiltiy['center_categories']).forEach( key => {
             this.categories_visibiltiy[key] = false
@@ -257,39 +265,35 @@ export default {
         }
       },
       async authUser(){
-        // Common Auth
-        // After submit:
+        // Common Auth:
         // 1)Create request to ...auth/jwt/create for getting tokens, after this`
         //    if account not found, show error message in this.account_not_found,
-        //    if account found, set relevant cookies.
+        //    if account found, set relevant values in localStorage.
         // 
         // 2)Create request to ...users_mini_info?email=${this.email} few info about acc, after this
-        //    set relevant cookies,
-        //    update component user with await this.$store.getters.getUser(),
+        //    set relevant values in localStorage,
+        //    overwrite user,
         //    redirect to profile page.
         try{
           this.auth_email_error = ''
           this.auth_password_error = ''
           this.account_not_found = ''
+          
           const createTokens = await axios.post(`${this.$store.state.server_href}auth/jwt/create`, {
             email: this.email,
             password: this.password
           })
+          
           if (createTokens.data.detail) {
             this.account_not_found = createTokens.data.detail
-          }else{  
-            await cookieStore.set('access', createTokens.data['access'])
-            await cookieStore.set('refresh', createTokens.data['refresh'])
-            const cookies = await this.$store.dispatch(
+          }else{
+            this.$store.getters.setTokensInLS(createTokens.data)
+            const user = await this.$store.dispatch(
               'commonGETRequestWithAuth',
               `users_mini_info?email=${this.email}`
             )
-            await cookieStore.set('user_id', cookies['id'])
-            await cookieStore.set('user_first_name', cookies['first_name'])
-            await cookieStore.set('user_photo', cookies['photo'])
-            await cookieStore.set('user_liked_products_count', cookies['liked_products_count'])
-            await cookieStore.set('user_ordered_products_count', cookies['ordered_products_count'])
-            this.user = await this.$store.getters.getUser()
+            this.$store.getters.setUserInLS(user)
+            this.user = JSON.parse(localStorage.getItem('current_user'))
             this.auth_modal_visible = false
             this.$router.push(`/profile/${this.user.id}`)
           }
@@ -306,11 +310,10 @@ export default {
           
         }
       },
-      
     },
     computed: {
       getUserBackground(){
-        if (this.user.photo !== 'None' && this.user.photo !== 'null') {
+        if (!['None', 'null', null].includes(this.user.photo)) {
           return {
             background: `url("${this.$store.getters.getImageUrl(this.user.photo)}") 50% 50% / cover no-repeat`,
           }
@@ -323,8 +326,7 @@ export default {
       },
     },
     async beforeMount(){
-      this.categories = JSON.parse(localStorage.getItem('cats_formated'))
-      this.user = await this.$store.getters.getUser()
+      this.categories = await this.$store.dispatch('fetchOrGetCategories')
       
       let categories_without_images = {}
       Object.keys(this.categories).forEach( left_category_key => {
@@ -356,6 +358,7 @@ export default {
     },
     watch: {
       auth_modal_visible(newValue){
+        // If auth modal visible block scroll opportunity
         if (newValue) {
           window.onscroll = function () { window.scrollTo(0, 0); };
         } 

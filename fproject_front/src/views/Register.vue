@@ -111,6 +111,13 @@ export default {
     mixins: [emitsForApp],
     methods: {
         async register_user(){
+            // Del old error fields,
+            // Get user info, tokens,
+            //  if error show errors to user
+            // Set user info, tokens data in localStorage( with setTokensInLS(), setUserInLS() ),
+            // Emit event for rerender header,
+            // Set all fields values to empty (error fields includes),
+            // Redirect to /profile/:id
             try{
                 Object.keys(this.$data).forEach( key => {
                     if (key.endsWith('error')) {
@@ -119,17 +126,13 @@ export default {
                 })
                 const user = await axios.post(`${this.$store.state.server_href}registration`, this.$data)
                 const tokens = await axios.post(`${this.$store.state.server_href}auth/jwt/create`, this.$data)
-                await cookieStore.set('access', tokens.data['access'])
-                await cookieStore.set('refresh', tokens.data['refresh'])
-                await cookieStore.set('user_id', user.data['id'])
-                await cookieStore.set('user_first_name', user.data['first_name'])
-                await cookieStore.set('user_photo', user.data['photo'])
-                await cookieStore.set('user_liked_products_count', user.data['liked_products_count'])
-                await cookieStore.set('user_ordered_products_count', user.data['ordered_products_count'])
+                
+                this.$store.getters.setTokensInLS(tokens.data)
+                this.$store.getters.setUserInLS(user.data)
 
                 this.$emit('rerender_header')
-                this.$router.push(`/profile/${(await cookieStore.get('user_id')).value}`)
                 Object.keys(this.$data).forEach( key => this.$data[key] = '')
+                this.$router.push(`/profile/${user.data['id']}`)
             }catch(error){
                 const response = error.response.data
                 Object.keys(response).forEach( key => this.$data[`${key}_error`] = response[key][0])
@@ -140,9 +143,10 @@ export default {
         this.$store.state.pagesInCrumbs.clear()
         this.$store.state.pagesInCrumbs.add('Registration')
 
-        const user_id = (await cookieStore.get('user_id')).value
-        if (user_id) {
-            this.$router.push(`/profile/${user_id}`)
+        // If user authed auto-redirect to /profile/:id
+        const user = JSON.parse(localStorage.getItem('current_user'))
+        if (user) {
+            this.$router.push(`/profile/${user['id']}`)
         }
     },
 }
