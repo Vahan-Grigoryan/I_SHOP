@@ -665,7 +665,8 @@ import emitsForApp from '@/mixins/emitsForApp'
 export default {
     data(){
         return {
-            user: null,
+            user_mini_info: JSON.parse(localStorage.getItem('current_user')),
+            user_additional_info: null,
             orders_visible: false,
             liked_visible: false,
             sales_visible: false,
@@ -704,13 +705,8 @@ export default {
             
         },
         async exitAcc(){
-            await cookieStore.delete('access')
-            await cookieStore.delete('refresh')
-            await cookieStore.delete('user_id')
-            await cookieStore.delete('user_first_name')
-            await cookieStore.delete('user_photo')
-            await cookieStore.delete('user_liked_products_count')
-            await cookieStore.delete('user_ordered_products_count')
+            // Delete all data in localStorage(tokens, user info) and redirect to /register
+            this.$store.getters.delAllDataFromLocalStorage()
             this.$emit('rerender_header')
             this.$router.push('/register')
         }
@@ -719,11 +715,19 @@ export default {
         this.$store.state.pagesInCrumbs.clear()
         this.$store.state.pagesInCrumbs.add('Profile')
 
-        this.user = await this.$store.getters.getUser()
-        const user_profile_info = await this.$store.dispatch(
-            'commonGETRequestWithAuth', 
-            `users_profile/${this.user.id}`
-        )
+        // If user is authed, get user additional info, else redirect to /register
+        const user = JSON.parse(localStorage.getItem('current_user'))
+        if (user) {
+            this.user_additional_info = await this.$store.dispatch(
+                'commonGETRequestWithAuth', 
+                `users_profile/${user['id']}`
+            )
+        } else {
+            console.log('In redirect');
+            this.$router.push(`/register`)
+        }
+        
+        
     }
 }
 </script>

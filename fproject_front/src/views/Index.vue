@@ -251,7 +251,7 @@ export default {
         }
     },
     async beforeMount(){
-        this.center_categories = await this.$store.dispatch('fetchCategories', 'center')
+        this.center_categories = await this.$store.dispatch('fetchPositionCategories', 'center')
         this.sailed_products = await this.$store.dispatch('fetchProductsBySaleNewHit', 'sale')
         this.new_products = await this.$store.dispatch('fetchProductsBySaleNewHit', 'NEW')
         this.hit_products = await this.$store.dispatch('fetchProductsBySaleNewHit', 'HIT')

@@ -254,7 +254,7 @@ export default {
             color_available: false,
             products_sort_option: 'newest',
             current_pagination_page: 1,
-            categories: [], 
+            categories: JSON.parse(localStorage.getItem('cats_formated')), 
             brands: [],
             colors: [],
             products: [],
@@ -384,7 +384,7 @@ export default {
     async beforeMount(){
         this.$store.state.pagesInCrumbs.clear()
         this.$store.state.pagesInCrumbs.add('Search and filter products')
-        this.categories = JSON.parse(localStorage.getItem('cats_formated'))
+
         const availableFilters = await this.$store.dispatch('fetchAvailableFilters')
         this.brands = await availableFilters.brands
         this.colors = await availableFilters.colors
@@ -408,22 +408,6 @@ export default {
         this.$emit('rerender_header', 'set_search_text_empty')
         this.active_filters_to_null() 
     },
-    // beforeUpdate(){
-    //     console.log(this.$route.query);`
-    //     this.selected_filters['categories'].clear()
-    //     if (this.$route.query['center_category']) {
-    //         const [left_cat, center_cat] = this.$route.query['center_category'].split(',')
-    //         for (const iterator of this.categories[left_cat][center_cat]) {
-    //             this.selected_filters['categories'].add(iterator);
-    //         }
-    //         this.$refs[left_cat][0].options_visible_filters=true;
-    //         this.$refs[left_cat][0].click()
-    //     }
-    //     else if(this.$route.query['right_category']) {
-    //         this.selected_filters['categories'].add(this.$route.query['right_category'])
-    //     }
-    //     this.$router.replace({ name: "productFilters", query: {} })
-    // },
     watch: {
         selected_filters: {
             async handler(newValue){
