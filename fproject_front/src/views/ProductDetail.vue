@@ -230,19 +230,39 @@
                 </div>
                 <br>
                 <div class="inline">
-                    <button class="buy_btn">
-                        <img src="@/assets/img/basket_white.png" alt="">
+                    <button 
+                    class="buy_btn"
+                    @click="productToOrder"
+                    v-if="user && !$store.state.ordered_products_names.includes(product.name)"
+                    >
+                        <img src="@/assets/img/basket_white.png">
                         &nbsp;
-                        Купить
+                        В корзину
                     </button>
-                    <div class="like_icon">
-                        <div class="like"></div>
+                    <button 
+                    class="buy_btn"
+                    @click="productToOrder"
+                    style="background: gray;cursor: default"
+                    disabled
+                    v-else-if="user && $store.state.ordered_products_names.includes(product.name)"
+                    >
+                        Уже в корзине
+                    </button>
+                    <div 
+                    class="like_icon"
+                    @click="pushLikedProduct"
+                    >
+                        <div :class="{
+                            like: true,
+                            change_purple_permanent: $store.state.liked_products_names.includes(product.name)
+                        }">
+                        </div>
                     </div>
                     <span>Нравится</span>
-                    <div class="compare_icon">
-                        <img src="@/assets/img/compare.png" alt="">
+                    <!-- <div class="compare_icon">
+                        <img src="@/assets/img/compare.png">
                     </div>
-                    <span>Добавить к сравению</span>
+                    <span>Добавить к сравению</span> -->
                 </div>
             </div>
         </div>
@@ -366,6 +386,10 @@ export default {
             comment_header: '',
             comment_text: '',
             stars: 0,
+            buy_btn_styles: {
+                background: '#69CB87',
+                cursor: 'pointer'
+            }
         }
     },
     mixins: [emitsForApp],
@@ -473,22 +497,52 @@ export default {
             // add created comment top,
             // comment creation modal close,
             // set all inputs empty
-            const createComment = await this.$store.dispatch('commonPOSTRequestWithAuth', {
-                url_after_server_domain: 'comments',
-                post_data: {
-                    user_id: this.user.id,
-                    product_id: this.$route.params.product_id,
-                    header: this.comment_header,
-                    text: this.comment_text,
-                    stars: this.stars
+            const createComment = await this.$store.dispatch(
+                'commonRequestWithAuth',
+                {
+                    method: 'post',
+                    url_after_server_domain: `comments`,
+                    data: {
+                        user_id: this.user.id,
+                        product_id: this.$route.params.product_id,
+                        header: this.comment_header,
+                        text: this.comment_text,
+                        stars: this.stars
+                    }
                 }
-            })
+            )
             this.product.comments.length++
             this.current_product_comments.unshift(createComment)
             this.write_feedback_visible = false
             this.comment_header = ''
             this.comment_text = ''
             this.stars = 0
+        },
+        async pushLikedProduct(){
+            if (!this.$store.state.liked_products_names.includes(this.product.name)) {
+                await this.$store.dispatch(
+                    'commonRequestWithAuth',
+                    {
+                        method: 'get',
+                        url_after_server_domain: `users_add_or_del_liked_product/${this.user['id']}/${this.product['id']}`,
+                    }
+                )
+                this.$store.commit('pushLikedProduct', this.product.name)
+                this.$emit('rerender_header')
+            }
+            
+        },
+        async productToOrder(){
+            // Add product in order with status pending, change vuex relevant state, rerender header
+            await this.$store.dispatch(
+                'commonRequestWithAuth', 
+                {
+                    method: 'get',
+                    url_after_server_domain: `users_add_or_del_order_product/${this.user['id']}/${this.product['id']}`,
+                }
+            )
+            this.$store.commit('pushOrderedProduct', this.product.name)
+            this.$emit('rerender_header')
         }
     },
 
@@ -496,6 +550,17 @@ export default {
         await this.getProduct(this.$route.params.product_id)
         this.$store.state.pagesInCrumbs.clear()
         this.$store.state.pagesInCrumbs.add('Product')
+
+        if (this.user) {
+            // If user authed, add current product to viewed
+            await this.$store.dispatch(
+                'commonRequestWithAuth',
+                {
+                    method: 'get',
+                    url_after_server_domain: `users_add_viewed_product/${this.user['id']}/${this.$route.params.product_id}`,
+                }
+            )
+        }
     },
     watch: {
         write_feedback_visible(newValue){

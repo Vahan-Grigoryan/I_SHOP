@@ -31,6 +31,7 @@
     v-for="product in products"
     :key="product.id"
     :product="product"
+    @rerender_header="$emit('rerender_header')"
     >
     </ui-slide>
 </mini-products-slider>

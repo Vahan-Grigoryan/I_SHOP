@@ -7,19 +7,21 @@ export default createStore({
     pagesInCrumbs: new Set(),
     profile_content: 'orders',
     server_href: 'http://localhost:8000/',
-    
+    liked_products_names: [],
+    ordered_products_names: [],
   },
   getters: {
     getImageUrl: state => after_server_domain => {
       // after_server_domain = raw image url(user photo)
       // after treatment give ready image url 
-      if (after_server_domain.includes('http') || after_server_domain.includes('https')) {
-        return after_server_domain
+      const image_url = after_server_domain.at(0) === '"' ? after_server_domain.slice(1, -1) : after_server_domain
+      if (image_url.includes('http') || image_url.includes('https')) {
+        return image_url
       }
-      else if (!after_server_domain.includes('media')) {
-        return state.server_href + 'media/' + after_server_domain
+      else if (!image_url.includes('media')) {
+        return state.server_href + 'media/' + image_url
       } else {
-        return state.server_href + after_server_domain.slice(1)
+        return state.server_href + image_url.slice(1)
       }
     },
     setTokensInLS: state => tokens => {
@@ -31,11 +33,16 @@ export default createStore({
       localStorage.setItem('current_user', JSON.stringify(user))
     },
     delAllDataFromLocalStorage: state => () => {
+      // Del all local data about user
       localStorage.removeItem('access')
       localStorage.removeItem('refresh')
       localStorage.removeItem('current_user')
+      state.liked_products_names = []
+      state.ordered_products_names = []
     },
-    
+    calculatePagesCount: state => (count, entities_per_view=4) => {
+      return Math.ceil(count/entities_per_view)
+    }
   },
   mutations: {
     setProfileContent(state, profile_content_value){
@@ -43,12 +50,28 @@ export default createStore({
       //  orders, liked, sales, register
       state.profile_content = profile_content_value
     },
-    
+    pushLikedProduct(state, product_name){
+      if (!state.liked_products_names.includes(product_name)) state.liked_products_names.push(product_name)
+    },
+    delLikedProduct(state, product_name){
+      state.liked_products_names = state.liked_products_names.filter(p_name => p_name !== product_name)
+    },
+    pushOrderedProduct(state, product_name){
+      if (!state.ordered_products_names.includes(product_name)) state.ordered_products_names.push(product_name)
+    },
+    delOrderedProduct(state, product_name){
+      state.ordered_products_names = state.ordered_products_names.filter(p_name => p_name !== product_name)
+    },
   },
   actions: {
     async fetchBrandsIndex({state}){
       // Brands for index page brands part - 12 brands
       const brands = await axios.get(`${state.server_href}brands_index`)
+      return brands.data
+    },
+    async fetchBrands({state}, pg=1){
+      // Brands for brands page
+      const brands = await axios.get(`${state.server_href}brands?pg=${pg}`)
       return brands.data
     },
     async fetchProductsBySaleNewHit({state}, sale_new_hit){
@@ -125,40 +148,27 @@ export default createStore({
       }
       
     },
-    async commonGETRequestWithAuth({state}, url_after_server_domain){
-      // Get request structure with auth based on localStorage.getItem('access')
+    async commonRequestWithAuth({state}, {method, url_after_server_domain, data}){
+      // Request structure with auth based on localStorage.getItem('access')
       const access_for_request = localStorage.getItem('access')
 
       if (access_for_request) {
         try{
-          const page = await axios.get(state.server_href + url_after_server_domain, {
+          const response = await axios({
+            method: method,
+            url: state.server_href + url_after_server_domain,
+            data: data,
             headers: {'Authorization': `JWT ${access_for_request}`}
-          })
-          return page.data
-        }catch(err){
-          return err
-        }
-      }else{
-        return
-      }
-    },
-    async commonPOSTRequestWithAuth({state}, {url_after_server_domain, post_data}){
-      // Post request structure with auth based on localStorage.getItem('access')
-      const access_for_request = localStorage.getItem('access')
-      
-      if (access_for_request) {
-        try{
-          const page = await axios.post(state.server_href + url_after_server_domain, post_data, {
-            headers: {'Authorization': `JWT ${access_for_request}`}
-          })
-          return page.data
+          });
+          return response.data
         }catch(err){
           return err
         }
       }else{
         return 
       }
-    },
+
+    }
   },
   modules: {
   }

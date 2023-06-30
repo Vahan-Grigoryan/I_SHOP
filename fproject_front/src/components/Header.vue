@@ -191,8 +191,6 @@ export default {
         right_categories: [],
         select_plug1: true,
         select_plug2: true,
-        likes: 0,
-        basket: 0,
         email: '',
         password: '',
         auth_email_error: '',
@@ -208,7 +206,7 @@ export default {
       search_text: '',
     },
     emits: ['update:search_text', 'update:left_cat', 'update:right_cat'],
-    mixins: [emitsForApp],
+    mixins: [emitsForApp, redirectTo],
     methods: {
       selectLeftCategory(category){
         // If left category clicked mega menu visible = false, and redirect to /mega_category.
@@ -289,8 +287,11 @@ export default {
           }else{
             this.$store.getters.setTokensInLS(createTokens.data)
             const user = await this.$store.dispatch(
-              'commonGETRequestWithAuth',
-              `users_mini_info?email=${this.email}`
+              'commonRequestWithAuth',
+              {
+                method: 'get',
+                url_after_server_domain: `users_mini_info?email=${this.email}`,
+              }
             )
             this.$store.getters.setUserInLS(user)
             this.user = JSON.parse(localStorage.getItem('current_user'))
@@ -312,6 +313,7 @@ export default {
       },
     },
     computed: {
+      // Get backgroun url or color for user preview
       getUserBackground(){
         if (!['None', 'null', null].includes(this.user.photo)) {
           return {
@@ -327,7 +329,19 @@ export default {
     },
     async beforeMount(){
       this.categories = await this.$store.dispatch('fetchOrGetCategories')
+      // If user exist(in LS) update info about it
+      if (this.user) {
+        this.user = await this.$store.dispatch(
+          'commonRequestWithAuth',
+          {
+            method: 'get',
+            url_after_server_domain: `users_mini_info?id=${this.user.id}`,
+          }
+        )
+        this.$store.getters.setUserInLS(this.user)
+      }
       
+      // Manipulations for vaild dropdown menu ui
       let categories_without_images = {}
       Object.keys(this.categories).forEach( left_category_key => {
         categories_without_images[left_category_key]={}

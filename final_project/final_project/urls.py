@@ -3,7 +3,6 @@ from django.contrib import admin
 from django.urls import path, include
 from final_project import settings
 
-
 urlpatterns = [
     path('', include('fapp.urls')),
     path('admin/', admin.site.urls),

@@ -71,18 +71,18 @@ export default {
     display: flex;
 }
 .watched_products_slider .swiper-slide {
-    background: white;
-    padding: 15px 15px 20px 15px;
-    border: 1px solid #E4E7EE;
-    border-radius: 15px;
-    min-height: 400px;
-    max-height: 550px;
-    position: relative;
-    transition: .5s;
-    cursor: pointer;
+  background: white;
+  padding: 15px 15px 20px 15px;
+  border: 1px solid #E4E7EE;
+  border-radius: 15px;
+  min-height: 400px;
+  max-height: 550px;
+  position: relative;
+  transition: .5s;
+  cursor: pointer;
 }
 .watched_products_slider .swiper-slide:hover{
-    background: rgba(126, 126, 126, 0.2);
+  background: rgba(126, 126, 126, 0.2);
 }
 .to_like_box {
   position: absolute;

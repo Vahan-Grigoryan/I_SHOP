@@ -18,7 +18,7 @@ class ProductFilter(dfilters.FilterSet):
     priceGte = dfilters.NumberFilter(method='get_price_sailed_price_gte')
     priceLte = dfilters.NumberFilter(method='get_price_sailed_price_lte')
     colors = dfilters.BaseInFilter(method='colors_in')
-
+    sale_new_hit_by_sailed = dfilters.CharFilter(method='sale_limit')
     def get_filtered_prices(self, queryset, price, lte_or_gte):
         """
         If product have saled_price filtering will be carried out on saled_price else price field.
@@ -37,6 +37,25 @@ class ProductFilter(dfilters.FilterSet):
 
     def get_price_sailed_price_lte(self, queryset, name, price):
         return self.get_filtered_prices(queryset, price, 'lte')
+
+    def sale_limit(self, queryset, name, limit):
+        """
+        If limit == 'all_sailed' return all products where sale_new_hit is sale
+        else all products where sale_new_hit is sale and <= limit
+        """
+        qs = queryset.prefetch_related()
+        sailed_products = Product.objects.none()
+        if limit == 'all_sailed':
+            for product in qs:
+                if 'sale' in product.sale_new_hit:
+                    sailed_products |= queryset.filter(id=product.id)
+        else:
+
+            for product in qs:
+                if 'sale' in product.sale_new_hit and int(product.sale_new_hit[4:]) >= int(limit):
+                    sailed_products |= queryset.filter(id=product.id)
+
+        return sailed_products
 
     def colors_in(self, queryset, name, colors):
         """

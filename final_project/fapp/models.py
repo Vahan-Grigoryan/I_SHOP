@@ -21,6 +21,8 @@ class User(AbstractUser):
     street = models.CharField(max_length=150, null=True)
     in_mailing_list=models.BooleanField(default=False)
     post_code = models.IntegerField(null=True)
+    viewed10_products = models.ManyToManyField('Product', related_name='viewed_in_users', through='SortViewedProducts')
+
 
     # This need for create_user works with first_name, last_name, password
     objects = MyUserManager()
@@ -29,7 +31,7 @@ class User(AbstractUser):
     REQUIRED_FIELDS = 'first_name', 'last_name', 'password'
 
     def __str__(self):
-        return self.username or f'{self.first_name} {self.last_name}'
+        return self.username or self.email
 
 
     def liked_products_count(self):
@@ -41,6 +43,12 @@ class User(AbstractUser):
             return self.orders.get(status='pending').order_products.count()
         except ObjectDoesNotExist:
             return 0
+
+class SortViewedProducts(models.Model):
+    """Through model for User and Product models(for control by product added date)"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    product = models.ForeignKey('Product', on_delete=models.CASCADE)
+    added_date = models.DateTimeField(auto_now_add=True)
 
 class IndependentMail(models.Model):
     """
@@ -104,10 +112,10 @@ class Order(models.Model):
     status = models.CharField(choices=status_choices, max_length=20, default='pending')
     user = models.ForeignKey(User, related_name='orders', on_delete=models.CASCADE, null=True)
 
-    def save(self):
+    def save(self, *args, **kwargs):
         if self.status in ('payed', 'rejected'):
             self.payment_date = timezone.now()
-        super().save()
+        super().save(*args, **kwargs)
 
 
     def code(self):
@@ -141,8 +149,7 @@ class Product(models.Model):
         default=1
     )
 
-    def save(self, **kwargs):
-        print(kwargs)
+    def save(self, *args, **kwargs):
         independent_mails = IndependentMail.objects.values_list('mail', flat=True)
         user_mails = User.objects.filter(in_mailing_list=True).values_list('email', flat=True)
         # Works fine, but send mails with each product update...
@@ -161,7 +168,7 @@ class Product(models.Model):
         #     [*independent_mails, *user_mails],
         #     html_message=html_msg,
         # )
-        return super().save(**kwargs)
+        return super().save(*args, **kwargs)
 
     @property
     def available(self):
@@ -177,7 +184,7 @@ class Product(models.Model):
         """
         if self.liked_in_users.count() >= 10:
             return 'HIT!'
-        elif self.saled_price and 100 - (self.saled_price / self.price) * 100 >= 50:
+        elif self.saled_price and 100 - (self.saled_price / self.price) * 100 >= 20:
             return f'sale{100 - int((self.saled_price / self.price) * 100)}'
 
         return 'NEW'

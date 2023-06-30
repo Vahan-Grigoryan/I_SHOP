@@ -82,7 +82,7 @@ export default {
   async beforeMount(){
     // Update access token on each page update 
     //  if refresh token exist and valid, 
-    //  if refresh token is invalid delete tokens and user data
+    //  else delete tokens and user data
     const refresh = localStorage.getItem('refresh')
     if (refresh) {
       try{
@@ -121,6 +121,29 @@ export default {
       this.$router.push(`/profile/${current_user.id}`)
     }
 
+    // Set liked products names, ordered products names in vuex liked_products_names state,
+    // for slide top right btn valid ui and product detail add_product_to_cart btn valid ui
+    const user = JSON.parse(localStorage.getItem('current_user'))
+    if (user && this.$route.name !== 'profile') {
+      const user_additional_info = await this.$store.dispatch(
+        'commonRequestWithAuth', 
+        {
+          method: 'get',
+          url_after_server_domain: `users_profile/${user['id']}`,
+        }
+      )
+      let liked_products_names = []
+      user_additional_info.liked_products.forEach( p => liked_products_names.push(p.name) )
+      this.$store.state.liked_products_names = liked_products_names
+      if (user_additional_info['orders'].length) {
+        let ordered_products_names = []
+        user_additional_info['orders'][0]['order_products'].forEach( p => ordered_products_names.push(p.name) )
+        this.$store.state.ordered_products_names = ordered_products_names
+      }
+      
+      
+      
+    }
   },
   watch: {
 
