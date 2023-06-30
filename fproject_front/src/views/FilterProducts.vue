@@ -211,11 +211,12 @@
                     />
                 </div>
                 
-                <div class="found_products" v-if="products.results.length">
+                <div class="found_products" v-if="products.results">
                     <ui-slide
                     v-for="product in products.results"
                     :key="product.id"
                     :product="product"
+                    @rerender_header="$emit('rerender_header')"
                     >
                     </ui-slide>
                     
@@ -224,9 +225,8 @@
                     По вашим критериям продуктов не найдено
                 </h1>
                 <ui-pagination
-                v-if="getPagesCount()" 
-                :pages_per_view="getPagesCount()"
-                @paginated_to="(page) => getFilteredProducts(page)"
+                :pages="$store.getters.calculatePagesCount(products.count)"
+                @paginated_to="getFilteredProducts"
                 v-model:page_active="current_pagination_page"
                 />
             </div>
@@ -359,14 +359,10 @@ export default {
             requestUrlParams = requestUrlParams.slice(0, requestUrlParams.length-1)
             return requestUrlParams
         },
-        getPagesCount(){
-            // Count pagination pages
-            const pages = Math.ceil(this.products.count/4)
-            return pages<=1 ? '' : pages
-        },
         async getFilteredProducts(paginate_to=1){
             // Add additional url params(or not) to filter and straightaway fetch new products
             // Also paginate to page if needs
+            
             const urlParams = this.getActiveFiltersByUrlParams()
             let url = ``
             url += urlParams? `&${urlParams}`: ''
@@ -425,7 +421,7 @@ export default {
             
         },
         async products_sort_option(newValue){
-            await this.getFilteredProducts()
+            await this.getFilteredProducts(this.current_pagination_page)
         },
         change_center_category(newValue){
             this.selected_filters['categories'].clear()

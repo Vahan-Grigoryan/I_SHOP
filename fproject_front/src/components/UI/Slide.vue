@@ -6,8 +6,23 @@ class="swiper-slide"
     <ui-detect-salenewhit 
     :sale_new_hit="product.sale_new_hit"
     />
-    <div class="to_like_box">
-        <div class="like"></div>
+    <div 
+    class="to_like_box"
+    v-if="top_right_btn_purpose === 'like'"
+    @click="addLikedProduct"
+    >
+        <div :class="{
+            like: true,
+            change_purple_permanent: $store.state.liked_products_names.includes(product.name)
+        }">
+        </div>
+    </div>
+    <div 
+    class="to_like_box"
+    v-else-if="top_right_btn_purpose === 'delete'"
+    @click="delLikedProduct"
+    >
+        <img src="@/assets/img/trash.png">
     </div>
     <img :src="$store.getters.getImageUrl(product.images[0].image)">
     <div class="slide_desc">
@@ -49,15 +64,64 @@ class="swiper-slide"
 <script>
 export default {
     name: 'ui-slide',
+    data(){
+        return {
+            user: JSON.parse(localStorage.getItem('current_user')),
+        }
+    },
     props: {
-        product: Object
+        product: Object,
+        top_right_btn_purpose: {
+            type: String,
+            default: 'like'
+        },
     },
     methods: {
-        
+        async addLikedProduct(e){
+            // If authed user does not exist, redirect to /register page,
+            // else add user liked product name in store state liked_products_names for valid like button ui.
+            // If user on profile page, emit event for auto update liked products list
+            e.stopPropagation()
+            if ( !this.user ) {
+                this.$router.push('/register')
+            }else{
+                if (this.$route.name === 'profile') {
+                    this.$emit('add_liked_product', this.product)
+                }
+                
+                await this.$store.dispatch(
+                    'commonRequestWithAuth',
+                    {
+                        method: 'get',
+                        url_after_server_domain: `users_add_or_del_liked_product/${this.user['id']}/${this.product['id']}`,
+                    }
+                )
+                this.$store.commit('pushLikedProduct', this.product.name)
+                this.$emit('rerender_header')
+                
+                
+            }
+            
+        },
+        async delLikedProduct(e){
+            // If authed user does not exist, redirect to /register page,
+            // else add user liked product.
+            // If user on profile page auto update liked products list
+            e.stopPropagation()
+            
+            this.$store.commit('delLikedProduct', this.product.name)
+            this.$emit('del_liked_product', this.product)
+            await this.$store.dispatch(
+                'commonRequestWithAuth',
+                {
+                    method: 'delete',
+                    url_after_server_domain: `users_add_or_del_liked_product/${this.user['id']}/${this.product['id']}`,
+                }
+            )
+        }
     }
 }
 </script>
 
 <style scoped>
-
 </style>

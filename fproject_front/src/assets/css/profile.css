@@ -25,18 +25,33 @@
     font-size: 12px;
     line-height: 139.02%;
     color: #686877;
+    margin: 10px 0px 20px 0px;
+}
+.change_img label{
     display: inline-flex;
     align-items: center;
-    margin: 10px 0px 20px 0px;
     justify-content: center;
     cursor: pointer;
 }
-.profile_info > img{
+.profile_info .user_photo > img{
     width: 100px;
     height: 100px;
     object-fit: cover;
     border-radius: 50%;
     margin-top: 30px;
+}
+.profile_info .user_photo .user_no_img{
+    width: 100px;
+    height: 100px;
+    background: #74CCD8;
+    margin-top: 30px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 30px;
+
 }
 .profile_tabs{
     margin-top: 25px;
@@ -66,13 +81,25 @@
 .profile_content_sales,
 .profile_info_and_content .register_form{
     width: 77.5%;
-    
+}
+.profile_empty{
+    height: 480px;
+}
+.history_empty{
+    text-align: center;
+    background: rgb(244, 245, 249);
+    padding: 20px 0px;
 }
 
-
 /* CARD ORDERS */
-.profile_content_orders h2{
-    margin-bottom: 12px;
+.profile_content_orders .remove_order_product_btn{
+    padding: 11px 25px;
+    border-radius: 30px;
+    color: white;
+    background: red;
+    margin-top: 10px;
+    border: none;
+    cursor: pointer;
 }
 .card_product_explain{
     display: flex;
@@ -154,6 +181,7 @@
     position: relative;
     transition: .5s;
     cursor: pointer;
+    min-width: 255px;
 }
 .swiper-slide:hover {
   background: rgba(126, 126, 126, 0.2);
@@ -240,7 +268,9 @@
     grid-template-columns: repeat(4, auto);
     grid-gap: 10px;
 }
-
+.liked_products .swiper-slide{
+    max-width: 255px;
+}
 
 .profile_content_sales .select{
     margin: 25px 0px;

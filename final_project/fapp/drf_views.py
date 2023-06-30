@@ -15,6 +15,25 @@ from fapp.models import *
 from fapp import mailing_logic
 
 
+class UserMiniInfo(generics.RetrieveAPIView):
+    """User mini info for site header"""
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.UserMiniInfoSerializer
+
+    def get_object(self):
+        """Get user by id, email"""
+        url_params = self.request.GET
+        assert (
+            url_params.get('email') or
+            url_params.get('id')
+        ), 'Provide id, or email field'
+        if url_params.get('email'):
+            obj = get_object_or_404(User, email=url_params.get('email'))
+        elif url_params.get('id'):
+            obj = get_object_or_404(User, id=url_params.get('id'))
+
+        self.check_object_permissions(self.request, obj)
+        return obj
 
 class UserDetailProfileInfo(generics.RetrieveAPIView):
     """User profile info for site profile page"""
@@ -22,28 +41,47 @@ class UserDetailProfileInfo(generics.RetrieveAPIView):
     queryset = User.objects.distinct()
     serializer_class = serializers.UserProfileSerializer
 
-class UserMiniInfo(generics.RetrieveAPIView):
-    """User mini info for site header"""
+class UserEditOrDel(generics.UpdateAPIView, generics.DestroyAPIView):
+    """Update or delete User"""
     permission_classes = [IsAuthenticated]
-    serializer_class = serializers.UserMiniInfoSerializer
+    queryset = User.objects.distinct()
+    serializer_class = serializers.UserCreationUpdateSerializer
 
-    def get_object(self):
-        """Get user by id, email or username(for Google)"""
-        url_params = self.request.GET
-        assert (
-            url_params.get('email') or
-            url_params.get('id') or
-            url_params.get('username')
-        ), 'Provide id, email or username field'
-        if url_params.get('email'):
-            obj = get_object_or_404(User, email=url_params.get('email'))
-        elif url_params.get('id'):
-            obj = get_object_or_404(User, id=url_params.get('id'))
-        elif url_params.get('username'):
-            obj = get_object_or_404(User, username=url_params.get('username'))
+class UserAddViewedProduct(APIView):
+    permission_classes = [IsAuthenticated]
 
-        self.check_object_permissions(self.request, obj)
-        return obj
+    def get(self, request, user_pk, product_pk):
+        """Detail in add_or_del_viewed_product() func"""
+        business.add_or_del_viewed_product(user_pk, product_pk)
+        return Response(status=204)
+
+class UserAddOrDelLikedProduct(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, user_pk, product_pk):
+        """Add product to user liked list"""
+        user, product = User.objects.get(pk=user_pk), Product.objects.get(pk=product_pk)
+        user.liked_products.add(product)
+        return Response(status=204)
+
+    def delete(self, request, user_pk, product_pk):
+        """Remove product from user liked list"""
+        user, product = User.objects.get(pk=user_pk), Product.objects.get(pk=product_pk)
+        user.liked_products.remove(product)
+        return Response(status=204)
+
+class UserAddOrDelOrderProduct(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, user_pk, product_pk):
+        business.add_order_product(user_pk, product_pk)
+        return Response(status=204)
+
+    def delete(self, request, user_pk, product_pk):
+        """Del product from order and return updated order for ui"""
+        business.del_order_product(user_pk, product_pk)
+        user, product = User.objects.get(pk=user_pk), Product.objects.get(pk=product_pk)
+        sz_order = serializers.OrderSerializer(user.orders.get(status='pending'))
+        return Response(sz_order.data)
 
 class MailingList(APIView):
     """View for add mail in Independent mail_list(possible to receive new product info without registration)"""
@@ -59,7 +97,7 @@ class MailingList(APIView):
 class Registration(generics.CreateAPIView):
     """Common registration"""
     queryset = User.objects.all()
-    serializer_class = serializers.UserCreationSerializer
+    serializer_class = serializers.UserCreationUpdateSerializer
 
 
 class OAuthRegistration(APIView):
@@ -83,7 +121,6 @@ class OAuthRegistration(APIView):
             authenticate = cls.rs.post(
                 f'http://127.0.0.1:8000/auth/o/google-oauth2/?{raw_query[:-1]}',
             )
-
             username = authenticate.json()['user']
             user = User.objects.get(username=username)
             sz_user = serializers.UserMiniInfoSerializer(user)
@@ -162,6 +199,11 @@ class ProductList(generics.ListAPIView):
 class BrandIndexList(generics.ListAPIView):
     queryset = Brand.objects.all()[:12]
     serializer_class = serializers.BrandSerializer
+
+class BrandList(generics.ListAPIView):
+    queryset = Brand.objects.all()
+    serializer_class = serializers.BrandSerializer
+    pagination_class = drf_pagination.BrandsPagination
 
 class BlogCategoryList(generics.ListAPIView):
     queryset = BlogCategory.objects.all()

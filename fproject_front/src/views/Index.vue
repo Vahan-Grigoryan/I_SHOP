@@ -1,8 +1,4 @@
 <template>
-    <!-- <Header 
-    v-model:likes="likes.length" 
-    /> -->
-
     <main>
         <ui-main-top-slider style="width: 70%" />
 
@@ -61,6 +57,7 @@
         v-for="product in sailed_products"
         :key="product.id"
         :product="product"
+        @rerender_header="$emit('rerender_header')"
         >
         </ui-slide>
     </mini-products-slider>
@@ -108,6 +105,7 @@
         v-for="product in hit_products"
         :key="product.id"
         :product="product"
+        @rerender_header="$emit('rerender_header')"
         >
         </ui-slide>
     </mini-products-slider>
@@ -121,6 +119,7 @@
         v-for="product in new_products"
         :key="product.id"
         :product="product"
+        @rerender_header="$emit('rerender_header')"
         >
         </ui-slide>
         
@@ -172,11 +171,6 @@ export default {
     data(){
         return {
             likes: [],
-            likesPurpleStatus: new Proxy({}, {
-                get: function(target, name) {
-                    return name in target ? target[name] : false
-                }
-            }),
             center_categories: [],
             sailed_products: [],
             hit_products: [],
@@ -190,16 +184,6 @@ export default {
     },
     mixins: [emitsForApp],
     methods:{
-        addOrDelLikes(product_id){
-            // if (this.likes.includes(product_id)) {
-            //     this.likes = this.likes.filter( id => id != product_id)
-            //     delete this.likesPurpleStatus[product_id]
-            // } 
-            // else {
-            //     this.likes.push(product_id)
-            //     this.likesPurpleStatus[product_id] = product_id
-            // }
-        },
         check_mailing_list_response(response){
             if(response.data['Error']){
                 this.mailing_list_response_invalid = true

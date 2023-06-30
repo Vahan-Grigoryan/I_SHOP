@@ -1,14 +1,14 @@
 <template>
-<div class="pagination">
+<div class="pagination" v-if="pages > 1">
     <button 
     class="prevnextpage_btn"
-    @click="$emit('paginated_to', page_active-1)"
+    @click="page_active-1 > 0 && $emit('paginated_to', page_active-1)"
     >
         <img src="@/assets/img/prevnextbtn.png" alt="">
     </button>
     
     <a 
-    v-for="page in pages_per_view"
+    v-for="page in pages"
     :class="getClasses(page)"
     @click="$emit('paginated_to', page)"
     >
@@ -17,7 +17,7 @@
 
     <button 
     class="prevnextpage_btn"
-    @click="$emit('paginated_to', page_active+1)"
+    @click="page_active+1 <= pages && $emit('paginated_to', page_active+1)"
     >
         <img src="@/assets/img/prevnextbtn.png" alt="">
     </button>
@@ -28,13 +28,13 @@
 <script>
 // Pagination for this project, used in many places
 // props:
-//      pages_per_view: how many pages are available for redirect in each pagination page
+//      pages: how many pages are available for redirect in each pagination page
 
 
 export default {
     name: 'ui-pagination',
     props: {
-        pages_per_view: Number,
+        pages: Number,
         page_active: Number,
     },
     methods: {

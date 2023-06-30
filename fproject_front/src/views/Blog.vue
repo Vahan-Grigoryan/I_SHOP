@@ -38,8 +38,7 @@
             />
         </div>
         <ui-pagination 
-        v-if="getPagesCount()"
-        :pages_per_view="getPagesCount()"
+        :pages="$store.getters.calculatePagesCount(blogs.count, 2)"
         @paginated_to="paginateTo"
         v-model:page_active="current_page"
         />
@@ -64,11 +63,6 @@ export default {
         }
     },
     methods: {
-        getPagesCount(){
-            // Available pages for pagination
-            const count = Math.ceil(this.blogs.count / 2)
-            return count <= 1 ? '' : count
-        },
         async paginateTo(paginated_to=1){
             // Paginate to pagination page consider selected category and sort_by
             if (this.blogs_of_category) {

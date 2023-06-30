@@ -70,7 +70,7 @@ class ProductListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        exclude = 'resolution', 'optional_characteristics', 'code', 'brand', 'category', 'liked_in_users', 'ordered_in_orders', 'quantity'
+        exclude = 'resolution', 'optional_characteristics', 'brand', 'category', 'liked_in_users', 'ordered_in_orders', 'quantity'
 
 class ProductsOfCategory(serializers.ModelSerializer):
     """Few product info in similar products"""
@@ -88,12 +88,43 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         exclude = 'id', 'user'
 
+class SortViewedProductsSerializer(serializers.ModelSerializer):
+    """Through model serializer"""
+
+    def to_representation(self, instance):
+        """Get only product without id, added_date."""
+        return ProductListSerializer(instance.product).data
+
+    class Meta:
+        model = SortViewedProducts
+        fields = 'product',
+
 class UserProfileSerializer(serializers.ModelSerializer):
     liked_products = ProductListSerializer(many=True)
     orders = OrderSerializer(many=True)
+    viewed10_products = serializers.SerializerMethodField(method_name='get_sorted_viewed10_products')
+
+    def get_sorted_viewed10_products(self, user):
+        """View sorted viewed products by through model"""
+        return SortViewedProductsSerializer(
+            SortViewedProducts.objects.filter(user_id=user.id).order_by('-added_date'),
+            many=True
+        ).data
+
     class Meta:
         model = User
-        fields = 'liked_products', 'orders'
+        fields = (
+            'email',
+            'tel',
+            'last_name',
+            'city',
+            'street',
+            'post_code',
+            'in_mailing_list',
+            'liked_products',
+            'orders',
+            'viewed10_products',
+        )
 
 class UserMiniInfoSerializer(serializers.ModelSerializer):
     liked_products_count = serializers.IntegerField(read_only=True)
@@ -102,14 +133,13 @@ class UserMiniInfoSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'id',
-            'email',
             'first_name',
             'photo',
             'liked_products_count',
             'ordered_products_count',
         )
 
-class UserCreationSerializer(serializers.ModelSerializer):
+class UserCreationUpdateSerializer(serializers.ModelSerializer):
     liked_products_count = serializers.IntegerField(read_only=True)
     ordered_products_count = serializers.IntegerField(read_only=True)
 
@@ -126,7 +156,15 @@ class UserCreationSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+    def update(self, instance, validated_data):
+        if 'password' in validated_data:
+            password = validated_data.pop('password')
+            raw_instance = super().update(instance, validated_data)
+            raw_instance.set_password(password)
+            raw_instance.save()
+            return raw_instance
 
+        return super().update(instance, validated_data)
 
     class Meta:
         model = User

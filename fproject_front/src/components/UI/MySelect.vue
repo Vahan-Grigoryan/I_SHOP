@@ -8,8 +8,8 @@
         @click="setFilterOptionsVisible"
         >
             {{ selected_option }}
-            <img src="@/assets/img/select_down_arrow.png" alt="" v-if="!options_visible_filters">
-            <img src="@/assets/img/filter_top_arrow.png" alt="" v-if="options_visible_filters">
+            <img src="@/assets/img/select_down_arrow.png" v-if="!options_visible_filters">
+            <img src="@/assets/img/filter_top_arrow.png" v-if="options_visible_filters">
         </div>
         <div class="options_for_filters" v-if="options_visible_filters">
             <slot name="custom_content">
@@ -46,7 +46,7 @@
             row_info: true, 
             bbordered: options_visible_cart
         }"
-        @click="setCardProductsVisible"
+        @click="setCartProductsVisible"
         >
             <slot name="row_info"></slot>
         </div>
@@ -98,7 +98,7 @@ export default {
 
             this.options_visible_filters = !this.options_visible_filters
         },
-        setCardProductsVisible(){
+        setCartProductsVisible(){
             this.options_visible_cart = !this.options_visible_cart
         }
     },

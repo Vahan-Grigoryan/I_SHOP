@@ -9,8 +9,7 @@ from final_project import settings
 
 def send_first_mail_and_add_to_mail_list(mail=None):
     """
-    Send 'welcome' email to new email if User with that new email does not exist.
-    Add new IndependentMail if User with that new email does not exist
+    Send 'welcome' email to new email and add new IndependentMail if User with that new email does not exist.
     """
     try:
         user = User.objects.get(email=mail)
@@ -34,7 +33,7 @@ def send_first_mail_and_add_to_mail_list(mail=None):
             return {'Error': 'Mail already exist!'}
 
 def del_mail_from_mail_list(mail=None):
-    """similar send_first_mail_and_add_to_mail_list but does the opposite"""
+    """Similar send_first_mail_and_add_to_mail_list but does the opposite"""
     try:
         user = User.objects.get(email=mail)
         user.in_mailing_list=False

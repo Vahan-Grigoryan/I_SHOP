@@ -2,7 +2,7 @@
     <div class="profile_content_empty">
         <h2>{{ header }}</h2>
         <span>{{ content }}</span>
-        <button>
+        <button @click="$router.push('/product_filters')">
             <img src="@/assets/img/Vector_30.png" alt="">
             {{ btn_content }}
         </button>
