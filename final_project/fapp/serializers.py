@@ -79,14 +79,34 @@ class ProductsOfCategory(serializers.ModelSerializer):
         model = Product
         fields = 'id', 'name', 'price', 'saled_price', 'images'
 
+class OrderedProductInfoSerializer(serializers.ModelSerializer):
+    """Through model for view user selected options for each product"""
+    total_price = serializers.IntegerField()
+    def to_representation(self, instance):
+        """Mix product characteristics with characteristics that can be selected"""
+        selected_options = super().to_representation(instance)
+        product = ProductListSerializer(instance.product).data
+
+        return {**product, **selected_options}
+
+    class Meta:
+        model = OrderedProductInfo
+        exclude = 'id', 'order'
+
 class OrderSerializer(serializers.ModelSerializer):
     """Order with products"""
-    order_products = ProductListSerializer(many=True)
+    order_products = serializers.SerializerMethodField(method_name='get_products_with_selected_options')
     code = serializers.CharField()
-    total_prices_sum = serializers.IntegerField()
+    total_price = serializers.IntegerField()
+    payment_method_name = serializers.SlugRelatedField(source='payment_method', slug_field='name', read_only=True)
+
+    def get_products_with_selected_options(self, instance):
+        return OrderedProductInfoSerializer(OrderedProductInfo.objects.filter(order=instance), many=True).data
+
+
     class Meta:
         model = Order
-        exclude = 'id', 'user'
+        exclude = 'user', 'payment_method_id', 'content_type'
 
 class SortViewedProductsSerializer(serializers.ModelSerializer):
     """Through model serializer"""
@@ -101,13 +121,20 @@ class SortViewedProductsSerializer(serializers.ModelSerializer):
 
 class UserProfileSerializer(serializers.ModelSerializer):
     liked_products = ProductListSerializer(many=True)
-    orders = OrderSerializer(many=True)
+    orders = serializers.SerializerMethodField(method_name='get_ordered_orders')
     viewed10_products = serializers.SerializerMethodField(method_name='get_sorted_viewed10_products')
 
     def get_sorted_viewed10_products(self, user):
         """View sorted viewed products by through model"""
         return SortViewedProductsSerializer(
             SortViewedProducts.objects.filter(user_id=user.id).order_by('-added_date'),
+            many=True
+        ).data
+
+    def get_ordered_orders(self, user):
+        """Move user pending order to top"""
+        return OrderSerializer(
+            user.orders.order_by('-id'),
             many=True
         ).data
 

@@ -132,13 +132,15 @@ export default {
           url_after_server_domain: `users_profile/${user['id']}`,
         }
       )
-      let liked_products_names = []
-      user_additional_info.liked_products.forEach( p => liked_products_names.push(p.name) )
-      this.$store.state.liked_products_names = liked_products_names
+      user_additional_info.liked_products.forEach( p => {
+        this.$store.commit('pushLikedProduct', p.name)
+      })
       if (user_additional_info['orders'].length) {
-        let ordered_products_names = []
-        user_additional_info['orders'][0]['order_products'].forEach( p => ordered_products_names.push(p.name) )
-        this.$store.state.ordered_products_names = ordered_products_names
+        const order = user_additional_info['orders'].find(order=>!order.status)
+        const indexInOrders = user_additional_info['orders'].indexOf(order)
+        user_additional_info['orders'][indexInOrders]['order_products'].forEach( p => {
+          this.$store.commit('pushOrderedProduct', p.name)
+        })
       }
       
       

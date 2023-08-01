@@ -13,7 +13,7 @@ class="swiper-slide"
     >
         <div :class="{
             like: true,
-            change_purple_permanent: $store.state.liked_products_names.includes(product.name)
+            change_purple_permanent: $store.state.liked_products_names.has(product.name)
         }">
         </div>
     </div>
@@ -110,7 +110,6 @@ export default {
             e.stopPropagation()
             
             this.$store.commit('delLikedProduct', this.product.name)
-            this.$emit('del_liked_product', this.product)
             await this.$store.dispatch(
                 'commonRequestWithAuth',
                 {
@@ -118,6 +117,7 @@ export default {
                     url_after_server_domain: `users_add_or_del_liked_product/${this.user['id']}/${this.product['id']}`,
                 }
             )
+            this.$emit('del_liked_product', this.product)
         }
     }
 }

@@ -1,0 +1,56 @@
+version: '3.9'
+
+services:
+  backend:
+    container_name: Back
+    build: ./final_project
+    env_file:
+      - ./final_project/.env
+    ports:
+      - "8000:8000"
+    volumes:
+        - .:/final_project/
+    depends_on:
+      - frontend
+
+  celery_worker:
+    build: ./final_project
+    container_name: Celery_worker
+    env_file:
+      - ./final_project/.env
+    volumes:
+      - ./final_project:/app
+    command: ["celery", "-A", "final_project", "worker", "--loglevel=info"]
+    depends_on:
+      - backend
+      - redis
+
+  celery_beat:
+    build: ./final_project
+    container_name: Celery_beat
+    env_file:
+      - ./final_project/.env
+    volumes:
+      - ./final_project:/app
+    command: [ "celery", "-A", "final_project", "beat", "--loglevel=info" ]
+    depends_on:
+      - backend
+      - redis
+
+  redis:
+    image: redis:latest
+    container_name: Redis
+    volumes:
+      - ./final_project:/app
+    ports:
+      - "6379:6379"
+    restart: always
+
+  frontend:
+    container_name: Front
+    build: ./fproject_front
+    ports:
+      - "8080:8080"
+    volumes:
+      #      - .:/front_code
+      - ./fproject_front:/front_code

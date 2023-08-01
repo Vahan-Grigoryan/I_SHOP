@@ -136,6 +136,12 @@
 .order_statusclosed{
     color: #FF5341;
 }
+.pay_variants{
+    display: flex;
+    justify-content: space-between;
+    padding: 7px 20px;
+    border-bottom: 1px solid #E4E7EE;
+}
 .cart_order_select > .cart_product{
     border-bottom: 1px solid #E4E7EE;
     padding: 20px;
@@ -162,7 +168,7 @@
     margin-bottom: 15px;
 }
 .product_info p{
-    display: inline;
+    display: inline-block;
     font-size: 15px;
 }
 .product_info p span{

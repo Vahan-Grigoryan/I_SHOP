@@ -121,7 +121,7 @@
                 <h2>История Ваших заказов</h2><br>
                 <div class="card_product_explain">
                     <span>№ заказа</span>
-                    <span>Дата</span>
+                    <span>Дата получения</span>
                     <span>Колл-во</span>
                     <span>Сумма</span>
                     <span>Статус</span>
@@ -133,13 +133,30 @@
                 >
                     <template #row_info>
                         <span>{{ order['code'] }}</span>
-                        <span>{{ order['payment_date'] || '-' }}</span>
+                        <span>{{ order['arrive_date'] || '-' }}</span>
                         <span>{{ order['order_products'].length }}</span>
-                        <span>{{ order['total_prices_sum'] }}$</span>
-                        <span :class="getClassForOrderStatus(order['status'])">{{ order['status'] }}</span>
+                        <span>{{ order['total_price'] }}$</span>
+                        <span :class="getClassForOrderStatus(order['status'] || 'rejected')">{{ order['status'] || '-' }}</span>
                         <img src="@/assets/img/Vector_42.png" alt="">
                     </template>
                     <template #products>
+                        <div class="pay_variants" v-if="order['payment_date']">
+                            <p>payment_date: {{ order['payment_date'] }}</p>
+                        </div>
+                        <div class="pay_variants" v-if="!order.status && order['order_products'].length">
+                            <ui-paypal-btns 
+                            :order_pk="order['id']"
+                            :purpose="'pay'"
+                            />
+                        </div>
+                        <div class="pay_variants" v-if="order.status==='pending' && order['order_products'].length">
+                            <ui-paypal-btns 
+                            v-if="order.payment_method_name === 'paypal'"
+                            :order_pk="order['id']"
+                            @received_changed_order="replaceOrder"
+                            :purpose="'refund'"
+                            />
+                        </div>
                         <div 
                         class="cart_product"
                         v-for="product in order['order_products']"
@@ -149,13 +166,16 @@
                             <div class="product_name_and_price">
                                 <div class="product_info">
                                     <h3>{{ product['name'] }}</h3>
-                                    <p>Код товара: <span>{{ product['code'] }}</span></p>
+                                    <p>Код товара: <span>{{ product['code'] }}</span></p>&nbsp;
+                                    <p>Цвет: <span>{{ product['color'] }}</span></p>&nbsp;
+                                    <p>Разрешение: <span>{{ product['resolution'] }}</span></p>&nbsp;
+                                    <p>Количевство: <span>{{ product['quantity'] }}</span></p>&nbsp;
                                 </div>
                                 <div style="text-align: center;">
-                                    <h2>{{ product['price'] }}$</h2>
+                                    <h2>{{ product['total_price'] }}$</h2>
                                     <button 
                                     class="remove_order_product_btn"
-                                    v-if="order.status === 'pending'"
+                                    v-if="!order.status"
                                     @click="(e) => delOrderProduct(e, product)"
                                     >Убрать</button>
                                 </div>
@@ -352,7 +372,7 @@ export default {
         getClassForOrderStatus(order_status){
             const classes = {
                 pending: 'order_statuswait',
-                payed: 'order_statuspayed',
+                arrived: 'order_statuspayed',
                 rejected: 'order_statusclosed',
             }
             return classes[order_status]
@@ -374,7 +394,7 @@ export default {
         },
         pushLikedProduct(product){
             // If product not in liked list, add it, update header
-            if (!this.$store.state.liked_products_names.includes(product.name)) {
+            if (!this.$store.state.liked_products_names.has(product.name)) {
                 this.user_additional_info.liked_products.push(product)
             }
             this.$emit('rerender_header')
@@ -382,6 +402,7 @@ export default {
         removeLikedProduct(product){
             // Remove product from liked list, update header, del product name from liked_products_names vuex state
             this.user_additional_info.liked_products=this.user_additional_info.liked_products.filter(el => el !== product)
+            console.log('RRH');
             this.$emit('rerender_header')
         },
         async delOrderProduct(e, product){
@@ -395,10 +416,20 @@ export default {
                     url_after_server_domain: `users_add_or_del_order_product/${this.user_mini_info['id']}/${product['id']}`,
                 }
             )
+            
             this.user_additional_info['orders'][0] = updated_pending_order
             this.$store.commit('delOrderedProduct', product['name'])
             this.$emit('rerender_header')
 
+        },
+        replaceOrder(changed_order){
+            // replace refunded order(received from server) for valid ui
+            for (let i = 0; i < this.user_additional_info['orders'].length; i++) {
+                if (this.user_additional_info['orders'][i].id === changed_order.id){
+                    this.user_additional_info['orders'][i] = changed_order
+                    break
+                }
+            }
         },
         async getSailedProducts(){
             // If tab is sales, lazy upload relevant products(without sale limit for first)
@@ -506,17 +537,23 @@ export default {
                 url_after_server_domain: `users_profile/${this.user_mini_info['id']}`,
             }
         )
-        if (this.checkStoreProfileContent('sales')) await this.getSailedProducts()
+        // if (this.checkStoreProfileContent('sales')) await this.getSailedProducts()
+        
 
         // Set liked products names, ordered products names in vuex liked_products_names state,
         // for slide top right btn valid ui and product detail add_product_to_cart btn valid ui
-        let products_names = []
-        this.user_additional_info.liked_products.forEach(p => products_names.push(p.name))
-        this.$store.state.liked_products_names = products_names
-        if (this.user_additional_info['orders'].length) {
-            let ordered_products_names = []
-            this.user_additional_info['orders'][0]['order_products'].forEach( p => ordered_products_names.push(p.name) )
-            this.$store.state.ordered_products_names = ordered_products_names
+        this.user_additional_info.liked_products.forEach(p => {
+            this.$store.commit('pushLikedProduct', p.name)
+        })
+        if (this.user_additional_info['orders'].length && !this.$route.query.captured) {
+            // If receive url ?captured=True param from server leave empty ordered_products_names array in vuex
+            const order = this.user_additional_info['orders'].find(order=>!order.status)
+            if (order){
+                order['order_products'].forEach( p => {
+                    this.$store.commit('pushOrderedProduct', p.name)
+                })
+            }
+            
         }
         
         // Set all values in edit account inputs.
@@ -524,6 +561,7 @@ export default {
         this.fields = {...this.user_additional_info}
         this.fields['first_name'] = this.user_mini_info['first_name']
         exclude_fields.forEach(field => delete this.fields[field])
+        
 
     },
     watch: {

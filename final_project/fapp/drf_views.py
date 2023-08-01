@@ -1,27 +1,28 @@
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
-from . import drf_pagination
 import requests
 from rest_framework import generics
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from fapp import business
-from fapp import serializers, drf_pagination
 from django_filters import rest_framework as dfilters
-from . import filters
+from fapp import filters, mailing_logic, serializers, drf_pagination
 from fapp.models import *
-from fapp import mailing_logic
+from fapp.business import ui_representation, db_manipulations
+from fapp.tasks import ret_sum
+from final_project.celery import app as celery_app
+from final_project import settings
 
 
 class UserMiniInfo(generics.RetrieveAPIView):
     """User mini info for site header"""
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     serializer_class = serializers.UserMiniInfoSerializer
 
     def get_object(self):
         """Get user by id, email"""
+        # celery_app.add_periodic_task(5.0, ret_sum.s(5, 55), expires=20)
         url_params = self.request.GET
         assert (
             url_params.get('email') or
@@ -37,7 +38,7 @@ class UserMiniInfo(generics.RetrieveAPIView):
 
 class UserDetailProfileInfo(generics.RetrieveAPIView):
     """User profile info for site profile page"""
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     queryset = User.objects.distinct()
     serializer_class = serializers.UserProfileSerializer
 
@@ -52,7 +53,7 @@ class UserAddViewedProduct(APIView):
 
     def get(self, request, user_pk, product_pk):
         """Detail in add_or_del_viewed_product() func"""
-        business.add_or_del_viewed_product(user_pk, product_pk)
+        db_manipulations.add_or_del_viewed_product(user_pk, product_pk)
         return Response(status=204)
 
 class UserAddOrDelLikedProduct(APIView):
@@ -72,15 +73,18 @@ class UserAddOrDelLikedProduct(APIView):
 
 class UserAddOrDelOrderProduct(APIView):
     permission_classes = [IsAuthenticated]
-    def get(self, request, user_pk, product_pk):
-        business.add_order_product(user_pk, product_pk)
-        return Response(status=204)
+    def post(self, request, user_pk, product_pk):
+        if request.data:
+            db_manipulations.add_order_product(request.data, user_pk, product_pk)
+            return Response(status=204)
+
+        return Response({'detail': 'Provide user selected product params in url'}, status=400)
 
     def delete(self, request, user_pk, product_pk):
         """Del product from order and return updated order for ui"""
-        business.del_order_product(user_pk, product_pk)
+        db_manipulations.del_order_product(user_pk, product_pk)
         user, product = User.objects.get(pk=user_pk), Product.objects.get(pk=product_pk)
-        sz_order = serializers.OrderSerializer(user.orders.get(status='pending'))
+        sz_order = serializers.OrderSerializer(user.orders.get(status__isnull=True))
         return Response(sz_order.data)
 
 class MailingList(APIView):
@@ -121,8 +125,8 @@ class OAuthRegistration(APIView):
             authenticate = cls.rs.post(
                 f'http://127.0.0.1:8000/auth/o/google-oauth2/?{raw_query[:-1]}',
             )
-            username = authenticate.json()['user']
-            user = User.objects.get(username=username)
+            email = authenticate.json()['user']
+            user = User.objects.get(email=email)
             sz_user = serializers.UserMiniInfoSerializer(user)
 
             response = HttpResponseRedirect(cls.from_url)
@@ -146,10 +150,10 @@ class CategoryList(APIView):
     def get(self, request):
         if request.GET.get('categories_position') == 'center':
             # return only center(without children and parents) categories for index front page
-            format_categories = business.get_formatted_categories_for_front(categories_position='center')
+            format_categories = ui_representation.get_formatted_categories_for_front(categories_position='center')
         else:
             # return nested all categories
-            format_categories = business.get_formatted_categories_for_front()
+            format_categories = ui_representation.get_formatted_categories_for_front()
         return Response(format_categories)
 
 class CategoryChildren(APIView):
@@ -246,7 +250,7 @@ class ReceiveQuestion(APIView):
                 request.data.get('mail_msg_name'),
                 request.data.get('mail_msg_body'),
                 request.data.get('mail_msg_mail'),
-                (settings.EMAIL_HOST_USER,),
+                (settings.EMAIL_HOST_USER, ),
                 fail_silently=False,
             )
         return Response(status=200)
@@ -265,13 +269,12 @@ class CommentCreating(generics.CreateAPIView):
 class AvailableFilters(APIView):
     def get(self, request):
         """Return all available filters for filters front page except categories"""
-        available_filters = business.get_available_filters()
+        available_filters = ui_representation.get_available_filters()
         return Response(available_filters)
 
 class FilteredProducts(generics.ListAPIView):
     """
-    Return filtered products by url params.
-    If not param in url return all products.
+    Return filtered products by url params, sort by url sort_by param.
     """
     serializer_class = serializers.ProductListSerializer
     pagination_class = drf_pagination.FilteredProductsPagination
@@ -283,4 +286,3 @@ class FilteredProducts(generics.ListAPIView):
             return Product.objects.order_by('id').prefetch_related()
         else:
             return Product.objects.order_by('-id').prefetch_related()
-

@@ -7,8 +7,8 @@ export default createStore({
     pagesInCrumbs: new Set(),
     profile_content: 'orders',
     server_href: 'http://localhost:8000/',
-    liked_products_names: [],
-    ordered_products_names: [],
+    liked_products_names: new Set(),
+    ordered_products_names: new Set(),
   },
   getters: {
     getImageUrl: state => after_server_domain => {
@@ -51,16 +51,16 @@ export default createStore({
       state.profile_content = profile_content_value
     },
     pushLikedProduct(state, product_name){
-      if (!state.liked_products_names.includes(product_name)) state.liked_products_names.push(product_name)
+      state.liked_products_names.add(product_name)
     },
     delLikedProduct(state, product_name){
-      state.liked_products_names = state.liked_products_names.filter(p_name => p_name !== product_name)
+      state.liked_products_names.delete(product_name)
     },
     pushOrderedProduct(state, product_name){
-      if (!state.ordered_products_names.includes(product_name)) state.ordered_products_names.push(product_name)
+      state.ordered_products_names.add(product_name)
     },
     delOrderedProduct(state, product_name){
-      state.ordered_products_names = state.ordered_products_names.filter(p_name => p_name !== product_name)
+      state.ordered_products_names.delete(product_name)
     },
   },
   actions: {
