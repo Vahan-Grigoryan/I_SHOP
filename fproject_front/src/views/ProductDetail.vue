@@ -160,12 +160,12 @@
                                 <br>
                                 <div class="inline">
                                     <div class="inline">
-                                        <span class="span_price">{{ product.price }} €</span>
+                                        <span class="span_price">{{ product.saled_price || product.price }} €</span>
                                         &nbsp; &nbsp;
                                         <span 
                                         class="span_price_del"
                                         v-if="product.saled_price"
-                                        >{{ product.saled_price }} €</span>
+                                        >{{ product.price }} €</span>
                                     </div>
                                     <button 
                                     class="buy_btn"
@@ -203,17 +203,17 @@
                     <div class="colors">
                         <div 
                         v-for="color in product.colors.split(',')"
-                        :class="getColorClass(color)" 
-                        :style="`background: ${color};`"
-                        @click="selected_color = color"
+                        :class="getColorClass(color.trim())" 
+                        :style="`background: ${color.trim()};`"
+                        @click="selected_color = color.trim()"
                         >
                         </div>
                     </div>
                 </div>
                 <div class="inline product_prices">
                     <div class="price inline">
-                        <h2>{{ product.price }} €</h2> &nbsp; &nbsp;
-                        <span v-if="product.saled_price">{{ product.saled_price }} €</span> 
+                        <h2>{{ product.saled_price || product.price }} €</h2> &nbsp; &nbsp;
+                        <span v-if="product.saled_price">{{ product.price }} €</span> 
                     </div>
                     <div class="count">
                         <button class="inc_dec_btn" @click="decCount">-</button>
@@ -233,7 +233,7 @@
                     <button 
                     class="buy_btn"
                     @click="productToOrder"
-                    v-if="user && !$store.state.ordered_products_names.includes(product.name)"
+                    v-if="user && !$store.state.ordered_products_names.has(product.name)"
                     >
                         <img src="@/assets/img/basket_white.png">
                         &nbsp;
@@ -244,7 +244,7 @@
                     @click="productToOrder"
                     style="background: gray;cursor: default"
                     disabled
-                    v-else-if="user && $store.state.ordered_products_names.includes(product.name)"
+                    v-else-if="user && $store.state.ordered_products_names.has(product.name)"
                     >
                         Уже в корзине
                     </button>
@@ -254,7 +254,7 @@
                     >
                         <div :class="{
                             like: true,
-                            change_purple_permanent: $store.state.liked_products_names.includes(product.name)
+                            change_purple_permanent: $store.state.liked_products_names.has(product.name)
                         }">
                         </div>
                     </div>
@@ -450,13 +450,14 @@ export default {
         },
         async getProduct(id){
             // Get product by id and redurect to relevant route path,
-            // auto-select first resolution,
+            // auto-select first resolution, first_color
             // get firts comment pairs,
             // get similar products if product not available
             this.$router.push(`/products/${id}`)
             this.product = await this.$store.dispatch('fetchProduct', id)
             this.product.stars_avg = this.product.stars_avg 
             this.selected_resolution = this.product.get_resolutions[0]
+            this.selected_color = this.product.colors.split(',')[0].trim()
             this.current_product_comments = this.product.comments.slice(0, 2)
             if (!this.product.available) {
                 this.similar_products = await this.$store.dispatch('fetchCategoryProducts', {
@@ -519,7 +520,7 @@ export default {
             this.stars = 0
         },
         async pushLikedProduct(){
-            if (!this.$store.state.liked_products_names.includes(this.product.name)) {
+            if (!this.$store.state.liked_products_names.has(this.product.name)) {
                 await this.$store.dispatch(
                     'commonRequestWithAuth',
                     {
@@ -537,8 +538,13 @@ export default {
             await this.$store.dispatch(
                 'commonRequestWithAuth', 
                 {
-                    method: 'get',
+                    method: 'post',
                     url_after_server_domain: `users_add_or_del_order_product/${this.user['id']}/${this.product['id']}`,
+                    data: {
+                        quantity: this.count,
+                        color: this.selected_color,
+                        resolution: this.selected_resolution,
+                    }
                 }
             )
             this.$store.commit('pushOrderedProduct', this.product.name)
