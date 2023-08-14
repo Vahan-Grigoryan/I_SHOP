@@ -1,4 +1,42 @@
 <template>
+<ui-modal
+class="mail_chechikng_modal"
+v-model:modal_visible="mail_modal_visible"
+>
+    <img src="@/assets/img/info.png" class="info_img">
+    <br>
+    <h3>Прежде чем оплатить заказ, убедитесь что указали существующий адрес ел. почты!</h3>
+    <br>
+    <span>
+        Когда вы оплатите заказ вам будет выдана дата получения товаров в заказе, 
+        иммено в эту дату вы получите письмо чтобы подтвердить что все товары дошли успешно. 
+        Вам нужно будет перейти по ссылке в письме чтобы подтвердить получение товаров и поменять статус заказа на "полученный".
+    </span>
+    <br>
+    <button class="approve_btn" @click="approveMailCheckingAndCloseModal">
+        Оплатить
+    </button>
+    
+</ui-modal>
+<ui-modal
+class="refund_reason_modal"
+v-model:modal_visible="refund_modal_visible"
+>
+    <h3>Напишите пожалуйста о причине возврата средств</h3>
+    <textarea 
+    cols="30"
+    rows="7"
+    placeholder="Текст причины*"
+    v-model="refund_reason_text"
+    :style="{
+        outline: textarea_outline
+    }"
+    ></textarea>
+    <button class="refund_btn" @click="refundPaymentAfterReason">
+        Отправить причину и возвратить средства
+    </button>
+    
+</ui-modal>
 <div class="profile_container">
     <ui-bread-crumbs />
     <div class="profile_info_and_content">
@@ -141,10 +179,12 @@
                     </template>
                     <template #products>
                         <div class="pay_variants" v-if="order['payment_date']">
-                            <p>payment_date: {{ order['payment_date'] }}</p>
+                            <p>дата оплаты: {{ order['payment_date'] }}</p>
                         </div>
                         <div class="pay_variants" v-if="!order.status && order['order_products'].length">
                             <ui-paypal-btns 
+                            @click="mail_modal_visible = true"
+                            :approve_mail_chechikng="mail_chechikng_approved"
                             :order_pk="order['id']"
                             :purpose="'pay'"
                             />
@@ -152,8 +192,10 @@
                         <div class="pay_variants" v-if="order.status==='pending' && order['order_products'].length">
                             <ui-paypal-btns 
                             v-if="order.payment_method_name === 'paypal'"
-                            :order_pk="order['id']"
                             @received_changed_order="replaceOrder"
+                            @click="refund_modal_visible = true"
+                            :refund_payment_after_reason="refund_reason_pointed"
+                            :order_pk="order['id']"
                             :purpose="'refund'"
                             />
                         </div>
@@ -334,10 +376,18 @@ export default {
         return {
             user_mini_info: JSON.parse(localStorage.getItem('current_user')),
             user_additional_info: null,
+
             orders_visible: false,
             liked_visible: false,
             sales_visible: false,
             register_visible: false,
+
+            mail_modal_visible: false,
+            mail_chechikng_approved: false,
+            refund_modal_visible: false,
+            refund_reason_pointed: false,
+            refund_reason_text: '',
+            textarea_outline: '2px solid #74CCD8',
 
             edit_acc_btn_text: 'Сохранить изменения',
             
@@ -369,10 +419,27 @@ export default {
         checkStoreProfileContent(value){
             return this.$store.state.profile_content === value
         },
+        approveMailCheckingAndCloseModal(){
+            this.mail_modal_visible=false
+            this.mail_chechikng_approved=true
+        },
+        refundPaymentAfterReason(){
+            if (this.refund_reason_text.trim()) {
+                this.refund_modal_visible = false
+                this.refund_reason_pointed = true
+            }else{
+                this.textarea_outline = '2px solid red'
+                setTimeout(() => {
+                    this.textarea_outline = '2px solid #74CCD8'
+                }, 2000);
+            }
+
+            
+        },
         getClassForOrderStatus(order_status){
             const classes = {
                 pending: 'order_statuswait',
-                arrived: 'order_statuspayed',
+                received: 'order_statuspayed',
                 rejected: 'order_statusclosed',
             }
             return classes[order_status]
@@ -406,20 +473,27 @@ export default {
             this.$emit('rerender_header')
         },
         async delOrderProduct(e, product){
-            // Del product from pending order and update ui by changing pending order gettet from server,
+            // Del product from order wthout status and update ui by changing order without status, received from server,
             // update header order product count
             e.stopPropagation()
-            const updated_pending_order = await this.$store.dispatch(
+            const updated_order_without_status = await this.$store.dispatch(
                 'commonRequestWithAuth', 
                 {
                     method: 'delete',
                     url_after_server_domain: `users_add_or_del_order_product/${this.user_mini_info['id']}/${product['id']}`,
                 }
             )
+            console.log(updated_order_without_status);
+            if (!('detail' in updated_order_without_status)) {
+                this.user_additional_info['orders'][0] = updated_order_without_status
+                this.$store.commit('delOrderedProduct', product['name'])
+                this.$emit('rerender_header')
+            } else if(updated_order_without_status['detail'] === 'Order deleted') {
+                this.user_additional_info['orders'] = this.user_additional_info['orders'].filter(
+                    order => order.status 
+                )
+            }
             
-            this.user_additional_info['orders'][0] = updated_pending_order
-            this.$store.commit('delOrderedProduct', product['name'])
-            this.$emit('rerender_header')
 
         },
         replaceOrder(changed_order){

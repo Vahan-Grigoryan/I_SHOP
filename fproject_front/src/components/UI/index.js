@@ -13,11 +13,12 @@ import Pagination from '@/components/UI/Pagination'
 import SaleNewHit from '@/components/UI/DetectSaleNewHit'
 import Slide from '@/components/UI/Slide'
 import PaypalButtons from '@/components/UI/PayPalButtons'
+import Modal from '@/components/UI/Modal'
 
 
 export default [
     MainTopSlider, MainBottomSlider, MiniProductsSlider, Brands,
     HrefBlogBox, BlogSlide, Footer, BreadCrumbs, MySelect, 
     OurProcs, ProfileContentEmpty, Pagination, SaleNewHit,
-    Slide, PaypalButtons
+    Slide, PaypalButtons, Modal
 ]

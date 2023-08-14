@@ -1,5 +1,6 @@
 .env.local
 .env.*.local
+*.env
 
 .idea
 .vscode
@@ -7,3 +8,5 @@
 
 /fapp/migrations/
 /all_statics/
+
+*.log

@@ -1,3 +1,4 @@
+from django.core.mail import send_mail
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 import requests
@@ -9,20 +10,18 @@ from rest_framework.views import APIView
 from django_filters import rest_framework as dfilters
 from fapp import filters, mailing_logic, serializers, drf_pagination
 from fapp.models import *
-from fapp.business import ui_representation, db_manipulations
-from fapp.tasks import ret_sum
-from final_project.celery import app as celery_app
+from fapp.business import db_manipulations, ui_representation
+from fapp.tasks import send_mail_as_task
 from final_project import settings
 
 
 class UserMiniInfo(generics.RetrieveAPIView):
     """User mini info for site header"""
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     serializer_class = serializers.UserMiniInfoSerializer
 
     def get_object(self):
-        """Get user by id, email"""
-        # celery_app.add_periodic_task(5.0, ret_sum.s(5, 55), expires=20)
+        """Get user by id or email"""
         url_params = self.request.GET
         assert (
             url_params.get('email') or
@@ -84,8 +83,11 @@ class UserAddOrDelOrderProduct(APIView):
         """Del product from order and return updated order for ui"""
         db_manipulations.del_order_product(user_pk, product_pk)
         user, product = User.objects.get(pk=user_pk), Product.objects.get(pk=product_pk)
-        sz_order = serializers.OrderSerializer(user.orders.get(status__isnull=True))
-        return Response(sz_order.data)
+        try:
+            sz_order = serializers.OrderSerializer(user.orders.get(status__isnull=True))
+            return Response(sz_order.data)
+        except ObjectDoesNotExist:
+            return Response({'detail': 'Order deleted'})
 
 class MailingList(APIView):
     """View for add mail in Independent mail_list(possible to receive new product info without registration)"""
@@ -237,22 +239,7 @@ class BlogDetail(generics.RetrieveAPIView):
 class ReceiveQuestion(APIView):
     """This is used for receive question from user in the form at the bottom of the front index page"""
     def post(self, request):
-        if request.data.get('mail_msg_tel'):
-            send_mail(
-                request.data.get('mail_msg_name'),
-                'tel: ' + request.data.get('mail_msg_tel') + '\n\n' + request.data.get('mail_msg_body'),
-                request.data.get('mail_msg_mail'),
-                (settings.EMAIL_HOST_USER, ),
-                fail_silently=False,
-            )
-        else:
-            send_mail(
-                request.data.get('mail_msg_name'),
-                request.data.get('mail_msg_body'),
-                request.data.get('mail_msg_mail'),
-                (settings.EMAIL_HOST_USER, ),
-                fail_silently=False,
-            )
+        distribution_of_logic.receive_question(request.data)
         return Response(status=200)
 
 class CommentCreating(generics.CreateAPIView):

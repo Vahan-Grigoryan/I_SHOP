@@ -137,10 +137,12 @@ export default {
       })
       if (user_additional_info['orders'].length) {
         const order = user_additional_info['orders'].find(order=>!order.status)
-        const indexInOrders = user_additional_info['orders'].indexOf(order)
-        user_additional_info['orders'][indexInOrders]['order_products'].forEach( p => {
-          this.$store.commit('pushOrderedProduct', p.name)
-        })
+        if (order) {
+          const indexInOrders = user_additional_info['orders'].indexOf(order)
+          user_additional_info['orders'][indexInOrders]['order_products'].forEach( p => {
+            this.$store.commit('pushOrderedProduct', p.name)
+          })
+        }
       }
       
       

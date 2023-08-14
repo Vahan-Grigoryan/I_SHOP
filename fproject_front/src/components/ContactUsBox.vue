@@ -8,15 +8,32 @@
             </div>
             <p>Отправьте нам сообщение и мы ответим в ближайшее время</p>
             <form @submit.prevent="send_question" class="contact_us_form">
-                <input v-model="mail_msg_name" type="text" placeholder="Ваше имя*">
-                <input v-model="mail_msg_tel" type="tel" placeholder="Телефон">
-                <input v-model="mail_msg_mail" type="email" placeholder="Электронная почта*">
-                <textarea v-model="mail_msg_body" cols="30" rows="10" placeholder="Текст сообщения*">
-                    
+                <input 
+                v-model="mail_msg_name"
+                :style="inputs_styles['name']"
+                type="text"
+                placeholder="Ваше имя*"
+                >
+                <input 
+                v-model="mail_msg_tel"
+                type="tel"
+                placeholder="Телефон"
+                >
+                <input 
+                v-model="mail_msg_mail"
+                :style="inputs_styles['mail']"
+                type="email"
+                placeholder="Электронная почта*"
+                >
+                <textarea 
+                v-model="mail_msg_body"
+                :style="inputs_styles['body']"
+                cols="30"
+                rows="10" placeholder="Текст сообщения*">
                 </textarea>
-                <button>
+                <button type="submit" :style="send_btn_style">
                     <img src="@/assets/img/telegram_icon.png" alt="">
-                    Отправить сообщение
+                    {{submit_btn_text}}
                 </button>
             </form>
         </div>
@@ -38,17 +55,57 @@ export default {
             mail_msg_tel: '',
             mail_msg_mail: '',
             mail_msg_body: '',
+            submit_btn_text: 'Отправить сообщение',
+
+            inputs_styles: {
+                name: {},
+                mail: {},
+                body: {}
+            } ,
+            send_btn_style: {},
+
         }
     },
     methods: {
+        set_empty_all_inputs(){
+            this.mail_msg_name = ''
+            this.mail_msg_tel = ''
+            this.mail_msg_mail = ''
+            this.mail_msg_body = ''
+        },
+        validate_inputs(){
+            // Validate all inputs and show relevant ui if needed
+            if (!this.mail_msg_name.trim()) {
+                this.inputs_styles['name']['border'] = '2px solid red'
+            }
+            else if (!this.mail_msg_mail.trim()) {
+                this.inputs_styles['mail']['border'] = '2px solid red'
+            }
+            else if (!this.mail_msg_body.trim()) {
+                this.inputs_styles['body']['border'] = '2px solid red'
+            }else{
+                this.send_btn_style['background'] = '#69CB87'
+                this.submit_btn_text = 'Отправлено!'
+                setTimeout(() => {
+                    this.send_btn_style['background'] = '#74CCD8'
+                    this.submit_btn_text = 'Отправить сообщение'
+                }, 2000);
+                return true
+            }
 
+            setTimeout(() => {
+                for (const key in this.inputs_styles) {
+                    this.inputs_styles[key]['border'] = '1px solid #74CCD8'
+                }
+            }, 2000);
+
+            return false
+        },
         send_question() {
-            if (
-                this.mail_msg_name.trim() &&
-                this.mail_msg_mail.trim() &&
-                this.mail_msg_body.trim()
-            ) {
-                const send = axios.post(`${this.$store.state.server_href}receive_mail`, this.$data)
+            if (this.validate_inputs()) {
+                axios.post(`${this.$store.state.server_href}receive_mail`, this.$data)
+                this.set_empty_all_inputs()
+
             }
             
         }
