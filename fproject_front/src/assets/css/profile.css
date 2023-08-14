@@ -295,3 +295,31 @@
     text-decoration: underline;
     cursor: pointer;
 }
+.mail_chechikng_modal .modal .info_img{
+    align-self: center;
+}
+.mail_chechikng_modal .modal span{
+    color:#686877;
+    font-size: 15px;
+    line-height: 15px;
+}
+.mail_chechikng_modal .modal .approve_btn,
+.refund_reason_modal .modal .refund_btn{
+    background: #74CCD8;
+    padding: 10px 30px;
+    color: white;
+    cursor: pointer;
+    font-size: 17px;
+    border-radius: 50px;
+    border: none;
+}
+.refund_reason_modal .modal textarea{
+    border: 1px solid #B7B8C5;
+    transition: .5s;
+    border-radius: 15px;
+    padding: 10px 15px;
+    font-size: 15px;
+    line-height: 157.02%;
+    color: #B7B8C5;
+    margin: 15px 0px;
+}

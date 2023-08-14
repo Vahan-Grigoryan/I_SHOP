@@ -1,6 +1,5 @@
 from django.urls import path
 from fapp import drf_views
-from fapp.payment_views import paypal_views
 
 
 urlpatterns = [
@@ -29,9 +28,4 @@ urlpatterns = [
     path('filter_products', drf_views.FilteredProducts.as_view()),
     path('available_filters', drf_views.AvailableFilters.as_view()),
 
-    # payment services
-    # paypal payment
-    path('paypal_create_order/<int:order_pk>', paypal_views.CreateOrder.as_view()),
-    path('paypal_capture_order/<int:order_pk>', paypal_views.CaptureOrder.as_view()),
-    path('paypal_refund_order/<int:order_pk>', paypal_views.RefundOrder.as_view()),
 ]

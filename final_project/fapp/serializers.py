@@ -99,6 +99,13 @@ class OrderSerializer(serializers.ModelSerializer):
     code = serializers.CharField()
     total_price = serializers.IntegerField()
     payment_method_name = serializers.SlugRelatedField(source='payment_method', slug_field='name', read_only=True)
+    arrive_date = serializers.SerializerMethodField(method_name='datetime_without_timezone_offset')
+
+    def datetime_without_timezone_offset(self, instance):
+        """Return datetime without timezone offset(+04:00) or None"""
+        if instance.arrive_date:
+            localtime = timezone.localtime(instance.arrive_date)
+            return localtime.strftime('%Y-%m-%d %H:%M:%S')
 
     def get_products_with_selected_options(self, instance):
         return OrderedProductInfoSerializer(OrderedProductInfo.objects.filter(order=instance), many=True).data
@@ -106,7 +113,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        exclude = 'user', 'payment_method_id', 'content_type'
+        exclude = 'user', 'payment_method_id', 'content_type', 'scheduled_task_id'
 
 class SortViewedProductsSerializer(serializers.ModelSerializer):
     """Through model serializer"""

@@ -1,18 +1,15 @@
-import math, base64, requests, json
-from datetime import timedelta
-
+import math
+from celery.result import AsyncResult
+from fapp.business import distribution_of_logic
 from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.mail import send_mail
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from ckeditor_uploader import fields as ckmediafields
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from django.utils import timezone
-from fapp.business.payment_services.paypal_pay import PayPalPaymentMixin
+from payments.business.payment_services.paypal_pay import PayPalPaymentMixin
 from fapp.custom_managers import MyUserManager
 
 
@@ -94,6 +91,7 @@ class BlogCategory(models.Model):
         verbose_name_plural='Blog categories'
 
 class Blog(models.Model):
+    """Common blog"""
     category = models.ForeignKey(BlogCategory, related_name='blogs', on_delete=models.CASCADE)
     pub_date = models.DateField(auto_now_add=True)
     header = models.CharField(max_length=150)
@@ -105,25 +103,39 @@ class Blog(models.Model):
         return self.header
 
 class Order(models.Model):
-    """User order model"""
-    status_choices = ('pending', 'pending'), ('rejected', 'rejected'), ('arrived', 'arrived')
+    """
+    User order model with relationship to any payment method(pay attention to payment_method field)
+    """
+    status_choices = ('pending', 'pending'), ('rejected', 'rejected'), ('received', 'received')
 
     payment_date = models.DateField(null=True, blank=True)
     arrive_date = models.DateTimeField(null=True, blank=True)
     status = models.CharField(choices=status_choices, max_length=20, null=True, blank=True)
     user = models.ForeignKey(User, related_name='orders', on_delete=models.CASCADE, null=True)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
-    payment_method_id = models.PositiveIntegerField(null=True, blank=True)
     payment_method = GenericForeignKey('content_type', 'payment_method_id')
+    payment_method_id = models.PositiveIntegerField(null=True, blank=True)
+    # for revoke task later if needed
+    scheduled_task_id = models.CharField(max_length=100, null=True, blank=True)
+
 
     def save(self, *args, **kwargs):
-        """If status == arrived, set arrive_date, else if status == pending(for execute products delivery), set payment_date"""
-        if self.status == 'arrived':
-            self.arrive_date = timezone.now()
-        elif self.status == 'pending':
-            self.payment_date = timezone.now()
+        """
+        If status == pending(for execute products delivery):
+            set payment_date, arrive_date, and plan to send an approval mail
+        else if self.status == 'rejected':
+            set payment_date, arrive_date, scheduled_task_id to null,
+            revoke scheduled mail sending
+        """
+        if self.status == 'pending':
+            self.payment_date = timezone.datetime.now()
+            self.arrive_date = distribution_of_logic.get_order_receive_datetime()
+            task_instance = distribution_of_logic.schedule_send_approval_mail(order=self)
+            self.scheduled_task_id = task_instance.id
         elif self.status == 'rejected':
-            self.payment_date = None
+            task_instance = AsyncResult(self.scheduled_task_id)
+            task_instance.revoke()
+            self.payment_date, self.arrive_date, self.scheduled_task_id = None, None, None
         super().save(*args, **kwargs)
 
 
@@ -138,38 +150,6 @@ class Order(models.Model):
             price_sum += (ordered_product.product.saled_price or ordered_product.product.price) * ordered_product.quantity
         return price_sum
 
-    # def order_arrive_datetime(self, weekday=6, hour=18):
-    #     """
-    #     Return days/hours before order will be arrived(in case status=null, always show how many days left), or set status='arrived'
-    #     args:
-    #         weekday: fixed day of week(for ex. saturday - 6)
-    #         hour: fixed hour of week day(for ex. 17)
-    #     """
-    #     if self.status == 'arrived': return None
-    #
-    #     # now = timezone.now()
-    #     # if now.isoweekday() < weekday:
-    #     #     arrive_date = now + timezone.timedelta(days=6-now.isoweekday())
-    #     # elif now.isoweekday() > weekday:
-    #     #     arrive_date = 7 - now.isoweekday() + weekday
-    #     now = timezone.now()
-    #     if now.isoweekday() < weekday:
-    #         return f'{weekday - now.isoweekday()} days left'
-    #     elif now.isoweekday() > weekday:
-    #         if not self.status:
-    #             return f'{weekday + 7 - now.isoweekday()} days left'
-    #
-    #     elif now.isoweekday() == weekday:
-    #         if now.hour < hour:
-    #             return f'{hour - now.hour} hours left'
-    #         elif self.status == 'pending' and now.hour == hour:
-    #             self.status = 'arrived'
-    #             self.save()
-    #         else:
-    #             return f'{weekday + 7 -  now.isoweekday()} days left'
-
-
-
     def __str__(self):
         return f'{self.user.__str__()} - {self.status}'
 
@@ -180,7 +160,6 @@ class Product(models.Model):
     name = models.CharField(max_length=150)
     colors = models.CharField(verbose_name='Write colors separated with comma', max_length=250)
     resolution = models.CharField(verbose_name='Write resolution separated with comma', max_length=250)
-    # delivery_days = models.IntegerField()
     desc = models.TextField()
     optional_characteristics = models.JSONField(blank=True, null=True)
     brand = models.ForeignKey(Brand, related_name='products', on_delete=models.CASCADE)
@@ -313,15 +292,7 @@ class PayPalPayment(models.Model, PayPalPaymentMixin):
         3)Optional. Call refund_payment() if user want refund,
         this method return response(with 201 status_code if payment successfully refunded)
     """
-    name = 'paypal'
-    paypal_api_domain = 'https://api-m.sandbox.paypal.com/'  # change to https://api-m.paypal.com/ in production
     order_id = models.CharField(max_length=200, null=True, blank=True)
     capture_id = models.CharField(max_length=200, null=True, blank=True)
 
-
-
-
-@receiver(post_save, sender=Order)
-def send_email_on_arrive_date(sender, instance, **kwargs):
-    print('--Sent!--')
 

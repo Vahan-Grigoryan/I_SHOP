@@ -2,7 +2,7 @@ from fapp.models import Brand, Category, Product
 
 
 def get_formatted_categories_for_front(categories_position=None):
-    """Return nested categories"""
+    """Return only center(that haven't parent and child categories) or nested categories"""
     result_categories = {}
     if categories_position == 'center':
         center_categories = Category.objects.filter(parent__isnull=False, child_cats__isnull=False).distinct()

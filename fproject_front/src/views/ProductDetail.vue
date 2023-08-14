@@ -1,11 +1,8 @@
 <template>
-<div class="write_feedback_modal_wrapper" v-if="write_feedback_visible"></div>
-<div class="write_feedback_modal" v-if="write_feedback_visible">
-    <img
-    src="@/assets/img/clear.png"
-    class="auth_modal_close_img"
-    @click="write_feedback_visible = false"
-    >
+<ui-modal
+class="write_feedback_modal"
+v-model:modal_visible="write_feedback_visible"
+>
     <h2>Напишите свой отзыв о продукте:</h2>
     <input type="text" placeholder="Заголовок*" v-model="comment_header">
     <textarea name="" id="" cols="30" rows="10" placeholder="Текст отзыва*" v-model="comment_text"></textarea>
@@ -18,14 +15,14 @@
         @mouseenter="setStarsUI(star_num)"
         @mouseleave="delStartsUI"
         @click="setStarsUI(star_num, for_click=true)"
-        
         >
     </div>
     <button class="feedback_btn" @click="writeComment">
         <img src="@/assets/img/star_white.png">&nbsp;
         Оставить отзыв
     </button>
-</div>
+    
+</ui-modal>
 
 <div class="product_detail_container">
     <ui-bread-crumbs />

@@ -5,6 +5,7 @@ from final_project import settings
 
 urlpatterns = [
     path('', include('fapp.urls')),
+    path('', include('payments.urls')),
     path('admin/', admin.site.urls),
     path('ckeditor/', include('ckeditor_uploader.urls')),
     path('auth/', include('djoser.urls')),

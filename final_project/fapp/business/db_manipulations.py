@@ -1,8 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import transaction
 from django.utils import timezone
-from rest_framework.generics import get_object_or_404
-from fapp.models import User, SortViewedProducts, Product, Order, OrderedProductInfo, PayPalPayment
+from fapp.models import User, SortViewedProducts, Product
 
 
 def add_or_del_viewed_product(user_pk, product_pk):
@@ -47,49 +45,13 @@ def add_order_product(post_data, user_pk, product_pk):
         )
 
 def del_order_product(user_pk, product_pk):
-    """Del product from user order with null status"""
+    """
+    Del product from user order with null status,
+    if after delete order haven't any product delete it
+    """
     user, product = User.objects.get(pk=user_pk), Product.objects.get(pk=product_pk)
-    user.orders.get(status__isnull=True).order_products.remove(product)
+    order = user.orders.get(status__isnull=True)
+    order.order_products.remove(product)
+    if not order.order_products.count():
+        order.delete()
 
-def paypal_create_order(request, order_pk):
-    """
-    Create PayPalPayment instance and immediately relate with order,
-    also create PayPal order and return approve_url for redirect.
-    """
-    order = get_object_or_404(Order, id=order_pk)
-    paypal_payment = PayPalPayment.objects.create()
-    order.payment_method = paypal_payment
-    order.save()
-    approve_url = paypal_payment.create_order(
-        request,
-        order,
-        request.data.get('approved_url'),
-        request.data.get('cancel_url'),
-    )
-    return approve_url
-
-def paypal_capture_order_payment(order_pk):
-    """Capture payment and change order status if payment successfully captured else delete payment method instance"""
-    order = get_object_or_404(Order, id=order_pk)
-    response = order.payment_method.capture_payment()
-    if response.status_code == 201:
-
-        order.status = 'pending'
-        order.save()
-    else:
-        order.payment_method.delete()
-
-    return response
-
-
-def paypal_refund_order_payment(order_pk):
-    """Refund payment and change order status if payment successfully refunded"""
-    order = get_object_or_404(Order, id=order_pk)
-    response = order.payment_method.refund_payment()
-    if response.status_code == 201:
-        order.status = 'rejected'
-        order.save()
-
-    return response
-
-# products = OrderedProductInfo.objects.select_for_update().select_related('product').filter(order=order)
