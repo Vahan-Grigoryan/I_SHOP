@@ -199,9 +199,13 @@
     display: flex;
     align-items: center;
     margin-bottom: 10px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid gray 
 }
 .filter_row:last-child{
     margin:0px;
+    padding:0px;
+    border: none;
 }
 .filter_row > span{
     font-size: 13px;
@@ -210,6 +214,11 @@
     margin-right: 15px;
     color: #090F24;
 }
+.categories_in_grid{
+    display: inline-grid;
+    grid-template-columns: repeat(9, auto);
+    grid-gap: 10px
+}
 .filter_with_close{
     background: white;
     padding: 5px 10px;
@@ -217,13 +226,14 @@
     font-size: 12px;
     line-height: 139.02%;
     color: #686877;
-    margin-right: 10px;
-}
-.filter_with_close:last-child{
-    margin: 0px;
+    display: flex;
+    align-items:center;
+    justify-content: space-between;
 }
 .filter_with_close img{
     cursor: pointer;
+    width:  10px;
+    height: 10px;
 }
 .found_products{
     display: grid;

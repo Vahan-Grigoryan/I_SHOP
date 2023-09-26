@@ -1,7 +1,7 @@
 <template>
 <ui-modal
-class="mail_chechikng_modal"
-v-model:modal_visible="mail_modal_visible"
+class="mail_checking_modal"
+v-model:modal_visible="mail_modal_visible_for_payment_method"
 >
     <img src="@/assets/img/info.png" class="info_img">
     <br>
@@ -183,13 +183,20 @@ v-model:modal_visible="refund_modal_visible"
                         </div>
                         <div class="pay_variants" v-if="!order.status && order['order_products'].length">
                             <ui-paypal-btns 
-                            @click="mail_modal_visible = true"
-                            :approve_mail_chechikng="mail_chechikng_approved"
+                            @click="mail_modal_visible_for_payment_method = 'paypal'"
+                            :approve_mail_checking="mail_checking_approved_for['paypal']"
+                            :order_pk="order['id']"
+                            :purpose="'pay'"
+                            />
+                            <ui-stripe-btns 
+                            @click="mail_modal_visible_for_payment_method = 'stripe'"
+                            @received_changed_order="replaceOrder"
+                            :approve_mail_checking="mail_checking_approved_for['stripe']"
                             :order_pk="order['id']"
                             :purpose="'pay'"
                             />
                         </div>
-                        <div class="pay_variants" v-if="order.status==='pending' && order['order_products'].length">
+                        <div class="pay_variants" v-if="order.status==='pending'">
                             <ui-paypal-btns 
                             v-if="order.payment_method_name === 'paypal'"
                             @received_changed_order="replaceOrder"
@@ -197,6 +204,14 @@ v-model:modal_visible="refund_modal_visible"
                             :refund_payment_after_reason="refund_reason_pointed"
                             :order_pk="order['id']"
                             :purpose="'refund'"
+                            />
+                            <ui-stripe-btns
+                            v-else-if="order.payment_method_name === 'stripe'"
+                            :order_pk="order['id']"
+                            :purpose="'refund'"
+                            @received_changed_order="replaceOrder"
+                            @click="refund_modal_visible = true"
+                            :refund_payment_after_reason="refund_reason_pointed"
                             />
                         </div>
                         <div 
@@ -282,66 +297,75 @@ v-model:modal_visible="refund_modal_visible"
             v-model:page_active="current_pagination_page"
             />
         </div>
-        <form 
-        class="register_form" 
+
+        <div class="register_form"
         v-else-if="checkStoreProfileContent('register')"
-        @submit.prevent="editAcc"
         >
-            <h2>Редактированние личных данных</h2>
-            <br>
-            <div class="user_info_inputs">
-                <input v-model="fields.email" type="email" placeholder="Электронная почта*">
-                <span class="error_message">{{ fields_errors.email }}</span>
-                <input v-model="fields.tel" type="number" placeholder="Номер телефона*">
-                <span class="error_message">{{ fields_errors.tel }}</span>
-                <div class="first_last_name_row_inputs">
-                    <div class="fn_input_wrapper">
-                        <input v-model="fields.first_name" type="text" placeholder="Ваше имя*">
-                        <span class="error_message">{{ fields_errors.first_name }}</span>
-                    </div>
-                    <div class="fn_input_wrapper">
-                        <input v-model="fields.last_name" type="text" placeholder="Фамилия*">
-                        <span class="error_message">{{ fields_errors.last_name }}</span>
-                    </div>
-                    
-                </div>
-                
-                <input v-model="fields.password" type="password" placeholder="Придумайте новый пароль*">
-                <span class="error_message">{{ fields_errors.password }}</span>
-            </div>
-            <br>
-            <h2>Адрес для получения доставки</h2>
-            <div class="adresses">
-                <input v-model="fields.city" type="text" placeholder="Город / Село / Пагаст / Район*">
-                <span class="error_message">{{ fields_errors.city }}</span>
-                <input v-model="fields.street" type="text" placeholder="Улица / Дом / Квартира*">
-                <span class="error_message">{{ fields_errors.street }}</span>
-                <input v-model="fields.post_code" type="number" placeholder="Почтовый индекс*">
-                <span class="error_message">{{ fields_errors.post_code }}</span>
-            </div>
-            <label class="to_mail_list">
-                <input 
-                v-model="fields.in_mailing_list" 
-                :checked="fields.in_mailing_list"
-                @click="fields.in_mailing_list=!fields.in_mailing_list"
-                type="checkbox" 
-                />
-                &nbsp;
-                Оформить подписку на рассылку писем
-            </label>
-            <button 
-            class="reg_btn"
-            style="margin-top: 20px;"
-            ref="edit_acc_btn"
+            
+            <form 
+            @submit.prevent="editAcc"
             >
-                <img src="@/assets/img/ok3.png" alt=""> &nbsp;
-                {{ edit_acc_btn_text }}
-            </button>
+                <h2>Редактированние личных данных</h2>
+                <br>
+                <div class="user_info_inputs">
+                    <input v-model="update_acc_fields.email" type="email" placeholder="Электронная почта*">
+                    <span class="error_message">{{ update_acc_fields_errors.email }}</span>
+                    <input v-model="update_acc_fields.tel" type="number" placeholder="Номер телефона*">
+                    <span class="error_message">{{ update_acc_fields_errors.tel }}</span>
+                    <div class="first_last_name_row_inputs">
+                        <div class="fn_input_wrapper">
+                            <input v-model="update_acc_fields.first_name" type="text" placeholder="Ваше имя*">
+                            <span class="error_message">{{ update_acc_fields_errors.first_name }}</span>
+                        </div>
+                        <div class="fn_input_wrapper">
+                            <input v-model="update_acc_fields.last_name" type="text" placeholder="Фамилия*">
+                            <span class="error_message">{{ update_acc_fields_errors.last_name }}</span>
+                        </div>
+                    
+                    </div>
+                
+                    <input v-model="update_acc_fields.password" type="password" placeholder="Придумайте новый пароль*">
+                    <span class="error_message">{{ update_acc_fields_errors.password }}</span>
+                </div>
+                <br>
+                <h2>Адрес для получения доставки</h2>
+                <div class="adresses">
+                    <input v-model="update_acc_fields.city" type="text" placeholder="Город / Село / Пагаст / Район*">
+                    <span class="error_message">{{ update_acc_fields_errors.city }}</span>
+                    <input v-model="update_acc_fields.street" type="text" placeholder="Улица / Дом / Квартира*">
+                    <span class="error_message">{{ update_acc_fields_errors.street }}</span>
+                    <input v-model="update_acc_fields.post_code" type="number" placeholder="Почтовый индекс*">
+                    <span class="error_message">{{ update_acc_fields_errors.post_code }}</span>
+                </div>
+                <label class="to_mail_list">
+                    <input 
+                    v-model="update_acc_fields.in_mailing_list" 
+                    :checked="update_acc_fields.in_mailing_list"
+                    @click="update_acc_fields.in_mailing_list=!update_acc_fields.in_mailing_list"
+                    type="checkbox" 
+                    />
+                    &nbsp;
+                    Оформить подписку на рассылку писем
+                </label>
+                <button 
+                class="reg_btn"
+                style="margin-top: 20px;"
+                ref="edit_acc_btn"
+                >
+                    <img src="@/assets/img/ok3.png"> &nbsp;
+                    {{ edit_acc_btn_text }}
+                </button>
+                <br><br>
+            </form>
+            <add-card-form 
+            v-model:user_stripe_payment="user_additional_info['stripe_payment']"
+            />
+            <br />
             <span class="del_acc" @click="deleteAcc">
                 Удалить аккаунт
             </span>
-        </form>
-        
+        </div>
+
     </div>
 </div>
 <mini-products-slider 
@@ -369,8 +393,6 @@ v-if="user_additional_info.viewed10_products.length"
 </template>
 
 <script>
-import emitsForApp from '@/mixins/emitsForApp'
-
 export default {
     data(){
         return {
@@ -382,8 +404,11 @@ export default {
             sales_visible: false,
             register_visible: false,
 
-            mail_modal_visible: false,
-            mail_chechikng_approved: false,
+            mail_modal_visible_for_payment_method: false,
+            mail_checking_approved_for: {
+                'paypal': false,
+                'stripe': false,
+            },
             refund_modal_visible: false,
             refund_reason_pointed: false,
             refund_reason_text: '',
@@ -394,18 +419,19 @@ export default {
             current_sale: '>= 25%',
             current_pagination_page: 1,
             sailed_products: [],
-            fields: {},
-            fields_errors: {}
+            update_acc_fields: {},
+            update_acc_fields_errors: {}
         }
     },
-    mixins: [emitsForApp],
     methods: {
         async profileWhatVisible(visible_tab){
             // set tab clicked by name
             this.$store.commit('setProfileContent', visible_tab)
-            this.current_pagination_page = 1 
-            this.current_sale = '>= 25%'
-            if (visible_tab === 'sales') await this.getSailedProducts()
+            if (visible_tab === 'sales'){
+                await this.getSailedProducts()
+                this.current_pagination_page = 1 
+                this.current_sale = '>= 25%'
+            }  
         },
         setTabVisible(tab_name){
             // set tab _visible = true by name for styles
@@ -419,9 +445,16 @@ export default {
         checkStoreProfileContent(value){
             return this.$store.state.profile_content === value
         },
-        approveMailCheckingAndCloseModal(){
-            this.mail_modal_visible=false
-            this.mail_chechikng_approved=true
+        async approveMailCheckingAndCloseModal(){
+            if(
+                this.mail_modal_visible_for_payment_method === 'stripe' && 
+                !this.user_additional_info['stripe_payment']
+            ){
+                await this.profileWhatVisible('register')
+            }else{
+                this.mail_checking_approved_for[this.mail_modal_visible_for_payment_method] = true
+            }
+            this.mail_modal_visible_for_payment_method = false
         },
         refundPaymentAfterReason(){
             if (this.refund_reason_text.trim()) {
@@ -433,7 +466,6 @@ export default {
                     this.textarea_outline = '2px solid #74CCD8'
                 }, 2000);
             }
-
             
         },
         getClassForOrderStatus(order_status){
@@ -473,8 +505,9 @@ export default {
             this.$emit('rerender_header')
         },
         async delOrderProduct(e, product){
-            // Del product from order wthout status and update ui by changing order without status, received from server,
-            // update header order product count
+            // Del product from order wthout status and update ui by replacing order without status, received from server,
+            // if after delete product order will be empty - del order,
+            // update order product count in header component
             e.stopPropagation()
             const updated_order_without_status = await this.$store.dispatch(
                 'commonRequestWithAuth', 
@@ -486,13 +519,13 @@ export default {
             console.log(updated_order_without_status);
             if (!('detail' in updated_order_without_status)) {
                 this.user_additional_info['orders'][0] = updated_order_without_status
-                this.$store.commit('delOrderedProduct', product['name'])
-                this.$emit('rerender_header')
             } else if(updated_order_without_status['detail'] === 'Order deleted') {
                 this.user_additional_info['orders'] = this.user_additional_info['orders'].filter(
                     order => order.status 
                 )
             }
+            this.$store.commit('delOrderedProduct', product['name'])
+            this.$emit('rerender_header')
             
 
         },
@@ -554,13 +587,13 @@ export default {
                 {
                     method: 'patch',
                     url_after_server_domain: `users_edit_or_del/${this.user_mini_info['id']}`,
-                    data: this.fields
+                    data: this.update_acc_fields
                 }
             )
             if (![400, 401].includes(changed_acc.response?.status)) {
                 this.$emit('rerender_header')
                 this.updateUserInfo(changed_acc)
-                this.fields_errors = {}
+                this.update_acc_fields_errors = {}
 
                 this.edit_acc_btn_text = 'Сохранено!'
                 this.$refs['edit_acc_btn'].style.background = '#90de63'
@@ -569,9 +602,9 @@ export default {
                     this.$refs['edit_acc_btn'].style.background = '#74CCD8'
                 }, 2000);
             }else{
-                this.fields_errors = changed_acc.response.data
+                this.update_acc_fields_errors = changed_acc.response.data
                 for (const [key, value] of Object.entries(changed_acc.response.data)) {
-                    this.fields_errors[key] = value[0]
+                    this.update_acc_fields_errors[key] = value[0]
                 }
             }
             
@@ -611,7 +644,7 @@ export default {
                 url_after_server_domain: `users_profile/${this.user_mini_info['id']}`,
             }
         )
-        // if (this.checkStoreProfileContent('sales')) await this.getSailedProducts()
+        if (this.checkStoreProfileContent('sales')) await this.getSailedProducts()
         
 
         // Set liked products names, ordered products names in vuex liked_products_names state,
@@ -631,10 +664,10 @@ export default {
         }
         
         // Set all values in edit account inputs.
-        const exclude_fields = ['orders', 'liked_products', 'viewed10_products']
-        this.fields = {...this.user_additional_info}
-        this.fields['first_name'] = this.user_mini_info['first_name']
-        exclude_fields.forEach(field => delete this.fields[field])
+        const exclude_update_acc_fields = ['orders', 'liked_products', 'viewed10_products']
+        this.update_acc_fields = {...this.user_additional_info}
+        this.update_acc_fields['first_name'] = this.user_mini_info['first_name']
+        exclude_update_acc_fields.forEach(field => delete this.update_acc_fields[field])
         
 
     },

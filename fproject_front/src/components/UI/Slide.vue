@@ -8,7 +8,7 @@ class="swiper-slide"
     />
     <div 
     class="to_like_box"
-    v-if="top_right_btn_purpose === 'like'"
+    v-if="top_right_btn_purpose === 'like' && user"
     @click="addLikedProduct"
     >
         <div :class="{

@@ -115,7 +115,6 @@
 <script>
 import { onMounted, ref } from 'vue';
 import Splide from '@splidejs/splide'
-import emitsForApp from '@/mixins/emitsForApp';
 
 
 export default {
@@ -151,7 +150,6 @@ export default {
         this.$store.state.pagesInCrumbs.clear()
         this.$store.state.pagesInCrumbs.add('Compare cart')
     },
-    mixins: [emitsForApp],
 }
 </script>
 

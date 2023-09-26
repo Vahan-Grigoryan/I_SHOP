@@ -18,8 +18,6 @@
 </template>
 
 <script>
-import emitsForApp from '@/mixins/emitsForApp';
-
 export default {
     data(){
         return {
@@ -43,7 +41,6 @@ export default {
         this.$store.state.pagesInCrumbs.clear()
         this.$store.state.pagesInCrumbs.add('Article')
     },
-    mixins: [emitsForApp],
 }
 </script>
 

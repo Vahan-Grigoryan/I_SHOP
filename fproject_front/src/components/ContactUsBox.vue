@@ -12,7 +12,7 @@
                 v-model="mail_msg_name"
                 :style="inputs_styles['name']"
                 type="text"
-                placeholder="Ваше имя*"
+                placeholder="Ваше имя для обращения к вам в ответном письме*"
                 >
                 <input 
                 v-model="mail_msg_tel"
@@ -29,7 +29,9 @@
                 v-model="mail_msg_body"
                 :style="inputs_styles['body']"
                 cols="30"
-                rows="10" placeholder="Текст сообщения*">
+                rows="10" 
+                placeholder="Текст сообщения*"
+                >
                 </textarea>
                 <button type="submit" :style="send_btn_style">
                     <img src="@/assets/img/telegram_icon.png" alt="">
@@ -103,7 +105,12 @@ export default {
         },
         send_question() {
             if (this.validate_inputs()) {
-                axios.post(`${this.$store.state.server_href}receive_mail`, this.$data)
+                axios.post(`${this.$store.state.server_href}receive_mail`, {
+                    mail_msg_name: this.mail_msg_name,
+                    mail_msg_tel: this.mail_msg_tel,
+                    mail_msg_mail: this.mail_msg_mail,
+                    mail_msg_body: this.mail_msg_body,
+                })
                 this.set_empty_all_inputs()
 
             }
