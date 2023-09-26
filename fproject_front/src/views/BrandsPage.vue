@@ -1,6 +1,4 @@
 <template>
-
-
 <div class="brands_container">
     <ui-bread-crumbs />
     <h1>Бренды</h1>
@@ -9,7 +7,6 @@
 <ui-brands 
 :header_have="false" 
 :brands="brands.results"
-@selectedBrand="brand => $emit('selectedBrand', brand)"
 >
     <template #pagination_or_href>
         <ui-pagination
@@ -19,13 +16,9 @@
         />
     </template>
 </ui-brands>
-
-
 </template>
 
 <script>
-import emitsForApp from '@/mixins/emitsForApp';
-
 export default {
     data(){
         return {
@@ -45,7 +38,6 @@ export default {
 
         this.brands = await this.$store.dispatch('fetchBrands')
     },
-    mixins: [emitsForApp]
 }
 </script>
 

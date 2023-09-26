@@ -3,21 +3,29 @@
 v-if="purpose === 'pay'"
 class="paypal_pay"
 >
-    <img src="@/assets/img/paypal.png">
-    <span>Оплатить PayPal</span>
-</div>
+    <img v-if="!pay_loading" src="@/assets/img/paypal.png">
+    <span v-if="!pay_loading">Оплатить с PayPal</span>
+    <div v-if="pay_loading" class="loading_circle"></div>
+</div> 
 <div 
 v-else-if="purpose === 'refund'"
 class="paypal_reject"
 >
-    <img src="@/assets/img/paypal.png">
-    <span>Возврат средств</span>
+    <img v-if="!refund_loading" src="@/assets/img/paypal.png">
+    <span v-if="!refund_loading" >Возврат средств</span>
+    <div v-if="refund_loading" class="loading_circle"></div>
 </div>
 </template>
 
 <script>
 export default {
     name: 'ui-paypal-btns',
+    data(){
+        return {
+            pay_loading: false,
+            refund_loading: false,
+        }
+    },
     props: {
         order_pk: {
             type: Number,
@@ -27,7 +35,7 @@ export default {
             type: String,
             required: true,
         },
-        approve_mail_chechikng: {
+        approve_mail_checking: {
             type: Boolean,
             default: false,
         },
@@ -39,6 +47,7 @@ export default {
     methods: {
         async createOrder(){
             // Create paypal order
+            this.pay_loading = true
             const response = await this.$store.dispatch(
                 'commonRequestWithAuth', 
                 {
@@ -51,9 +60,11 @@ export default {
                 }
             )
             location.href = response['purchase_url']
+            this.pay_loading = false
         },
         async refundOrder(){
             // Refund captured order and pass received changed order to parent 
+            this.refund_loading = true
             const changed_order = await this.$store.dispatch(
                 'commonRequestWithAuth', 
                 {
@@ -62,20 +73,17 @@ export default {
                 }
             )
             this.$emit('received_changed_order', changed_order)
+            this.refund_loading = false
         }
     },
     watch: {
-        async approve_mail_chechikng(newValue){
+        async approve_mail_checking(newValue){
             // If mail checking approved - pay order
-            if (newValue) {
-                await this.createOrder()
-            }
+            if (newValue) await this.createOrder()
         },
         async refund_payment_after_reason(newValue){
             // If refund reason pointed - refund payment
-            if (newValue) {
-                await this.refundOrder()
-            }
+            if (newValue) await this.refundOrder()
         }
     }
 }
@@ -83,8 +91,10 @@ export default {
 </script>
 
 <style scoped>
+@import url('@/assets/css/loading_circle.css');
 .paypal_pay{
     width: fit-content;
+    height: fit-content;
     padding: 5px 40px;
     background: yellow;
     border-radius: 5px;
@@ -96,8 +106,8 @@ export default {
     transition: .5s;
 }
 .paypal_pay:hover{
-    box-shadow: 5px 5px 15px rgb(240, 240, 122);
-    color:white
+    box-shadow: 5px 5px 15px rgb(128, 128, 20);
+    color:black
 }
 .paypal_pay img, .paypal_reject img{
     width: 30px;

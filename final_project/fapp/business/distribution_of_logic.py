@@ -50,10 +50,12 @@ def schedule_send_approval_mail(order):
     )
 
 def receive_question(request_data):
+    """Receive mail from user(can be not authenticated or registrated)"""
+    msg = f"mail: {request_data.get('mail_msg_mail')} <br>"
     if request_data.get('mail_msg_tel'):
-        msg = f"tel: {request_data.get('mail_msg_tel')} \n\n{request_data.get('mail_msg_body')}"
+        msg += f"tel: {request_data.get('mail_msg_tel')} <br>{request_data.get('mail_msg_body')}"
     else:
-        msg = request_data.get('mail_msg_body')
+        msg += request_data.get('mail_msg_body')
 
     send_mail_as_task.delay(
         request_data.get('mail_msg_name'),

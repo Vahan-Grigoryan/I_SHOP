@@ -1,4 +1,3 @@
-from django.core.mail import send_mail
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 import requests
@@ -8,10 +7,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django_filters import rest_framework as dfilters
-from fapp import filters, mailing_logic, serializers, drf_pagination
+from fapp import filters, serializers, drf_pagination
 from fapp.models import *
-from fapp.business import db_manipulations, ui_representation
-from fapp.tasks import send_mail_as_task
+from fapp.business import db_manipulations, ui_representation, mailing_logic
 from final_project import settings
 
 
@@ -35,17 +33,20 @@ class UserMiniInfo(generics.RetrieveAPIView):
         self.check_object_permissions(self.request, obj)
         return obj
 
+
 class UserDetailProfileInfo(generics.RetrieveAPIView):
     """User profile info for site profile page"""
     # permission_classes = [IsAuthenticated]
     queryset = User.objects.distinct()
     serializer_class = serializers.UserProfileSerializer
 
+
 class UserEditOrDel(generics.UpdateAPIView, generics.DestroyAPIView):
     """Update or delete User"""
     permission_classes = [IsAuthenticated]
     queryset = User.objects.distinct()
     serializer_class = serializers.UserCreationUpdateSerializer
+
 
 class UserAddViewedProduct(APIView):
     permission_classes = [IsAuthenticated]
@@ -54,6 +55,7 @@ class UserAddViewedProduct(APIView):
         """Detail in add_or_del_viewed_product() func"""
         db_manipulations.add_or_del_viewed_product(user_pk, product_pk)
         return Response(status=204)
+
 
 class UserAddOrDelLikedProduct(APIView):
     permission_classes = [IsAuthenticated]
@@ -69,6 +71,7 @@ class UserAddOrDelLikedProduct(APIView):
         user, product = User.objects.get(pk=user_pk), Product.objects.get(pk=product_pk)
         user.liked_products.remove(product)
         return Response(status=204)
+
 
 class UserAddOrDelOrderProduct(APIView):
     permission_classes = [IsAuthenticated]
@@ -89,6 +92,7 @@ class UserAddOrDelOrderProduct(APIView):
         except ObjectDoesNotExist:
             return Response({'detail': 'Order deleted'})
 
+
 class MailingList(APIView):
     """View for add mail in Independent mail_list(possible to receive new product info without registration)"""
     def post(self, request):
@@ -99,6 +103,7 @@ class MailingList(APIView):
         else:
             mailing_msg = mailing_logic.send_first_mail_and_add_to_mail_list(request.data.get('mail'))
             return Response(mailing_msg, status=200)
+
 
 class Registration(generics.CreateAPIView):
     """Common registration"""
@@ -115,7 +120,8 @@ class OAuthRegistration(APIView):
         """
         OAuth2:
         Redirect user to page where he can select google account,
-        after select redirect user to relevant front page(where come from) with tokens and user data in cookies
+        after select redirect user to relevant front page(where come from)
+        with tokens and user data in cookies
         """
         code = request.GET.get('code')
         if code:
@@ -158,12 +164,14 @@ class CategoryList(APIView):
             format_categories = ui_representation.get_formatted_categories_for_front()
         return Response(format_categories)
 
+
 class CategoryChildren(APIView):
     """Return children categories(only 1 level) of pointed category for mega_category front page"""
     def get(self, request, category_name):
         children = Category.objects.get(name=category_name).child_cats.all()
         sz = serializers.CategorySerializer(children, many=True)
         return Response(sz.data)
+
 
 class CategoryProducts(APIView):
     """
@@ -184,9 +192,11 @@ class CategoryProducts(APIView):
             sz = serializers.ProductsOfCategory(category.products.exclude(id=current_product_id), many=True)
             return Response(sz.data[:5])
 
+
 class ProductDetail(generics.RetrieveAPIView):
     queryset = Product.objects.prefetch_related('images')
     serializer_class = serializers.ProductDetailSerializer
+
 
 class ProductList(generics.ListAPIView):
     """Products list specified by sale_new_hit property in model class for front index page"""
@@ -202,22 +212,27 @@ class ProductList(generics.ListAPIView):
         else:
             return Response({'ERROR': 'Provide sale_new_hit request param'})
 
+
 class BrandIndexList(generics.ListAPIView):
     queryset = Brand.objects.all()[:12]
     serializer_class = serializers.BrandSerializer
+
 
 class BrandList(generics.ListAPIView):
     queryset = Brand.objects.all()
     serializer_class = serializers.BrandSerializer
     pagination_class = drf_pagination.BrandsPagination
 
+
 class BlogCategoryList(generics.ListAPIView):
     queryset = BlogCategory.objects.all()
     serializer_class = serializers.BlogCategoryListSerializer
 
+
 class BlogIndexList(generics.ListAPIView):
     queryset = Blog.objects.all()
     serializer_class = serializers.BlogListSerializer
+
 
 class BlogList(generics.ListAPIView):
     """Show all blogs and filter"""
@@ -232,15 +247,18 @@ class BlogList(generics.ListAPIView):
         else:
             return Blog.objects.order_by('-id').prefetch_related()
 
+
 class BlogDetail(generics.RetrieveAPIView):
     queryset = Blog.objects.all()
     serializer_class = serializers.BlogDetailSerializer
+
 
 class ReceiveQuestion(APIView):
     """This is used for receive question from user in the form at the bottom of the front index page"""
     def post(self, request):
         distribution_of_logic.receive_question(request.data)
         return Response(status=200)
+
 
 class CommentCreating(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
@@ -253,11 +271,13 @@ class CommentCreating(generics.CreateAPIView):
             product_id=self.request.data.get('product_id')
         )
 
+
 class AvailableFilters(APIView):
     def get(self, request):
         """Return all available filters for filters front page except categories"""
         available_filters = ui_representation.get_available_filters()
         return Response(available_filters)
+
 
 class FilteredProducts(generics.ListAPIView):
     """

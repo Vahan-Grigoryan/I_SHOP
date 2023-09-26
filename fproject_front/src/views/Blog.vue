@@ -49,8 +49,6 @@
 </template>
 
 <script>
-import emitsForApp from '@/mixins/emitsForApp';
-
 export default {
     data(){
         return {
@@ -89,7 +87,6 @@ export default {
         this.$store.state.pagesInCrumbs.clear()
         this.$store.state.pagesInCrumbs.add('Blog')
     },
-    mixins: [emitsForApp],
     watch: {
         async blogs_of_category(newValue){
             // blogs_of_category = selected category

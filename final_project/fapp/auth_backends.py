@@ -1,5 +1,5 @@
 from django.contrib.auth.backends import BaseBackend
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from fapp.models import User
 
 
@@ -10,7 +10,8 @@ class AuthWithEmailAndPasswordOnly(BaseBackend):
         try:
             user = User.objects.get(email=credentials['email'])
             passed = user.check_password(credentials['password'])
-            assert passed, 'Не найдено активной учетной записи с указанными данными'
+            if not passed:
+                raise ValidationError('Не найдено активной учетной записи с указанными данными')
         except ObjectDoesNotExist:
             return
         return user

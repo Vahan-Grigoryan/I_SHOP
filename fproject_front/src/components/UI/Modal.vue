@@ -19,7 +19,7 @@
 export default {
     name: 'ui-modal',
     props: {
-        modal_visible: Boolean
+        modal_visible: [Boolean, String]
     }
 }
 </script>

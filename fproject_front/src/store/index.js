@@ -37,8 +37,8 @@ export default createStore({
       localStorage.removeItem('access')
       localStorage.removeItem('refresh')
       localStorage.removeItem('current_user')
-      state.liked_products_names = []
-      state.ordered_products_names = []
+      state.liked_products_names = new Set()
+      state.ordered_products_names = new Set()
     },
     calculatePagesCount: state => (count, entities_per_view=4) => {
       return Math.ceil(count/entities_per_view)

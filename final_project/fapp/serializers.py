@@ -158,6 +158,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'liked_products',
             'orders',
             'viewed10_products',
+            'stripe_payment',
         )
 
 class UserMiniInfoSerializer(serializers.ModelSerializer):

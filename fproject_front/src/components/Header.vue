@@ -123,7 +123,7 @@
           type="text"
           placeholder="Введите запрос(>2 символов)"
           @input="change_search_text"
-          :value="search_text"
+          :value="search_query"
           >
           <button type="submit">Найти</button>
         </form>
@@ -169,16 +169,15 @@
 
 <script>
 // Header for project without slots, with dropwdown mega menu and many hrefs
-import emitsForApp from '@/mixins/emitsForApp'
 import redirectTo from '@/mixins/redirectToProfilePart'
 import axios from 'axios'
 
 export default {
     name: 'Header',
-    mixins: [redirectTo],
     data(){
       return {
         user: JSON.parse(localStorage.getItem('current_user')),
+        search_query: '',
         mega_menu_visible: false,
         auth_modal_visible: false,
         categories:{},
@@ -199,34 +198,24 @@ export default {
         
       }
     },
-    props: {
-      // Props for interacting with header(other page components through App.vue)
-      left_cat: String,
-      right_cat: String,
-      search_text: '',
-    },
-    emits: ['update:search_text', 'update:left_cat', 'update:right_cat'],
-    mixins: [emitsForApp, redirectTo],
+    mixins: [redirectTo],
     methods: {
-      selectLeftCategory(category){
+      selectLeftCategory(left_category){
         // If left category clicked mega menu visible = false, and redirect to /mega_category.
-        // Emit left category update for mega_category page component
+        // with query param
         this.mega_menu_visible=false
-        this.$router.push(`/mega_category/${category}`)
-        this.$emit('update:left_cat', category)
+        this.$router.push({ path:`/mega_category/${left_category}`, query:{'left_category': left_category} })
       },
       selectRightCategory(right_category){
-        // If right category clicked mega menu visible = false, and redirect to /product_filters.
-        // Emit right category update for product_filters page component
+        // If right category clicked mega menu visible = false, and redirect to /product_filters with params.
         this.mega_menu_visible=false
-        this.$router.push('/product_filters')
-        this.$emit('update:right_cat', right_category)
+        this.$router.push({ path:'/product_filters', query:{'right_category': right_category} })
       },
       change_search_text(e){
-        // If user input search text, emit event for pass user text to page FilterProducts 
-        if (e.target.value.length>2 || e.target.value.length==0) {
-          this.$router.push('/product_filters')
-          this.$emit('update:search_text', e.target.value)
+        // If user input search text, redirect to /product_filters with query param 
+        this.search_query = e.target.value
+        if (this.search_query.length>2 || this.search_query.length==0) {
+            this.$router.push({ path:'/product_filters', query:{'search_query': this.search_query} })
         }
       },
       getImage(category){
@@ -268,15 +257,14 @@ export default {
         //    if account not found, show error message in this.account_not_found,
         //    if account found, set relevant values in localStorage.
         // 
-        // 2)Create request to ...users_mini_info?email=${this.email} few info about acc, after this
+        // 2)Create request to ...users_mini_info?email=${this.email} get few info about acc, after this
         //    set relevant values in localStorage,
         //    overwrite user,
         //    redirect to profile page.
+        this.auth_email_error = ''
+        this.auth_password_error = ''
+        this.account_not_found = ''
         try{
-          this.auth_email_error = ''
-          this.auth_password_error = ''
-          this.account_not_found = ''
-          
           const createTokens = await axios.post(`${this.$store.state.server_href}auth/jwt/create`, {
             email: this.email,
             password: this.password
@@ -301,8 +289,9 @@ export default {
           
         }catch(err){
           const response = err.response.data
-          if (response.detail) {
-            this.account_not_found = response.detail
+          const detected_error = response.detail || response['non_field_errors']?.[0]
+          if (detected_error) {
+            this.account_not_found = detected_error 
           } else {
             Object.keys(response).forEach(key => {
               this.$data[`auth_${key}_error`]=response[key][0]
@@ -371,15 +360,21 @@ export default {
       }
     },
     watch: {
-      auth_modal_visible(newValue){
-        // If auth modal visible block scroll opportunity
-        if (newValue) {
-          window.onscroll = function () { window.scrollTo(0, 0); };
-        } 
-        else {
-          window.onscroll = function () { window.scrollTo(scrollX, scrollY); };
-        }
-      },
+        '$route.path': {
+            handler(newValue){
+                // set search_query to empty on redirects to other pages, exclude filters page
+                if(newValue !== '/product_filters') this.search_query=''
+            }
+        },
+        auth_modal_visible(newValue){
+            // If auth modal visible block scroll opportunity
+            if (newValue) {
+            window.onscroll = function () { window.scrollTo(0, 0); };
+            } 
+            else {
+            window.onscroll = function () { window.scrollTo(scrollX, scrollY); };
+            }
+        },
     }
 }
 </script>
@@ -825,26 +820,4 @@ header .bottom_nav__basket::after {
   padding: 15px 0px;
   cursor: pointer;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 </style>

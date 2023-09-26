@@ -29,6 +29,7 @@
 // Pagination for this project, used in many places
 // props:
 //      pages: how many pages are available for redirect in each pagination page
+//      page_active: current page if user want to go to specific page
 
 
 export default {

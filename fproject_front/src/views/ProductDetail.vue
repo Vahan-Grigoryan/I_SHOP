@@ -226,7 +226,7 @@ v-model:modal_visible="write_feedback_visible"
                     </div>
                 </div>
                 <br>
-                <div class="inline">
+                <div class="inline" v-if="user">
                     <button 
                     class="buy_btn"
                     @click="productToOrder"
@@ -261,6 +261,10 @@ v-model:modal_visible="write_feedback_visible"
                     </div>
                     <span>Добавить к сравению</span> -->
                 </div>
+                <h2 v-else>
+                    <br />
+                    Зарегестрирyйтесь или войдите чтобы купить или пометить как понравившийся
+                </h2>
             </div>
         </div>
     </div>
@@ -358,7 +362,6 @@ style="padding: 60px 0% 70px 0%;margin-top: 0px;"
 <script>
 import '@splidejs/vue-splide/css/sea-green'
 import Splide from '@splidejs/splide'
-import emitsForApp from '@/mixins/emitsForApp'
 
 
 export default {
@@ -389,7 +392,6 @@ export default {
             }
         }
     },
-    mixins: [emitsForApp],
     methods: {
         getColorClass(color){
             // If any product available color clicked wrap in border it

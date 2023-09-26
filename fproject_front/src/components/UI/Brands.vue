@@ -33,9 +33,8 @@ export default {
     },
     methods: {
       toFiltersPage(brand_name){
-        console.log(brand_name);
-        this.$router.push('/product_filters')
-        this.$emit('selectedBrand', brand_name)
+        // redirect to filters page with selected brand
+        this.$router.push({ path:'/product_filters', query:{'brand': brand_name} })
       }
     }
 }

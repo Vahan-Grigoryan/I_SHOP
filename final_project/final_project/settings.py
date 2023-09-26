@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'fapp',
+    'payments',
 ]
 
 MIDDLEWARE = [
@@ -183,31 +184,31 @@ DJOSER = {
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = _('oauth2_client_id_or_key')
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = _('oauth2_secret')
 
-LOGGING ={
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "payment_msg_with_additional_info": {
-            "format": "{levelname} {asctime} {module} {message}",
-            "style": "{",
-        }
-    },
-    "handlers": {
-        "paypal": {
-            "class": "logging.FileHandler",
-            "level": "INFO",
-            "filename": os.path.join(BASE_DIR, 'paypal.log'),
-            "formatter": "payment_msg_with_additional_info"
-        },
-    },
-    "loggers": {
-        "payments": {
-            "handlers": ("paypal", ),
-            "level": "INFO",
-            "propagate": False,
-        },
-    },
-}
+# LOGGING ={
+#     "version": 1,
+#     "disable_existing_loggers": False,
+#     "formatters": {
+#         "payment_msg_with_additional_info": {
+#             "format": "{levelname} {asctime} {module} {message}",
+#             "style": "{",
+#         }
+#     },
+#     "handlers": {
+#         "stripe_payments_handler": {
+#             "class": "logging.FileHandler",
+#             "level": "DEBUG",
+#             "filename": os.path.join(BASE_DIR, 'logs', 'stripe_payments.log'),
+#             "formatter": "payment_msg_with_additional_info"
+#         },
+#     },
+#     "loggers": {
+#         "payments.business.payment_services.stripe_pay": {
+#             "handlers": ("stripe_payments_handler", ),
+#             "level": "DEBUG",
+#             "propagate": False,
+#         },
+#     },
+# }
 
 CKEDITOR_CONFIGS = {
     'default': {

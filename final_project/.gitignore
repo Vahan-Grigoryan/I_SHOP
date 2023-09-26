@@ -7,6 +7,7 @@
 *.pyc
 
 /fapp/migrations/
+/payments/migrations/
 /all_statics/
 
 *.log

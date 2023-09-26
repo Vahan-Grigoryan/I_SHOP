@@ -1,7 +1,7 @@
 import requests
 from rest_framework.generics import get_object_or_404
-from fapp.models import Order, PayPalPayment
-
+from fapp.models import Order, User
+from payments.models import PayPalPayment, StripePayment
 
 
 def paypal_create_order(request, order_pk) -> str:
@@ -21,9 +21,11 @@ def paypal_create_order(request, order_pk) -> str:
     )
     return approve_url
 
+
 def paypal_capture_order_payment(order_pk) -> requests.Response:
     """
-    Capture payment and change order status if payment successfully captured else delete payment method instance
+    Capture payment and change order status if payment successfully captured
+    else delete payment method instance
     """
     order = get_object_or_404(Order, id=order_pk)
     response = order.payment_method.capture_payment()
@@ -35,12 +37,14 @@ def paypal_capture_order_payment(order_pk) -> requests.Response:
 
     return response
 
+
 def paypal_receive_order(order_pk) -> Order:
     """Approve order receiving"""
     order = get_object_or_404(Order, id=order_pk)
     order.status = 'received'
     order.save()
     return order
+
 
 def paypal_refund_order_payment(order_pk) -> requests.Response:
     """Refund payment and change order status if payment successfully refunded"""
@@ -51,3 +55,32 @@ def paypal_refund_order_payment(order_pk) -> requests.Response:
         order.save()
 
     return response
+
+
+def stripe_create_card_owner(request):
+    """Create StripePayment model and call create_customer"""
+    stripe_payment = StripePayment.objects.create(user_id=request.user.id)
+
+    return stripe_payment.create_customer(request.data)
+
+
+def stripe_pay_order(user_pk, order_pk):
+    """Pay pointed order with customer's card and change order status"""
+    order = get_object_or_404(Order, id=order_pk)
+    user = get_object_or_404(User, id=user_pk)
+    order.payment_method = user.stripe_payment
+    order.payment_method.create_and_pay_invoice(order)
+    order.status = 'pending'
+    order.save()
+    return order
+
+
+def stripe_refund_order(user_pk, order_pk):
+    """Refund pointed order with customer's card and changing order status"""
+    order = get_object_or_404(Order, id=order_pk)
+    order.payment_method.create_refund()
+    order.status = 'rejected'
+    order.save()
+    return order
+
+

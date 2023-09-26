@@ -41,10 +41,9 @@
 
 <script>
 import axios from 'axios';
-import emitsForApp from '@/mixins/emitsForApp';
+
 
 export default {
-    inject: ['change_left_category'],
     data(){
         return {
             category_children: [],
@@ -52,7 +51,6 @@ export default {
             products: [],
         }
     },
-    mixins: [emitsForApp],
     methods: {
         async fetchCategoryChildren(category_name=this.$route.params.category_name){
             // Fetch children categories of pointed category and all products of children categories
@@ -68,21 +66,23 @@ export default {
             return category_children.data
         },
         toFiltersPage(left_category, center_category){
-            this.$emit('selectedCenterCategory', `${left_category},${center_category}`)
-            this.$router.push('/product_filters')
+            this.$router.push({ path:'/product_filters', query:{'center_category': `${left_category},${center_category}`} })
         }
     },
     async beforeMount(){
-        this.category_children = await this.fetchCategoryChildren()
-        
-        this.brands = await this.$store.dispatch('fetchBrandsIndex')
         this.$store.state.pagesInCrumbs.clear()
         this.$store.state.pagesInCrumbs.add('Mega category with subcategories')
+
+        this.category_children = await this.fetchCategoryChildren()
+        this.brands = await this.$store.dispatch('fetchBrandsIndex')
+
     },
     watch: {
-        async change_left_category(newCatgeory){
-            this.products = []
-            this.category_children = await this.fetchCategoryChildren(newCatgeory)
+        '$route.query.left_category':{
+            async handler(newCatgeory){
+                this.products = []
+                this.category_children = await this.fetchCategoryChildren(newCatgeory)
+            }
         }
     }
 }

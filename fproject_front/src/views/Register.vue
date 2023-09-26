@@ -1,5 +1,4 @@
 <template>
-<!-- <Header :key="header_rerender_key" /> -->
 <ui-bread-crumbs style="padding-left: 5%;margin-top: 15px;" />
 <div class="reg_container">
     <h1>Регистрация аккаунта</h1>
@@ -83,7 +82,6 @@
 </template>
 
 <script>
-import emitsForApp from '@/mixins/emitsForApp'
 import axios from 'axios'
 
 export default {
@@ -108,7 +106,6 @@ export default {
             post_code_error: '',
         }
     },
-    mixins: [emitsForApp],
     methods: {
         async register_user(){
             // Del old error fields,

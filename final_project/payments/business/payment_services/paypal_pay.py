@@ -1,12 +1,22 @@
-import base64, requests, json
-import logging
+import base64, requests, json, os
+from loggeek import Logger 
 from typing import Tuple, List, Dict
 from os import getenv as _
+from final_project import settings
 from requests import Response as requests_response
 from django.http import HttpResponseRedirect
 
 
-logger = logging.getLogger(__name__)
+logger = Logger(
+    os.path.join(settings.BASE_DIR, 'logs', 'paypal_payments.log'),
+    level="DEBUG",
+
+)
+#logger.add(
+#    os.path.join(settings.BASE_DIR, 'logs', 'paypal_payments.log'),
+#    level="DEBUG",
+#    format="{level} {time:YYYY-MM-DD at HH:mm:ss} | {message}",
+#)
 class PayPalPaymentMixin:
     name = 'paypal'
     paypal_api_domain = 'https://api-m.sandbox.paypal.com/'  # change to https://api-m.paypal.com/ in production
@@ -83,7 +93,8 @@ class PayPalPaymentMixin:
             approved_url: front url for redirecting if  payment successfully approved
             cancel_url: front url for redirecting if  payment canceled
 
-        Note: through approved_url will work paypal_capture_order/<int:id> url for server side operations, approved_url work after this
+        Note: through approved_url will work paypal_capture_order/<int:id> url for server side operations,
+        approved_url work after this
         """
         logger.info('Creating order')
         access_token = self.get_access_token()
@@ -130,8 +141,8 @@ class PayPalPaymentMixin:
             }
         )
         if all((
-            order_api.json()['status'] == 'PAYER_ACTION_REQUIRED',
-            order_api.json()['purchase_units'][0]['payee']['email_address'] == 'Dj_bussiness@gmail.com',
+            order_api.json().get('status') == 'PAYER_ACTION_REQUIRED',
+            order_api.json().get('purchase_units')[0]['payee']['email_address'] == 'Dj_bussiness@gmail.com',
             order_api.status_code == 200
         )):
             self.order_id = order_api.json()['id']

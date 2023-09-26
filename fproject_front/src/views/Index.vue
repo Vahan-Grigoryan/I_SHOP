@@ -152,7 +152,6 @@
 
     <ui-brands 
     :brands="brands_index"
-    @selectedBrand="brand => $emit('selectedBrand', brand)"
     />
 
     <ContactUsBox />
@@ -164,7 +163,6 @@
 </template>
 
 <script>
-import emitsForApp from '@/mixins/emitsForApp'
 import axios from 'axios'
 
 export default {
@@ -182,7 +180,6 @@ export default {
             
         }
     },
-    mixins: [emitsForApp],
     methods:{
         check_mailing_list_response(response){
             if(response.data['Error']){
@@ -223,15 +220,16 @@ export default {
             
         },
         toFiltersPage(center_category){
+            // find center cat in localStorage cats_formated and redirect to
+            // filters page with center cat name and parent cat name 
             const cats_formated = JSON.parse(localStorage.getItem('cats_formated'))
             for(let [lcat_key, lcat_value] of Object.entries(cats_formated)){
-                for(let [ccat_key, ccat_value] of Object.entries(lcat_value).splice(2)){
-                    if (ccat_key == center_category) {
-                        this.$emit('selectedCenterCategory', `${lcat_key},${ccat_key}`)
-                        this.$router.push('/product_filters')
-                    }
+                if (Object.keys(lcat_value).find( el => el==center_category )) {
+                    this.$router.push({ path:'/product_filters', query:{'center_category': `${lcat_key},${center_category}`} })
+                    break
                 }
             }
+
         }
     },
     async beforeMount(){

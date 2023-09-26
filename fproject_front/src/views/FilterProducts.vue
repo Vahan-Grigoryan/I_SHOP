@@ -1,13 +1,10 @@
 <template>
-    <!-- <Header 
-    v-model:search_query="search_query"
-    /> -->
     <div class="filters_container">
         <ui-bread-crumbs style="margin-bottom: 40px;"/>
         <br>
-        <span class="filter_result_plug" v-if="search_query?.length>2">Результаты поиска: </span>
+        <span class="filter_result_plug" v-if="$route.query[ 'search_query' ]?.length>2">Результаты поиска: </span>
         <span class="filter_result_plug" v-else>Введите запрос для поиска</span>
-        <span class="filter_result_header" v-if="search_query?.length>2"> {{ search_query }}</span>
+        <span class="filter_result_header" v-if="$route.query[ 'search_query' ]?.length>2"> {{ $route.query[ 'search_query' ] }}</span>
         <br><br>
         <span class="filter_result_plug" style="color:#74CCD8">Все фильтры комбинируются!</span>
         
@@ -80,14 +77,14 @@
                         <div class="subfilter">
                             <div 
                             class="subfilter_available" 
-                            @click="price_available=!price_available"
+                            @click="price_box_visible=!price_box_visible"
                             >
                                 <span class="subfilter_header">По цене:</span>
-                                <img src="@/assets/img/Vector_44.png" v-if="!price_available">
-                                <img src="@/assets/img/Vector_44.png" style="transform: rotateX(180deg);" v-if="price_available">
+                                <img src="@/assets/img/Vector_44.png" style="transform: rotateX(180deg);" v-if="price_box_visible">
+                                <img src="@/assets/img/Vector_44.png" v-else>
                             </div>
                             
-                            <div class="price_between_box" v-if="price_available">
+                            <div class="price_between_box" v-if="price_box_visible">
                                 <input type="number" v-model="selected_filters['priceGte']">
                                 <span class="separator">-</span>
                                 <input type="number" v-model="selected_filters['priceLte']">
@@ -96,14 +93,14 @@
                         <div class="subfilter">
                             <div 
                             class="subfilter_available" 
-                            @click="brand_available=!brand_available"
+                            @click="brand_box_visible=!brand_box_visible"
                             >
                                 <span class="subfilter_header">Бренды:</span>
-                                <img src="@/assets/img/Vector_44.png" v-if="!brand_available">
-                                <img src="@/assets/img/Vector_44.png" style="transform: rotateX(180deg);" v-if="brand_available">
+                                <img src="@/assets/img/Vector_44.png" v-if="!brand_box_visible">
+                                <img src="@/assets/img/Vector_44.png" style="transform: rotateX(180deg);" v-if="brand_box_visible">
                             </div>
                             
-                            <div class="brands_box" v-if="brand_available">
+                            <div class="brands_box" v-if="brand_box_visible">
                                 <label 
                                 class="checkbox_input_container"
                                 v-for="brand in brands"
@@ -130,14 +127,14 @@
                         <div class="subfilter">
                             <div 
                             class="subfilter_available" 
-                            @click="color_available=!color_available"
+                            @click="color_box_visible=!color_box_visible"
                             >
                                 <span class="subfilter_header">По цветам:</span>
-                                <img src="@/assets/img/Vector_44.png" v-if="!color_available">
-                                <img src="@/assets/img/Vector_44.png" style="transform: rotateX(180deg);" v-if="color_available">
+                                <img src="@/assets/img/Vector_44.png" v-if="!color_box_visible">
+                                <img src="@/assets/img/Vector_44.png" style="transform: rotateX(180deg);" v-if="color_box_visible">
                             </div>
                             
-                            <div class="brands_box" v-if="color_available">
+                            <div class="brands_box" v-if="color_box_visible">
                                 <label 
                                 class="checkbox_input_container"
                                 v-for="color in colors"
@@ -183,20 +180,22 @@
                         v-for="[filterKey, filterValue] in active_filters"
                         >
                             <span>{{ active_filters_ru[filterKey] }}:</span>
-                            <div 
-                            class="filter_with_close"
-                            v-if="typeof filterValue === 'object'"
-                            v-for="filter in filterValue"
-                            >
-                                {{ filter }} &nbsp; 
-                                <img src="@/assets/img/clear.png" @click="filterUnselect(filterKey, filter)">
-                            </div>
-                            <div 
-                            class="filter_with_close"
-                            v-else
-                            >
-                                {{ filterValue }} &nbsp; 
-                                <img src="@/assets/img/clear.png" @click="filterUnselect(filterKey, filterValue)">
+                            <div class="categories_in_grid">
+                                <div 
+                                class="filter_with_close"
+                                v-if="typeof filterValue === 'object'"
+                                v-for="filter in filterValue"
+                                >
+                                    {{ filter }} &nbsp; 
+                                    <img src="@/assets/img/clear.png" @click="filterUnselect(filterKey, filter)">
+                                </div>
+                                <div 
+                                class="filter_with_close"
+                                v-else
+                                >
+                                    {{ filterValue }} &nbsp; 
+                                    <img src="@/assets/img/clear.png" @click="filterUnselect(filterKey, filterValue)">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -240,18 +239,18 @@
 </template>
 
 <script>
-import emitsForApp from '@/mixins/emitsForApp'
-
+/*
+This page logic:
+All filters received from other pages will override all previously filters,
+and will be active only received filter(the only one).
+All filters that selected on filters page(this page) will be added to active filters 
+*/
 export default {
-    inject: [
-        'search_query', 'change_brand',
-        'change_center_category', 'change_right_category'
-    ],
     data(){
         return {
-            price_available: false,
-            brand_available: false,
-            color_available: false,
+            price_box_visible: false,
+            brand_box_visible: false,
+            color_box_visible: false,
             products_sort_option: 'newest',
             current_pagination_page: 1,
             categories: JSON.parse(localStorage.getItem('cats_formated')), 
@@ -278,10 +277,9 @@ export default {
 
         }
     },
-    mixins: [emitsForApp],
     methods: {
         setCenterCategoryActive(center_category_key, center_category_value){
-            // Set all subcategories of center category active
+            // Activate all subcategories of center category or deactivate if activated
             const centerCategoryState = this.selected_filters['centerCategoriesCheckedState'].get(center_category_key)
             if (centerCategoryState) {
                 for (const right_category of center_category_value) {
@@ -310,7 +308,7 @@ export default {
                 this.selected_filters['priceLte'] 
         },
         getActiveFilters(){
-            // Set or del(empty filters type) active filters for page and request to server
+            // Set or del(key in this.active_filters) active filters for page ui and request to server
             const filters = this.selected_filters
             for (const key in filters) {
                 if (
@@ -326,7 +324,6 @@ export default {
                 }
                 
             }
-            
         },
         active_filters_to_null(){
             // Reset active filters, it visible, and selected categories
@@ -349,7 +346,7 @@ export default {
                 this.selected_filters[active_filters_key] = ''
             }
         },
-        getActiveFiltersByUrlParams(){
+        convertActiveFiltersToUrlParamsForRequest(){
             // Construct url params for request like: param=paramValue1,paramValue2&priceLte=9 of active_filters
             let requestUrlParams = ''
             for (const [key, value] of this.active_filters.entries()) {
@@ -363,46 +360,49 @@ export default {
             // Add additional url params(or not) to filter and straightaway fetch new products
             // Also paginate to page if needs
             
-            const urlParams = this.getActiveFiltersByUrlParams()
-            let url = ``
-            url += urlParams? `&${urlParams}`: ''
-            url += this.search_query? `&name=${this.search_query}`: ''
-            try{
-                this.products = await this.$store.dispatch(
-                    'fetchFilteredProducts', 
-                    `?sort_by=${this.products_sort_option}${url}&pg=${paginate_to}`
-                )
-                this.current_pagination_page = paginate_to
-            }catch(err){}
+            const urlParams = this.convertActiveFiltersToUrlParamsForRequest()
+            let url = urlParams? `&${urlParams}`: ''
+            url += this.$route.query['search_query']? `&name=${this.$route.query['search_query']}`: ''
+            this.products = await this.$store.dispatch(
+                'fetchFilteredProducts', 
+                `?sort_by=${this.products_sort_option}${url}&pg=${paginate_to}`
+            )
+            this.current_pagination_page = paginate_to
             
         }
     },
     async beforeMount(){
+        // Get available filters from server.
+        // Check if user redirected there with any 
+        // $route.query param(excluded search_query), activate relevant filters
+        // else just get all products without filters.
+        // After above clear $route.query(line 399)
         this.$store.state.pagesInCrumbs.clear()
         this.$store.state.pagesInCrumbs.add('Search and filter products')
 
         const availableFilters = await this.$store.dispatch('fetchAvailableFilters')
-        this.brands = await availableFilters.brands
-        this.colors = await availableFilters.colors
-        await this.getFilteredProducts()
-        if(this.change_center_category){
-            const [left_cat, center_cat] = this.change_center_category.split(',')
-            for (const iterator of this.categories[left_cat][center_cat]) {
-                this.selected_filters['categories'].add(iterator);
+        this.brands = await availableFilters['brands']
+        this.colors = await availableFilters['colors']
+
+        if(this.$route.query['center_category']){
+            //if provided center category, set all right categories(children cats) of pointed center category
+            const [left_cat, center_cat] = this.$route.query['center_category'].split(',')
+            for (const right_category of this.categories[left_cat][center_cat]) {
+                this.selected_filters['categories'].add(right_category);
             }
             this.$refs[left_cat][0].options_visible_filters=true;
             this.$refs[left_cat][0].click
         }
-        else if(this.change_right_category){
-            this.selected_filters['categories'].add(this.change_right_category)
+        if(this.$route.query['right_category']){
+            // if provided right_category, add it into categories for filtering
+            this.selected_filters['categories'].add(this.$route.query['right_category'])
         }
-        else if(this.change_brand){
-            this.selected_filters['brands'].add(this.change_brand)
+        if(this.$route.query['brand']){
+            // if provided brand, add it into brands for filtering
+            this.selected_filters['brands'].add(this.$route.query['brand'])
         }
-    },
-    beforeUnmount(){
-        this.$emit('rerender_header', 'set_search_text_empty')
-        this.active_filters_to_null() 
+        if(await !this.products.length) await this.getFilteredProducts()
+        window.location.href = window.location.href.split('?')[0]
     },
     watch: {
         selected_filters: {
@@ -416,25 +416,25 @@ export default {
             },
             deep: true
         },
-        async search_query(newValue){
-            await this.getFilteredProducts()
-            
-        },
         async products_sort_option(newValue){
             await this.getFilteredProducts(this.current_pagination_page)
         },
-        change_center_category(newValue){
-            this.selected_filters['categories'].clear()
-            const [left_cat, center_cat] = this.change_center_category.split(',')
-            for (const iterator of this.categories[left_cat][center_cat]) {
-                this.selected_filters['categories'].add(iterator);
-            }
-            this.$refs[left_cat][0].options_visible_filters=true;
-            this.$refs[left_cat][0].click()
-        },
-        change_right_category(newValue){
-            this.selected_filters['categories'].clear()
-            this.selected_filters['categories'].add(this.change_right_category)
+        '$route.query': {
+            async handler(newValue){
+                // if received any filter from other page add it to relevant this.selected_filters key
+                // or just call getFilteredProducts()
+                if(newValue['right_category']){
+                    this.selected_filters['categories'].add(newValue['right_category'])
+                }
+                if(newValue['search_query'] || newValue['search_query'] == ''){
+                    // if search_query url param exists
+                    // (this mean search_query=any or search_query=''(if deleted after search))
+                    // because it can be deleted after
+                    // searching, we need to get new filtered products in both of cases
+                    await this.getFilteredProducts()
+                }
+            },
+            deep: true,
         },
     },
 }

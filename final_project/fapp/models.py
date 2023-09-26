@@ -9,7 +9,6 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from ckeditor_uploader import fields as ckmediafields
 from django.utils import timezone
-from payments.business.payment_services.paypal_pay import PayPalPaymentMixin
 from fapp.custom_managers import MyUserManager
 
 
@@ -128,7 +127,7 @@ class Order(models.Model):
             revoke scheduled mail sending
         """
         if self.status == 'pending':
-            self.payment_date = timezone.datetime.now()
+            self.payment_date = timezone.now().date()
             self.arrive_date = distribution_of_logic.get_order_receive_datetime()
             task_instance = distribution_of_logic.schedule_send_approval_mail(order=self)
             self.scheduled_task_id = task_instance.id
@@ -136,6 +135,7 @@ class Order(models.Model):
             task_instance = AsyncResult(self.scheduled_task_id)
             task_instance.revoke()
             self.payment_date, self.arrive_date, self.scheduled_task_id = None, None, None
+
         super().save(*args, **kwargs)
 
 
@@ -151,7 +151,7 @@ class Order(models.Model):
         return price_sum
 
     def __str__(self):
-        return f'{self.user.__str__()} - {self.status}'
+        return f'{self.user} - {self.status}'
 
 class Product(models.Model):
     """Product, per each creating send mail to all users in mail list"""
@@ -274,25 +274,5 @@ class OrderedProductInfo(models.Model):
 
     def total_price(self):
         return (self.product.saled_price or self.product.price) * self.quantity
-
-
-class PayPalPayment(models.Model, PayPalPaymentMixin):
-    """
-    PayPal's payment integration model.
-    use like that:
-        1)Call create_order(), this method will create order with PayPal api,
-        set order_id property for capture payment later,
-        set through url between server and approve_url for server side operations before redirecting to front,
-        return url(or None if any error occurred) for user can approve payment
-
-        2)In through url(before redirecting to front page) view call capture_payment(),
-        this method will set capture_id property for refund later if needed
-        and return response(with 201 status_code if payment successfully captured)
-
-        3)Optional. Call refund_payment() if user want refund,
-        this method return response(with 201 status_code if payment successfully refunded)
-    """
-    order_id = models.CharField(max_length=200, null=True, blank=True)
-    capture_id = models.CharField(max_length=200, null=True, blank=True)
 
 
