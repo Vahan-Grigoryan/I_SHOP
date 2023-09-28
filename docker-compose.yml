@@ -52,5 +52,4 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      #      - .:/front_code
       - ./fproject_front:/front_code
