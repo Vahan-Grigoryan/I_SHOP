@@ -2,10 +2,8 @@ FROM python:3
 
 WORKDIR /app
 
-COPY django_requirements.txt /app/
-RUN pip install -r django_requirements.txt
-
 COPY . /app/
+RUN pip install -r django_requirements.txt
 
 EXPOSE 8000
 

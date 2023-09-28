@@ -12,3 +12,7 @@ social-auth-app-django~=5.2.0
 django-ckeditor~=6.5.1
 django-filter~=22.1
 Pillow~=9.3.0
+stripe~=6.0.0
+
+
+custom_modules/loggeek-1.0.0.tar.gz
