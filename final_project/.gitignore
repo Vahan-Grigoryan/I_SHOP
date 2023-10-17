@@ -11,3 +11,5 @@
 /all_statics/
 
 *.log
+celerybeat-schedule
+celerybeat-schedule.*

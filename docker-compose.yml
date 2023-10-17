@@ -9,9 +9,20 @@ services:
     ports:
       - "8000:8000"
     volumes:
-        - .:/final_project/
+      - .:/final_project/
     depends_on:
       - frontend
+      - psql
+
+  psql:
+    image: postgres:latest
+    container_name: PSQL
+    env_file:
+      - ./final_project/.env
+    volumes:
+      - ./final_project/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
 
   celery_worker:
     build: ./final_project
@@ -20,7 +31,7 @@ services:
       - ./final_project/.env
     volumes:
       - ./final_project:/app
-    command: ["celery", "-A", "final_project", "worker", "--loglevel=info"]
+    entrypoint: ["celery", "-A", "final_project", "worker", "--loglevel=info"]
     depends_on:
       - backend
       - redis
@@ -32,7 +43,7 @@ services:
       - ./final_project/.env
     volumes:
       - ./final_project:/app
-    command: [ "celery", "-A", "final_project", "beat", "--loglevel=info" ]
+    entrypoint: [ "celery", "-A", "final_project", "beat", "--loglevel=info" ]
     depends_on:
       - backend
       - redis
@@ -44,7 +55,6 @@ services:
       - ./final_project:/app
     ports:
       - "6379:6379"
-    restart: always
 
   frontend:
     container_name: Front
@@ -53,3 +63,4 @@ services:
       - "8080:8080"
     volumes:
       - ./fproject_front:/front_code
+

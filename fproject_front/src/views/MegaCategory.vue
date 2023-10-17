@@ -15,11 +15,8 @@
     </div>
 </div>
 
-
-
 <ui-brands 
 :brands="brands"
-@selectedBrand="(brand) => $emit('selectedBrand', brand)"
 />
 
 <mini-products-slider style="padding: 0px;margin: 50px 0px 60px 0px;">
