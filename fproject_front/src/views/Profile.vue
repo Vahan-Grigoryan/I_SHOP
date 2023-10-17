@@ -516,7 +516,6 @@ export default {
                     url_after_server_domain: `users_add_or_del_order_product/${this.user_mini_info['id']}/${product['id']}`,
                 }
             )
-            console.log(updated_order_without_status);
             if (!('detail' in updated_order_without_status)) {
                 this.user_additional_info['orders'][0] = updated_order_without_status
             } else if(updated_order_without_status['detail'] === 'Order deleted') {

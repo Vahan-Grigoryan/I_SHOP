@@ -4,7 +4,11 @@
     />
 
     <RouterView 
+    v-if="$route.name === 'productFilters'"
     @rerender_header="rerenderHeader"
+    />
+    <RouterView 
+    v-else
     />
   
     <ui-footer />

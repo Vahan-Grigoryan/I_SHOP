@@ -17,6 +17,8 @@ FRONT_HOST = 'http://localhost:8080'
 # Application definition
 
 INSTALLED_APPS = [
+    'fapp',
+    'payments',
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
@@ -33,8 +35,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'fapp',
-    'payments',
 ]
 
 MIDDLEWARE = [
@@ -77,20 +77,19 @@ WSGI_APPLICATION = 'final_project.wsgi.application'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
+    #'default': {
+        #'ENGINE': 'django.db.backends.sqlite3',
+        #'NAME': BASE_DIR / 'db.sqlite3',
+    #}
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'FPROJECT_DB',
+        'USER': 'postgres',
+        'PASSWORD': _('POSTGRES_PASSWORD'),
+        'HOST': 'psql', # change from 'localhost' to 'psql' for run with docker psql service
+        'PORT': '5432'
     }
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.postgresql',
-    #     'NAME': '??????',
-    #     'USER': 'masteruser',
-    #     'PASSWORD': '???????',
-    #     'HOST': '???????',
-    #     'PORT': '5432'
-    # }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -138,7 +137,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = 'media/'
 CKEDITOR_UPLOAD_PATH = 'ckmedia/'
 
-REDIS_HOST = 'localhost' # set 'redis' for run as docker-compose service
+REDIS_HOST = 'redis' # change from 'localhost' to 'redis' for run as docker-compose service
 REDIS_PORT = '6379'
 CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/0'
 CELERY_RESULT_BACKEND = f'redis://{REDIS_HOST}:{REDIS_PORT}'

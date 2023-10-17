@@ -18,7 +18,7 @@ class User(AbstractUser):
     email = models.EmailField("Email address", unique=True)
     first_name = models.CharField(verbose_name="first name", max_length=150)
     last_name = models.CharField(verbose_name="last name", max_length=150)
-    tel = models.IntegerField(blank=True, null=True)
+    tel = models.BigIntegerField(blank=True, null=True)
     photo = models.ImageField(upload_to='images/', blank=True, null=True)
     city = models.CharField(max_length=100, null=True)
     street = models.CharField(max_length=150, null=True)
