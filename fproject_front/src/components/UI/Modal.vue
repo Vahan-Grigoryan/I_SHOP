@@ -15,13 +15,11 @@
 
 </template>
 
-<script>
-export default {
-    name: 'ui-modal',
-    props: {
-        modal_visible: [Boolean, String]
-    }
-}
+<script setup>
+
+const props = defineProps({
+    modal_visible: [Boolean, String]
+})
 </script>
 
 <style scoped>

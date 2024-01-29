@@ -1,6 +1,6 @@
 <template>
 <div class="brands_box">
-    <h1 v-if="header_have">Бренды</h1>
+    <h1 v-if="have_header">Бренды</h1>
     <div class="brands">
         <div 
         class="brand"
@@ -17,26 +17,25 @@
 </div>
 </template>
 
-<script>
+<script setup>
 // Component for Index and Brands pages,
 // with custom pagination_or_href section
 
+import { useRouter } from 'vue-router'
 
-export default {
-    name: 'ui-brands',
-    props: {
-        header_have: {
-            type: Boolean,
-            default: true
-        },
-        brands: Array
+
+const router = useRouter()
+const props = defineProps({
+    have_header: {
+        type: Boolean,
+        default: true,
     },
-    methods: {
-      toFiltersPage(brand_name){
-        // redirect to filters page with selected brand
-        this.$router.push({ path:'/product_filters', query:{'brand': brand_name} })
-      }
-    }
+    brands: Array,
+})
+
+
+function toFiltersPage(brand_name){
+    router.push({ path:'/product_filters', query:{'brand': brand_name} })
 }
 </script>
 

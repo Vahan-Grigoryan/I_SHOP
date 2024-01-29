@@ -12,10 +12,6 @@
 // Component for bread crumbs(below header in each page),
 // bread crumbs pages get from $store.state.categoriesInCrambs
 
-
-export default {
-    name: 'ui-bread-crumbs',
-}
 </script>
 
 <style scoped>

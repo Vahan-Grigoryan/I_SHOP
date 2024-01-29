@@ -4,5 +4,7 @@ import AddCardForm from '@/components/AddCardForm'
 
 
 export default [
-    Header, ContactUsBox, AddCardForm
+    {...Header, name: 'Header'},
+    {...ContactUsBox, name: 'ContactUsBox'},
+    {...AddCardForm, name: 'add-card-form'},
 ]

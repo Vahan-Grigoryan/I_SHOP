@@ -86,7 +86,7 @@ DATABASES = {
         'NAME': 'FPROJECT_DB',
         'USER': 'postgres',
         'PASSWORD': _('POSTGRES_PASSWORD'),
-        'HOST': 'psql', # change from 'localhost' to 'psql' for run with docker psql service
+        'HOST': 'localhost', # change from 'localhost' to 'psql' for run with docker psql service
         'PORT': '5432'
     }
 }
@@ -129,15 +129,12 @@ USE_TZ = True
 
 STATIC_ROOT = 'all_statics/'
 STATIC_URL = 'static/'
-# STATICFILES_DIRS = [
-#     BASE_DIR / "static",
-# ]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = 'media/'
 CKEDITOR_UPLOAD_PATH = 'ckmedia/'
 
-REDIS_HOST = 'redis' # change from 'localhost' to 'redis' for run as docker-compose service
+REDIS_HOST = 'localhost' # change from 'localhost' to 'redis' for run as docker-compose service
 REDIS_PORT = '6379'
 CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/0'
 CELERY_RESULT_BACKEND = f'redis://{REDIS_HOST}:{REDIS_PORT}'
@@ -155,9 +152,9 @@ SOCIAL_AUTH_PROTECTED_USER_FIELDS = ('username',)
 SOCIAL_AUTH_IMMUTABLE_USER_FIELDS = ('first_name', 'last_name', )
 
 SIMPLE_JWT = {
-    'AUTH_HEADER_TYPES': ('JWT', 'Bearer'),
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=5),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=60),
+    "AUTH_HEADER_TYPES": ('JWT', 'Bearer'),
+    "ACCESS_TOKEN_LIFETIME": timedelta(seconds=30), # days=5
+    "REFRESH_TOKEN_LIFETIME": timedelta(minutes=1), # days=60
 }
 
 EMAIL_HOST = 'smtp.gmail.com'

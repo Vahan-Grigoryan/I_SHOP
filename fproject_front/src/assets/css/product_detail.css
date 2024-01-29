@@ -288,6 +288,19 @@
     display: inline-block;
 
 }
+.about_product_content_feedback_owner_box{
+    width:fit-content;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.about_product_content_feedback_owner_box .comment_profile_image{
+    border-radius: 50px;
+    width:30px;
+    height:30px;
+    margin-right: 10px;
+    object-fit:cover;
+}
 .about_product_content_feedback_owner_box .owner_logo{
     padding: 10px;
     border-radius: 50%;

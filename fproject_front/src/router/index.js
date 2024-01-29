@@ -55,11 +55,6 @@ const routes = [
     component: BrandsPage,
   },
   {
-    path: '/404',
-    name: '404',
-    component: Page404,
-  },
-  {
     path: '/compare_cart',
     name: 'compare',
     component: CompareCart,
@@ -74,7 +69,11 @@ const routes = [
     name: 'mega_category',
     component: MegaCategory,
   },
-  
+  {
+    path: '/:pathMatch(.*)',
+    name: '404',
+    component: Page404,
+  },
 ]
 
 const router = createRouter({

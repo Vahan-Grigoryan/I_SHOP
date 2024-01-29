@@ -36,7 +36,7 @@ class UserMiniInfo(generics.RetrieveAPIView):
 
 class UserDetailProfileInfo(generics.RetrieveAPIView):
     """User profile info for site profile page"""
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     queryset = User.objects.distinct()
     serializer_class = serializers.UserProfileSerializer
 
@@ -89,7 +89,7 @@ class UserAddOrDelOrderProduct(APIView):
         try:
             sz_order = serializers.OrderSerializer(user.orders.get(status__isnull=True))
             return Response(sz_order.data)
-        except ObjectDoesNotExist:
+        except Order.DoesNotExist:
             return Response({'detail': 'Order deleted'})
 
 
@@ -273,8 +273,8 @@ class CommentCreating(generics.CreateAPIView):
 
 
 class AvailableFilters(APIView):
+    """Return all available filters for filters front page except categories"""
     def get(self, request):
-        """Return all available filters for filters front page except categories"""
         available_filters = ui_representation.get_available_filters()
         return Response(available_filters)
 

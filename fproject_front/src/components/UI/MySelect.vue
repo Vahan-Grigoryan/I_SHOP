@@ -54,7 +54,7 @@
     </div>
 </template>
 
-<script>
+<script setup>
 // Best select for different purposes in this project,
 // used in many places
 // props: 
@@ -62,46 +62,44 @@
 //      selected_option: with purpose=detail can used with v-model in parent component => change select value
 //      options: options for select 
 
+import { ref } from 'vue'
 
-export default {
-    name: 'ui-select',
-    props: {
-        options: Array,
-        selected_option: {
-            type: String,
-            default: 'Select option'
-        },
-        purpose: {
-            type: String,
-            default: 'filters'
-        },
 
+const emit = defineEmits()
+const props = defineProps({
+    options: Array,
+    selected_option: {
+        type: String,
+        default: 'Select option'
     },
-    data(){
-        return {
-            selected: false,
-            options_visible: false,
-            options_visible_filters: false,
-            options_visible_cart: false,
-        }
+    purpose: {
+        type: String,
+        default: 'filters'
     },
-    methods: {
-        show_options(){
-            this.selected = !this.selected
-            this.options_visible = !this.options_visible
-        },
-        select_option_no_filters(option){
-            this.show_options()
-            this.$emit('update:selected_option', option)
-        },
-        setFilterOptionsVisible(){
+})
 
-            this.options_visible_filters = !this.options_visible_filters
-        },
-        setCartProductsVisible(){
-            this.options_visible_cart = !this.options_visible_cart
-        }
-    },
+const selected = ref(false)
+const options_visible = ref(false)
+const options_visible_filters = ref(false)
+const options_visible_cart = ref(false)
+
+
+defineExpose({ options_visible_filters })
+
+
+function show_options(){
+    selected.value = !selected.value
+    options_visible.value = !options_visible.value
+}
+function select_option_no_filters(option){
+    show_options()
+    emit('update:selected_option', option)
+}
+function setFilterOptionsVisible(){ 
+    options_visible_filters.value = !options_visible_filters.value
+}
+function setCartProductsVisible(){
+    options_visible_cart.value = !options_visible_cart.value
 }
 </script>
 

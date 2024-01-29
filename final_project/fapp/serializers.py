@@ -162,16 +162,32 @@ class UserProfileSerializer(serializers.ModelSerializer):
         )
 
 class UserMiniInfoSerializer(serializers.ModelSerializer):
-    liked_products_count = serializers.IntegerField(read_only=True)
-    ordered_products_count = serializers.IntegerField(read_only=True)
+    liked_products_names = serializers.SerializerMethodField()
+    ordered_products_names = serializers.SerializerMethodField()
+
+    def get_liked_products_names(self, user):
+        """Get user liked products names"""
+
+        return [product.name for product in user.liked_products.all()]
+
+    def get_ordered_products_names(self, user):
+        """Get user products names in order without status"""
+
+        try:
+            order = user.orders.get(status__isnull=True)
+        except Order.DoesNotExist:
+            return []
+        
+        return [product.name for product in order.order_products.all()]
+
     class Meta:
         model = User
         fields = (
             'id',
             'first_name',
             'photo',
-            'liked_products_count',
-            'ordered_products_count',
+            'liked_products_names',
+            'ordered_products_names',
         )
 
 class UserCreationUpdateSerializer(serializers.ModelSerializer):

@@ -6,7 +6,7 @@
 </div>
 <form 
 class="payment_form" 
-v-show="!user_stripe_payment && !stripe_payment_creating_loading"
+v-show="!user_stripe_payment && !stripe_card_creating_loading"
 @submit.prevent="createCardWithOwner"
 >
     <div class="link_authentication_element">
@@ -20,109 +20,106 @@ v-show="!user_stripe_payment && !stripe_payment_creating_loading"
     </button>
     <div ref="payment_message" class="payment_message hidden"></div>
     <h3 v-if="error_message">{{ error_message }}</h3>
-    </form>
-<div v-if="stripe_payment_creating_loading" class="loading_circle"></div>
+</form>
+<div v-if="stripe_card_creating_loading" class="loading_circle"></div>
     
 </template>
 
-<script>
+<script setup>
 import { loadStripe } from '@stripe/stripe-js';
+import { ref, reactive, onBeforeMount } from 'vue'
+import { useStore } from 'vuex'
 
 
-export default {
-    name: 'add-card-form',
-    data(){
-        return {
-            stripe: '',
-            payment_elements: '',
-            stripe_payment_creating_loading: false,
-            error_message: '',
-        }
+const store = useStore()
+const emit = defineEmits()
+const props = defineProps({
+    user_stripe_payment:{
+        required: true,
+        type: [null, Number],
     },
-    props:  {
-        user_stripe_payment:{
-            required: true,
-            type: [null, Number],
-        },
-    },
-    methods: {
-        async createCardWithOwner(){
-            // prepare stripe elements values and create payment method with stripe api,
-            // also create card owner(StripePayment model),
-            // if StripePayment successfully created
-            // show valid ui, else show error
+})
 
-            this.stripe_payment_creating_loading = true
+const stripe = reactive({})
+const payment_elements = reactive({})
+const stripe_card_creating_loading = ref(false)
+const error_message = ref('')
 
-            const elements = this.payment_elements
-            const {error: submitError} = await elements.submit();
-            if (submitError) {
-                console.log(submitError)
-                return
-            }
-            const {error: paymentMethodError, paymentMethod} = await this.stripe.createPaymentMethod({elements});
-            if (paymentMethodError) {
-                console.log(paymentMethodError.message)
-                return
-            }
-      
-            const rememberCard = await this.$store.dispatch(
-                'commonRequestWithAuth', 
-                {
-                    method: 'post',
-                    url_after_server_domain: `stripe_create_card_owner`,
-                    data: {
-                        payment_method_id: paymentMethod['id']
-                    }
-                }
-            )
-            this.stripe_payment_creating_loading = false
-            if (rememberCard['stripe_payment_id']) {
-                this.$emit('update:user_stripe_payment', rememberCard['stripe_payment_id'])
-            }else if(rememberCard['detail']){
-                this.error_message = rememberCard['detail']
-                setTimeout(()=>{
-                    this.error_message = ''
-                }, 4000)
-            }
-        },
-    async delCardFromOwner(){
-        // del StripePayment model from server, update ui
-        const forgetCard = await this.$store.dispatch(
-          'commonRequestWithAuth', 
-          {
-            method: 'delete',
-            url_after_server_domain: `stripe_del_card_from_owner/${this.user_stripe_payment}`,
-          }
-        )
-        this.$emit('update:user_stripe_payment', null)
-        await this.loadStripeUi() 
-    },
-    async loadStripeUi(){
-        // load stripe ui(card inputs)
-        this.stripe = await loadStripe('pk_test_51NgBEoC400K1QcWYU04wbx5uagsDHWXdwqmDYhziI5rnsjGPm3yzJQag4l9Yf42Ztbo6B3YtId0kIdN6pbJ2YixR00YLaSqvqw')
-        const options = {
-            mode: 'payment',
-            amount: 100,
-            currency: 'usd',
-            paymentMethodCreation: 'manual',
-            appearance: {theme: 'stripe'},
-        };
-        this.payment_elements = this.stripe.elements(options);
-        // const linkAuthenticationElement = this.payment_elements.create("linkAuthentication");
-        // linkAuthenticationElement.mount(".link-authentication-element");
-        const paymentElement = this.payment_elements.create("payment");
-        paymentElement.mount(".payment_element"); 
-    },
 
-    },
-    async beforeMount(){
-        // if not poin card credentials yet show inputs
-        if (!this.user_stripe_payment) {
-            this.loadStripeUi() 
-        }
+onBeforeMount(()=>{
+    // if not point card credentials yet show inputs
+    if (!props.user_stripe_payment) {
+        loadStripeUi() 
     }
+})
+
+async function createCardWithOwner(){
+    // prepare stripe elements values and create payment method with stripe api,
+    // also create card owner(StripePayment model),
+    // if StripePayment successfully created
+    // show valid ui, else show error
+
+    stripe_card_creating_loading.value = true
+    const elements = payment_elements.value
+
+    try{
+        await elements.submit();
+        const { paymentMethod } = await stripe.value.createPaymentMethod({elements});
+        const rememberCard = await store.dispatch(
+            'commonRequestWithAuth', 
+            {
+                method: 'post',
+                url_after_server_domain: `stripe_create_card_owner`,
+                data: {
+                    payment_method_id: paymentMethod['id']
+                }
+            }
+        )
+    
+        stripe_card_creating_loading.value = false
+        if (rememberCard['stripe_payment_id']) {
+            emit('update:user_stripe_payment', rememberCard['stripe_payment_id'])
+        }else if(rememberCard['detail']){
+            error_message.value = rememberCard['detail']
+            setTimeout(()=>{
+                error_message.value = ''
+            }, 4000)
+        }
+    }catch(error){
+        stripe_card_creating_loading.value = false
+        //console.log(error.message)
+    }
+    
 }
+
+async function delCardFromOwner(){
+    // del StripePayment model from server, update ui
+    await store.dispatch(
+        'commonRequestWithAuth', 
+        {
+            method: 'delete',
+            url_after_server_domain: `stripe_del_card_from_owner/${props.user_stripe_payment}`,
+        }
+    )
+    emit('update:user_stripe_payment', null)
+    await loadStripeUi() 
+}
+
+async function loadStripeUi(){
+    // load stripe ui(card inputs)
+    stripe.value = await loadStripe('pk_test_51NgBEoC400K1QcWYU04wbx5uagsDHWXdwqmDYhziI5rnsjGPm3yzJQag4l9Yf42Ztbo6B3YtId0kIdN6pbJ2YixR00YLaSqvqw')
+    const options = {
+        mode: 'payment',
+        amount: 100,
+        currency: 'usd',
+        paymentMethodCreation: 'manual',
+        appearance: {theme: 'stripe'},
+    };
+    payment_elements.value = stripe.value.elements(options);
+    const paymentElement = payment_elements.value.create("payment");
+    paymentElement.mount(".payment_element"); 
+}
+
 </script>
 
 <style scoped>
@@ -137,7 +134,9 @@ body {
   height: 100vh;
   width: 100vw;
 }
-
+.loading_circle:after {
+    border-color: black transparent black transparent;
+}
 .payment_form {
   align-self: center;
   border-radius: 7px;

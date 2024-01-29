@@ -57,7 +57,6 @@
         v-for="product in sailed_products"
         :key="product.id"
         :product="product"
-        @rerender_header="$emit('rerender_header')"
         >
         </ui-slide>
     </mini-products-slider>
@@ -68,7 +67,7 @@
         <div class="form_wrapper" action="">
             <div style="width:80%">
                 <h1>Получайте информацию о скидках первыми</h1>
-                <span>Оформите подписку на рассылку(без регистрации) и вы будете вкурсе всех наших новых продуктов</span>
+                <span>Оформите подписку на рассылку(можно без регистрации) и вы будете вкурсе всех наших новых продуктов</span>
                 <form @submit.prevent method="post">
                     <div style="width: 45%;position: relative;">
                         <input ref="mail_to_mailing_list" type="email" placeholder="Ваша электронная почта" />
@@ -105,7 +104,6 @@
         v-for="product in hit_products"
         :key="product.id"
         :product="product"
-        @rerender_header="$emit('rerender_header')"
         >
         </ui-slide>
     </mini-products-slider>
@@ -119,7 +117,6 @@
         v-for="product in new_products"
         :key="product.id"
         :product="product"
-        @rerender_header="$emit('rerender_header')"
         >
         </ui-slide>
         
@@ -162,108 +159,96 @@
     
 </template>
 
-<script>
+<script setup>
 import axios from 'axios'
+import { useRouter } from 'vue-router'
+import { useStore } from 'vuex'
+import { ref, reactive, onBeforeMount } from 'vue'
 
-export default {
-    data(){
-        return {
-            likes: [],
-            center_categories: [],
-            sailed_products: [],
-            hit_products: [],
-            new_products: [],
-            brands_index: [],
-            mailing_list_response: '',
-            mailing_list_response_valid: false,
-            mailing_list_response_invalid: false,
-            
-        }
-    },
-    methods:{
-        check_mailing_list_response(response){
-            if(response.data['Error']){
-                this.mailing_list_response_invalid = true
-                this.mailing_list_response = response.data['Error']
-                setTimeout(() => {
-                    this.mailing_list_response_invalid = false
-                    this.mailing_list_response = ''
-                }, 4000);
-            }
-            else if(response.data['Message']){
-                this.mailing_list_response_valid = true
-                this.mailing_list_response = 'Loading...'
-                this.mailing_list_response = response.data['Message']
-                setTimeout(() => {
-                    this.mailing_list_response_valid = false
-                    this.mailing_list_response = ''
-                }, 4000);
-            }
-        },
-        async subscribeMailingList(){
-            let mail = await this.$refs.mail_to_mailing_list.value.trim()
-            if (mail) {
-                const response = await axios.post(`${this.$store.state.server_href}mailing_list`, {mail:mail})
-                this.check_mailing_list_response(response)
-            }
-            
-            
-            
-        },
-        async unsubscribe(){
-            let mail = await this.$refs.mail_to_mailing_list.value.trim()
-            if (mail) {
-                const response = await axios.post(`${this.$store.state.server_href}mailing_list`, {mail:mail, for_delete:true})
-                this.check_mailing_list_response(response)
-            }
-            
-            
-        },
-        toFiltersPage(center_category){
-            // find center cat in localStorage cats_formated and redirect to
-            // filters page with center cat name and parent cat name 
-            const cats_formated = JSON.parse(localStorage.getItem('cats_formated'))
-            for(let [lcat_key, lcat_value] of Object.entries(cats_formated)){
-                if (Object.keys(lcat_value).find( el => el==center_category )) {
-                    this.$router.push({ path:'/product_filters', query:{'center_category': `${lcat_key},${center_category}`} })
-                    break
-                }
-            }
 
-        }
-    },
-    async beforeMount(){
-        this.center_categories = await this.$store.dispatch('fetchPositionCategories', 'center')
-        this.sailed_products = await this.$store.dispatch('fetchProductsBySaleNewHit', 'sale')
-        this.new_products = await this.$store.dispatch('fetchProductsBySaleNewHit', 'NEW')
-        this.hit_products = await this.$store.dispatch('fetchProductsBySaleNewHit', 'HIT')
-        this.brands_index = await this.$store.dispatch('fetchBrandsIndex')
+const store = useStore()
+const router = useRouter()
 
-        function setProductsStarsAvg(products) {
-            for (let i = 0; i < products.length; i++) {
-                products[i].stars_avg = products[i].stars_avg
-            }
-        }
+const center_categories = reactive([])
+const sailed_products = reactive([])
+const hit_products = reactive([])
+const new_products = reactive([])
+const brands_index = reactive([])
+const mailing_list_response = ref('')
+const mailing_list_response_valid = ref(false)
+const mailing_list_response_invalid = ref(false)
+const mail_to_mailing_list = ref(null)
 
-        setProductsStarsAvg(this.sailed_products)
-        setProductsStarsAvg(this.new_products)
-    },
-    async beforeCreate(){
-        // let params = new URLSearchParams(document.location.search);
-        // if (params.size) {
-        //     const [state, code] = [params.get('state'), params.get('code')] 
-        //     console.log(state, code);
-        //     const auth = await axios.post(
-        //     `${this.$store.state.server_href}/auth/o/google-oauth2/?state=${state}&code=${code}`,
-        //     {
-        //         headers: {
-        //             'Content-Type': 'application/x-www-form-urlencoded'
-        //         }
-        //     })
-        //     console.log(auth.data);
-        // }
+
+onBeforeMount(async () => {
+    center_categories.push(...await store.dispatch('fetchPositionCategories', 'center'))
+    sailed_products.push(...await store.dispatch('fetchProductsBySaleNewHit', 'sale'))
+    new_products.push(...await store.dispatch('fetchProductsBySaleNewHit', 'NEW'))
+    hit_products.push(...await store.dispatch('fetchProductsBySaleNewHit', 'HIT'))
+    brands_index.push(...await store.dispatch('fetchBrandsIndex'))
+})
+
+
+function check_mailing_list_response(response){
+    if(response.data['Error']){
+        mailing_list_response_invalid.value = true
+        mailing_list_response.value = response.data['Error']
+        setTimeout(() => {
+            mailing_list_response_invalid.value = false
+            mailing_list_response.value = ''
+        }, 4000);
+    }
+    else if(response.data['Message']){
+        mailing_list_response_valid.value = true
+        mailing_list_response.value = 'Loading...'
+        mailing_list_response.value = response.data['Message']
+        setTimeout(() => {
+            mailing_list_response_valid.value = false
+            mailing_list_response.value = ''
+        }, 4000)
     }
 }
+function invalid_email_ui(){
+    mail_to_mailing_list.value.style = "border: 2px solid red"
+    setTimeout(()=>{
+        // Validation below used to avoid error when user
+        // after submit with empty email try go to other page 
+        if (mail_to_mailing_list.value) mail_to_mailing_list.value.style = ""
+    }, 4000)
+}
+async function subscribeMailingList(){
+    const mail = mail_to_mailing_list.value.value.trim()
+    if (!mail) {
+        invalid_email_ui()
+        return
+    }
+
+    const response = await axios.post(`${store.state.server_href}mailing_list`, {mail:mail})
+    check_mailing_list_response(response)
+}
+async function unsubscribe(){
+    const mail = mail_to_mailing_list.value.value.trim()
+    if (!mail) {
+        invalid_email_ui()
+        return
+    }
+    
+    const response = await axios.post(`${store.state.server_href}mailing_list`, {mail:mail, for_delete:true})
+    check_mailing_list_response(response)
+}
+function toFiltersPage(center_category){
+    // find center cat in localStorage cats_formated and redirect to
+    // filters page with center cat name and parent cat name 
+    const cats_formated = JSON.parse(localStorage.getItem('cats_formated'))
+    for(const [lcat_key, lcat_value] of Object.entries(cats_formated)){
+        if (Object.keys(lcat_value).find( el => el==center_category )) {
+            router.push({ path:'/product_filters', query:{'center_category': `${lcat_key},${center_category}`} })
+            break
+        }
+    }
+}
+
+
 </script>
 
 <style>

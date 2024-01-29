@@ -44,14 +44,14 @@ v-model:modal_visible="refund_modal_visible"
             <a class="exit_acc" @click="exitAcc">Выйти</a>
             <div v-if="user_mini_info" class="user_photo">
                 <img 
-                v-if="!['None', 'null', null].includes(user_mini_info.photo)"
-                :src="$store.getters.getImageUrl(user_mini_info.photo)"
+                v-if="!['None', 'null', null].includes(user_mini_info?.photo)"
+                :src="$store.getters.getImageUrl(user_mini_info?.photo)"
                 >
                 <div
                 v-else
                 class="user_no_img"
                 >
-                    {{ user_mini_info.first_name.charAt(0).toUpperCase() }}
+                    {{ user_mini_info?.first_name.charAt(0).toUpperCase() }}
                 </div>
             </div>
             <br>
@@ -68,15 +68,18 @@ v-model:modal_visible="refund_modal_visible"
                 </label>
                 
             </div>
-            <h3 style="padding: 0px 30px;">
-                {{ user_mini_info['first_name'] }}
+            <h3 
+            style="padding: 0px 30px;"
+            v-if="user_additional_info"
+            >
+                {{ user_mini_info?.first_name }}
                 {{ user_additional_info['last_name'] }}
             </h3>
             <div class="profile_tabs">
                 <div 
                 :class="{
                     profile_tab: true,
-                    profile_tab_clicked: checkStoreProfileContent('orders') || orders_visible
+                    profile_tab_clicked: checkStoreProfileContent('orders') || tabs_visibility['orders_visible']
                 }"
                 @mouseenter="setTabVisible('orders')"
                 @mouseleave="setTabInvisible('orders')"
@@ -84,7 +87,7 @@ v-model:modal_visible="refund_modal_visible"
                 >
                     <img 
                     src="@/assets/img/cart_blue.png" 
-                    v-if="!checkStoreProfileContent('orders') && !orders_visible"
+                    v-if="!checkStoreProfileContent('orders') && !tabs_visibility['orders_visible']"
                     > 
                     <img 
                     src="@/assets/img/cart_white.png" 
@@ -96,7 +99,7 @@ v-model:modal_visible="refund_modal_visible"
                 <div 
                 :class="{
                     profile_tab: true,
-                    profile_tab_clicked: checkStoreProfileContent('liked') || liked_visible
+                    profile_tab_clicked: checkStoreProfileContent('liked') || tabs_visibility['liked_visible']
                 }"
                 @mouseenter="setTabVisible('liked')"
                 @mouseleave="setTabInvisible('liked')"
@@ -104,7 +107,7 @@ v-model:modal_visible="refund_modal_visible"
                 >
                     <img 
                     src="@/assets/img/like_blue.png" 
-                    v-if="!checkStoreProfileContent('liked') && !liked_visible"
+                    v-if="!checkStoreProfileContent('liked') && !tabs_visibility['liked_visible']"
                     > 
                     <img src="@/assets/img/like_white.png" v-else> 
                     <span>&nbsp; &nbsp;</span>
@@ -113,7 +116,7 @@ v-model:modal_visible="refund_modal_visible"
                 <div 
                 :class="{
                     profile_tab: true,
-                    profile_tab_clicked: checkStoreProfileContent('sales') || sales_visible
+                    profile_tab_clicked: checkStoreProfileContent('sales') || tabs_visibility['sales_visible']
                 }"
                 @mouseenter="setTabVisible('sales')"
                 @mouseleave="setTabInvisible('sales')"
@@ -121,7 +124,7 @@ v-model:modal_visible="refund_modal_visible"
                 >
                     <img 
                     src="@/assets/img/sale_blue.png" 
-                    v-if="!checkStoreProfileContent('sales') && !sales_visible"
+                    v-if="!checkStoreProfileContent('sales') && !tabs_visibility['sales_visible']"
                     > 
                     <img 
                     src="@/assets/img/sale_white.png" 
@@ -133,7 +136,7 @@ v-model:modal_visible="refund_modal_visible"
                 <div 
                 :class="{
                     profile_tab: true,
-                    profile_tab_clicked: checkStoreProfileContent('register') || register_visible
+                    profile_tab_clicked: checkStoreProfileContent('register') || tabs_visibility['register_visible']
                 }"
                 @mouseenter="setTabVisible('register')"
                 @mouseleave="setTabInvisible('register')"
@@ -141,7 +144,7 @@ v-model:modal_visible="refund_modal_visible"
                 >
                     <img 
                     src="@/assets/img/settings_blue.png" 
-                    v-if="!checkStoreProfileContent('register') && !register_visible"
+                    v-if="!checkStoreProfileContent('register') && !tabs_visibility['register_visible']"
                     > 
                     <img 
                     src="@/assets/img/settings_white.png" 
@@ -155,7 +158,7 @@ v-model:modal_visible="refund_modal_visible"
         </div>
 
         <div class="profile_content_orders" v-if="checkStoreProfileContent('orders')">
-            <div v-if="user_additional_info['orders'].length >= 1">
+            <div v-if="user_additional_info && user_additional_info['orders']?.length >= 1">
                 <h2>История Ваших заказов</h2><br>
                 <div class="card_product_explain">
                     <span>№ заказа</span>
@@ -163,7 +166,7 @@ v-model:modal_visible="refund_modal_visible"
                     <span>Колл-во</span>
                     <span>Сумма</span>
                     <span>Статус</span>
-                    <img src="@/assets/img/Vector_42.png" alt="">
+                    <img src="@/assets/img/Vector_42.png">
                 </div>
                 <ui-select
                 :purpose="'cart_products'"
@@ -181,7 +184,7 @@ v-model:modal_visible="refund_modal_visible"
                         <div class="pay_variants" v-if="order['payment_date']">
                             <p>дата оплаты: {{ order['payment_date'] }}</p>
                         </div>
-                        <div class="pay_variants" v-if="!order.status && order['order_products'].length">
+                        <div class="pay_variants" v-if="!order.status && order['order_products']?.length">
                             <ui-paypal-btns 
                             @click="mail_modal_visible_for_payment_method = 'paypal'"
                             :approve_mail_checking="mail_checking_approved_for['paypal']"
@@ -252,7 +255,7 @@ v-model:modal_visible="refund_modal_visible"
             
         </div>
         <div class="profile_content_liked" v-else-if="checkStoreProfileContent('liked')">
-            <div v-if="user_additional_info.liked_products.length">
+            <div v-if="user_additional_info && user_additional_info.liked_products?.length">
                 <h1>Список моих желаний</h1><br>
                 <div class="liked_products">
                     <ui-slide
@@ -286,7 +289,6 @@ v-model:modal_visible="refund_modal_visible"
                 :key="product.id"
                 :product="product"
                 @add_liked_product="pushLikedProduct"
-                @rerender_header="$emit('rerender_header')"
                 >
                 </ui-slide>
             </div>
@@ -370,7 +372,7 @@ v-model:modal_visible="refund_modal_visible"
 </div>
 <mini-products-slider 
 style="padding: 60px 7%;background: rgb(244, 245, 249);"
-v-if="user_additional_info.viewed10_products.length"
+v-if="user_additional_info.viewed10_products?.length"
 >
     <template #header>
         <h1>Вы уже смотрели</h1>
@@ -381,7 +383,6 @@ v-if="user_additional_info.viewed10_products.length"
     :key="product.id"
     :product="product"
     @add_liked_product="pushLikedProduct"
-    @rerender_header="$emit('rerender_header')"
     >
     </ui-slide>
 </mini-products-slider> 
@@ -392,298 +393,300 @@ v-if="user_additional_info.viewed10_products.length"
 
 </template>
 
-<script>
-export default {
-    data(){
-        return {
-            user_mini_info: JSON.parse(localStorage.getItem('current_user')),
-            user_additional_info: null,
+<script setup>
+import { useRoute, useRouter } from 'vue-router'
+import { useStore } from 'vuex'
+import { ref, reactive, onBeforeMount, watch } from 'vue'
 
-            orders_visible: false,
-            liked_visible: false,
-            sales_visible: false,
-            register_visible: false,
 
-            mail_modal_visible_for_payment_method: false,
-            mail_checking_approved_for: {
-                'paypal': false,
-                'stripe': false,
-            },
-            refund_modal_visible: false,
-            refund_reason_pointed: false,
-            refund_reason_text: '',
-            textarea_outline: '2px solid #74CCD8',
+const emit = defineEmits()
+const store = useStore()
+const route = useRoute()
+const router = useRouter()
 
-            edit_acc_btn_text: 'Сохранить изменения',
-            
-            current_sale: '>= 25%',
-            current_pagination_page: 1,
-            sailed_products: [],
-            update_acc_fields: {},
-            update_acc_fields_errors: {}
-        }
-    },
-    methods: {
-        async profileWhatVisible(visible_tab){
-            // set tab clicked by name
-            this.$store.commit('setProfileContent', visible_tab)
-            if (visible_tab === 'sales'){
-                await this.getSailedProducts()
-                this.current_pagination_page = 1 
-                this.current_sale = '>= 25%'
-            }  
-        },
-        setTabVisible(tab_name){
-            // set tab _visible = true by name for styles
-            this.$data[`${tab_name}_visible`] = true
-        },
-        setTabInvisible(tab_name){
-            // set tab _visible = false by name for disable style
-            this.$data[`${tab_name}_visible`] = false
-            
-        },
-        checkStoreProfileContent(value){
-            return this.$store.state.profile_content === value
-        },
-        async approveMailCheckingAndCloseModal(){
-            if(
-                this.mail_modal_visible_for_payment_method === 'stripe' && 
-                !this.user_additional_info['stripe_payment']
-            ){
-                await this.profileWhatVisible('register')
-            }else{
-                this.mail_checking_approved_for[this.mail_modal_visible_for_payment_method] = true
-            }
-            this.mail_modal_visible_for_payment_method = false
-        },
-        refundPaymentAfterReason(){
-            if (this.refund_reason_text.trim()) {
-                this.refund_modal_visible = false
-                this.refund_reason_pointed = true
-            }else{
-                this.textarea_outline = '2px solid red'
-                setTimeout(() => {
-                    this.textarea_outline = '2px solid #74CCD8'
-                }, 2000);
-            }
-            
-        },
-        getClassForOrderStatus(order_status){
-            const classes = {
-                pending: 'order_statuswait',
-                received: 'order_statuspayed',
-                rejected: 'order_statusclosed',
-            }
-            return classes[order_status]
-        },
-        async changePhoto(e){
-            
-            const photoData = new FormData();
-            photoData.append('photo', e.target.files[0], e.target.files[0].name);
-            const changed_acc = await this.$store.dispatch(
-                'commonRequestWithAuth', 
-                {
-                    method: 'patch',
-                    url_after_server_domain: `users_edit_or_del/${this.user_mini_info['id']}`,
-                    data: photoData
-                }
-            )
-            this.user_mini_info.photo = changed_acc.photo
-            this.$emit('rerender_header')
-        },
-        pushLikedProduct(product){
-            // If product not in liked list, add it, update header
-            if (!this.$store.state.liked_products_names.has(product.name)) {
-                this.user_additional_info.liked_products.push(product)
-            }
-            this.$emit('rerender_header')
-        },
-        removeLikedProduct(product){
-            // Remove product from liked list, update header, del product name from liked_products_names vuex state
-            this.user_additional_info.liked_products=this.user_additional_info.liked_products.filter(el => el !== product)
-            console.log('RRH');
-            this.$emit('rerender_header')
-        },
-        async delOrderProduct(e, product){
-            // Del product from order wthout status and update ui by replacing order without status, received from server,
-            // if after delete product order will be empty - del order,
-            // update order product count in header component
-            e.stopPropagation()
-            const updated_order_without_status = await this.$store.dispatch(
-                'commonRequestWithAuth', 
-                {
-                    method: 'delete',
-                    url_after_server_domain: `users_add_or_del_order_product/${this.user_mini_info['id']}/${product['id']}`,
-                }
-            )
-            if (!('detail' in updated_order_without_status)) {
-                this.user_additional_info['orders'][0] = updated_order_without_status
-            } else if(updated_order_without_status['detail'] === 'Order deleted') {
-                this.user_additional_info['orders'] = this.user_additional_info['orders'].filter(
-                    order => order.status 
-                )
-            }
-            this.$store.commit('delOrderedProduct', product['name'])
-            this.$emit('rerender_header')
-            
+const user_mini_info = reactive(JSON.parse(localStorage.getItem('current_user')) || {})
+const user_additional_info = reactive({})
+const tabs_visibility = reactive({
+    'orders_visible': false,
+    'liked_visible': false,
+    'sales_visible': false,
+    'register_visible': false,
+})
+const mail_checking_approved_for = reactive({
+    'paypal': false,
+    'stripe': false,
+})
+const mail_modal_visible_for_payment_method = ref(false)
+const refund_modal_visible = ref(false)
+const refund_reason_pointed = ref(false)
+const refund_reason_text = ref('')
+const textarea_outline = ref('2px solid #74CCD8')
+const edit_acc_btn_text = ref('Сохранить изменения')
+const current_sale = ref('>= 25%')
+const current_pagination_page = ref(1)
+const sailed_products = reactive({})
+const update_acc_fields = reactive({})
+const update_acc_fields_errors = ref({}) // ref used for easy assigning empty Object by .value={}
+const edit_acc_btn = ref(null)
 
-        },
-        replaceOrder(changed_order){
-            // replace refunded order(received from server) for valid ui
-            for (let i = 0; i < this.user_additional_info['orders'].length; i++) {
-                if (this.user_additional_info['orders'][i].id === changed_order.id){
-                    this.user_additional_info['orders'][i] = changed_order
-                    break
-                }
-            }
-        },
-        async getSailedProducts(){
-            // If tab is sales, lazy upload relevant products(without sale limit for first)
-            if (this.checkStoreProfileContent('sales')) {
-                this.sailed_products = await this.$store.dispatch(
-                    'commonRequestWithAuth', 
-                    {
-                        method: 'get',
-                        url_after_server_domain: `filter_products?sale_new_hit_by_sailed=all_sailed`,
-                        
-                    }
-                    
-                )
-            }
-        },
-        async getFilteredSailedProducts(paginated_to){
-            let sale = 
-            this.current_sale === 'Select sale' ? 
-            'sale_new_hit_by_sailed=all_sailed' : 
-            `sale_new_hit_by_sailed=${this.current_sale.slice(3, 5)}`
-            
-            this.sailed_products = await this.$store.dispatch(
-                'commonRequestWithAuth', 
-                {
-                    method: 'get',
-                    url_after_server_domain: `filter_products?${sale}&pg=${paginated_to}`,
-                }
-                
-            )
-            this.current_pagination_page = paginated_to
-        },
-        updateUserInfo(obj){
-            // Update few user info given from inputs after successfully edit acc(and before mount)
-            this.user_mini_info['first_name'] = obj['first_name']
-            this.user_additional_info['last_name'] = obj['last_name']
-            this.user_additional_info['email'] = obj['email']
-            this.user_additional_info['tel'] = obj['tel']
-            this.user_additional_info['city'] = obj['city']
-            this.user_additional_info['street'] = obj['street']
-            this.user_additional_info['post_code'] = obj['post_code']
-            this.user_additional_info['in_mailing_list'] = obj['in_mailing_list']
-        },
-        async editAcc(){
-            // Edit acc and apdate header, user_mini_info, user_additional_info.
-            // If any input are invalid show error in ui
-            const changed_acc = await this.$store.dispatch(
-                'commonRequestWithAuth', 
-                {
-                    method: 'patch',
-                    url_after_server_domain: `users_edit_or_del/${this.user_mini_info['id']}`,
-                    data: this.update_acc_fields
-                }
-            )
-            if (![400, 401].includes(changed_acc.response?.status)) {
-                this.$emit('rerender_header')
-                this.updateUserInfo(changed_acc)
-                this.update_acc_fields_errors = {}
 
-                this.edit_acc_btn_text = 'Сохранено!'
-                this.$refs['edit_acc_btn'].style.background = '#90de63'
-                setTimeout(() => {
-                    this.edit_acc_btn_text = 'Сохранить изменения'
-                    this.$refs['edit_acc_btn'].style.background = '#74CCD8'
-                }, 2000);
-            }else{
-                this.update_acc_fields_errors = changed_acc.response.data
-                for (const [key, value] of Object.entries(changed_acc.response.data)) {
-                    this.update_acc_fields_errors[key] = value[0]
-                }
-            }
-            
-            
-        },
-        async deleteAcc(){
-            await this.$store.dispatch(
-                'commonRequestWithAuth', 
-                {
-                    method: 'delete',
-                    url_after_server_domain: `users_edit_or_del/${this.user_mini_info['id']}`,
-                }
-            )
-            this.$store.getters.delAllDataFromLocalStorage()
-            this.$router.push('/register')
-            this.$emit('rerender_header')
-        },
-        exitAcc(){
-            // Delete all data in localStorage(tokens, user info) and redirect to /register
-            this.$store.getters.delAllDataFromLocalStorage()
-            this.$emit('rerender_header')
-            this.$router.push('/register')
-        }
-    },
-    async beforeMount(){
-        this.$store.state.pagesInCrumbs.clear()
-        this.$store.state.pagesInCrumbs.add('Profile')
-
-        // If user is not authed redirect to /register
-        if (!this.user_mini_info) this.$router.push(`/register`)
-
-        // Get user additional info and sailed products(if sales tab active)
-        this.user_additional_info = await this.$store.dispatch(
+onBeforeMount(async () => {
+    store.state.pagesInCrumbs.clear()
+    store.state.pagesInCrumbs.add('Profile')
+    
+    // If user is not authed redirect to /register
+    if (!user_mini_info?.id){
+        router.push(`/register`)
+        return
+    }
+    
+    // Get user additional info and sailed products(if sales tab active)
+    Object.assign(
+        user_additional_info,
+        await store.dispatch(
             'commonRequestWithAuth', 
             {
                 method: 'get',
-                url_after_server_domain: `users_profile/${this.user_mini_info['id']}`,
+                url_after_server_domain: `users_profile/${user_mini_info?.id}`,
             }
         )
-        if (this.checkStoreProfileContent('sales')) await this.getSailedProducts()
-        
+    )
+    if (checkStoreProfileContent('sales')) await getSailedProducts()
+      
 
-        // Set liked products names, ordered products names in vuex liked_products_names state,
-        // for slide top right btn valid ui and product detail add_product_to_cart btn valid ui
-        this.user_additional_info.liked_products.forEach(p => {
-            this.$store.commit('pushLikedProduct', p.name)
-        })
-        if (this.user_additional_info['orders'].length && !this.$route.query.captured) {
-            // If receive url ?captured=True param from server leave empty ordered_products_names array in vuex
-            const order = this.user_additional_info['orders'].find(order=>!order.status)
-            if (order){
-                order['order_products'].forEach( p => {
-                    this.$store.commit('pushOrderedProduct', p.name)
-                })
+    // Set all values in edit account inputs.
+    const exclude_update_acc_fields = ['orders', 'liked_products', 'viewed10_products']
+    Object.assign(update_acc_fields, user_additional_info)
+    update_acc_fields['first_name'] = user_mini_info?.first_name
+    exclude_update_acc_fields.forEach(field => delete update_acc_fields[field])
+})
+
+
+watch(
+    current_sale,
+    async newValue => {
+        // If sale changed paginate to first page and get relevant sailed products
+        current_pagination_page.value = 1
+
+        const new_sailed_products = await store.dispatch(
+            'commonRequestWithAuth', 
+            {
+                method: 'get',
+                url_after_server_domain: `filter_products?sale_new_hit_by_sailed=${newValue.slice(3, 5)}&pg=1`,
             }
-            
-        }
-        
-        // Set all values in edit account inputs.
-        const exclude_update_acc_fields = ['orders', 'liked_products', 'viewed10_products']
-        this.update_acc_fields = {...this.user_additional_info}
-        this.update_acc_fields['first_name'] = this.user_mini_info['first_name']
-        exclude_update_acc_fields.forEach(field => delete this.update_acc_fields[field])
-        
+        )
 
-    },
-    watch: {
-        async current_sale(newValue){
-            // If sale changed paginate to first page and get relevant sailed products
-            this.current_pagination_page = 1
-            this.sailed_products = await this.$store.dispatch(
-                'commonRequestWithAuth', 
-                {
-                    method: 'get',
-                    url_after_server_domain: `filter_products?sale_new_hit_by_sailed=${newValue.slice(3, 5)}&pg=1`,
-                }
-            )
+        Object.assign(sailed_products, new_sailed_products)
+    }
+)
+
+
+async function profileWhatVisible(visible_tab){
+    // set tab clicked by name
+    store.commit('setProfileContent', visible_tab)
+    if (visible_tab !== 'sales') return
+
+    await getSailedProducts()
+    current_pagination_page.value = 1 
+    current_sale.value = '>= 25%'
+}
+function setTabVisible(tab_name){
+    // set tab _visible = true by name for styles
+    tabs_visibility[`${tab_name}_visible`] = true
+}
+function setTabInvisible(tab_name){
+    // set tab _visible = false by name for disable style
+    tabs_visibility[`${tab_name}_visible`] = false
+    
+}
+function checkStoreProfileContent(value){
+    return store.state.profile_content === value
+}
+async function approveMailCheckingAndCloseModal(){
+    if(
+        mail_modal_visible_for_payment_method.value === 'stripe' && 
+        !user_additional_info['stripe_payment']
+    ){
+        await profileWhatVisible('register')
+        await document.querySelector(".payment_form").scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        })
+    }else{
+        mail_checking_approved_for[mail_modal_visible_for_payment_method.value] = true
+    }
+    mail_modal_visible_for_payment_method.value = false
+}
+function refundPaymentAfterReason(){
+    if (refund_reason_text.value.trim()) {
+        refund_modal_visible.value = false
+        refund_reason_pointed.value = true
+    }else{
+        textarea_outline.value = '2px solid red'
+        setTimeout(() => {
+            textarea_outline.value = '2px solid #74CCD8'
+        }, 2000);
+    }
+    
+}
+function getClassForOrderStatus(order_status){
+    const classes = {
+        pending: 'order_statuswait',
+        received: 'order_statuspayed',
+        rejected: 'order_statusclosed',
+    }
+    return classes[order_status]
+}
+async function changePhoto(e){
+    
+    const photoData = new FormData();
+    photoData.append('photo', e.target.files[0], e.target.files[0].name);
+    const changed_acc = await store.dispatch(
+        'commonRequestWithAuth', 
+        {
+            method: 'patch',
+            url_after_server_domain: `users_edit_or_del/${user_mini_info?.id}`,
+            data: photoData
+        }
+    )
+    user_mini_info.photo = changed_acc.photo
+    emit('rerender_header')
+}
+function pushLikedProduct(product){
+    // If product not in liked list, add it, update header
+    if (!store.state.liked_products_names.has(product.name)) {
+        user_additional_info.liked_products.push(product)
+    }
+}
+function removeLikedProduct(product){
+    // Remove product from liked list, update header, del product name from liked_products_names vuex state
+    user_additional_info.liked_products=user_additional_info.liked_products.filter(el => el !== product)
+}
+async function delOrderProduct(e, product){
+    // Del product from order wthout status and update ui by replacing order without status, received from server,
+    // if after delete product order will be empty - del order,
+    // update order product count in header component
+    e.stopPropagation()
+    const updated_order_without_status = await store.dispatch(
+        'commonRequestWithAuth', 
+        {
+            method: 'delete',
+            url_after_server_domain: `users_add_or_del_order_product/${user_mini_info?.id}/${product['id']}`,
+        }
+    )
+    if (!('detail' in updated_order_without_status)) {
+        user_additional_info['orders'][0] = updated_order_without_status
+    } else if(updated_order_without_status['detail'] === 'Order deleted') {
+        user_additional_info['orders'] = user_additional_info['orders'].filter(
+            order => order.status 
+        )
+    }
+    store.commit('delOrderedProduct', product['name'])
+
+}
+function replaceOrder(changed_order){
+    // replace refunded order(received from server) for valid ui
+    for (let i = 0; i < user_additional_info['orders'].length; i++) {
+        if (user_additional_info['orders'][i].id === changed_order.id){
+            user_additional_info['orders'][i] = changed_order
+            break
         }
     }
 }
+async function getSailedProducts(){
+    // If tab is sales, lazy upload relevant products(without sale limit for first)
+    if (!checkStoreProfileContent('sales')) return
+
+    const new_sailed_products = await store.dispatch(
+        'commonRequestWithAuth', 
+        {
+            method: 'get',
+            url_after_server_domain: `filter_products?sale_new_hit_by_sailed=all_sailed`,
+         
+        }
+    )
+
+    Object.assign(sailed_products, new_sailed_products)
+    
+}
+async function getFilteredSailedProducts(paginated_to){
+    let sale = 
+    current_sale.value === 'Select sale' ? 
+    'sale_new_hit_by_sailed=all_sailed' : 
+    `sale_new_hit_by_sailed=${current_sale.value.slice(3, 5)}`
+    
+    const new_sailed_products = await store.dispatch(
+        'commonRequestWithAuth', 
+        {
+            method: 'get',
+            url_after_server_domain: `filter_products?${sale}&pg=${paginated_to}`,
+        }
+    )
+
+    Object.assign(sailed_products, new_sailed_products)
+    current_pagination_page.value = paginated_to
+}
+function updateUserInfo(obj){
+    // Update few user info given from inputs after successfully edit acc(and before mount)
+    user_mini_info.first_name = obj['first_name']
+    user_additional_info['last_name'] = obj['last_name']
+    user_additional_info['email'] = obj['email']
+    user_additional_info['tel'] = obj['tel']
+    user_additional_info['city'] = obj['city']
+    user_additional_info['street'] = obj['street']
+    user_additional_info['post_code'] = obj['post_code']
+    user_additional_info['in_mailing_list'] = obj['in_mailing_list']
+}
+async function editAcc(){
+    // Edit acc and update header, user_mini_info, user_additional_info.
+    // If any input are invalid show error in ui
+    const changed_acc = await store.dispatch(
+        'commonRequestWithAuth', 
+        {
+            method: 'patch',
+            url_after_server_domain: `users_edit_or_del/${user_mini_info?.id}`,
+            data: update_acc_fields
+        }
+    )
+    if (![400, 401].includes(changed_acc.response?.status)) {
+        emit('rerender_header')
+        updateUserInfo(changed_acc)
+        update_acc_fields_errors.value = {}
+
+        edit_acc_btn_text.value = 'Сохранено!'
+        edit_acc_btn.value.style.background = '#90de63'
+        setTimeout(() => {
+            edit_acc_btn_text.value = 'Сохранить изменения'
+            edit_acc_btn.value.style.background = '#74CCD8'
+        }, 2000);
+    }else{
+        Object.assign(update_acc_fields_errors.value, changed_acc.response.data)
+        for (const [key, value] of Object.entries(changed_acc.response.data)) {
+            update_acc_fields_errors.value[key] = value[0]
+        }
+    }
+    
+    
+}
+async function deleteAcc(){
+    await store.dispatch(
+        'commonRequestWithAuth', 
+        {
+            method: 'delete',
+            url_after_server_domain: `users_edit_or_del/${user_mini_info?.id}`,
+        }
+    )
+    store.getters.delAllDataFromLocalStorage()
+    router.push('/register')
+    emit('rerender_header')
+}
+function exitAcc(){
+    // Delete all data in localStorage(tokens, user info) and redirect to /register
+    store.getters.delAllDataFromLocalStorage()
+    emit('rerender_header')
+    router.push('/register')
+}
+
 </script>
 
 <style scoped>

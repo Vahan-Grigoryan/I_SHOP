@@ -9,19 +9,15 @@
     </div>
 </template>
 
-<script>
+<script setup>
 // If content empty in profile tab, put this component with custom 
 // header, content, button for redirect
 
-
-export default {
-    name: 'ui-profile-empty',
-    props: {
-        header: String,
-        content: String,
-        btn_content: String
-    }
-}
+const props = defineProps({
+    header: String,
+    content: String,
+    btn_content: String
+})
 </script>
 
 <style scoped>

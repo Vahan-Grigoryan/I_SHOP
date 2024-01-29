@@ -64,10 +64,6 @@
 
 <script>
 // Common footer
-
-export default {
-    name: 'ui-footer'
-}
 </script>
 
 <style scoped>

@@ -6,7 +6,8 @@
     <div class="blog_box">
         <h1>Блог</h1>
         <div class="blog_categories">
-            <span :class="{
+            <span 
+            :class="{
                 active_blog_category: !blogs_of_category
             }" 
             @click="blogs_of_category = ''"
@@ -39,7 +40,7 @@
         </div>
         <ui-pagination 
         :pages="$store.getters.calculatePagesCount(blogs.count, 2)"
-        @paginated_to="paginateTo"
+        @paginated_to="(paginate_to) => current_page = paginate_to"
         v-model:page_active="current_page"
         />
     </div>
@@ -48,78 +49,49 @@
 
 </template>
 
-<script>
-export default {
-    data(){
-        return {
-            blog_date_filters: ['newest', 'latest'],
-            sort_by: 'newest',
-            blogs: [],
-            blogs_categories: [],
-            blogs_of_category: '',
-            current_page: 1,
-        }
-    },
-    methods: {
-        async paginateTo(paginated_to=1){
-            // Paginate to pagination page consider selected category and sort_by
-            if (this.blogs_of_category) {
-                try{
-                    this.blogs = await this.$store.dispatch(
-                        'fetchBlogs', 
-                        `sort_by=${this.sort_by}&category=${this.blogs_of_category}&pg=${paginated_to}`
-                    )
-                    this.current_page = paginated_to
-                }catch(err){}
-            }else{
-                try{
-                    this.blogs = await this.$store.dispatch('fetchBlogs', `sort_by=${this.sort_by}&pg=${paginated_to}`)
-                    this.current_page = paginated_to
-                }catch(err){}
-            }
-            
-        }
-    },
-    async beforeMount(){
-        this.blogs = await this.$store.dispatch('fetchBlogs', `sort_by=${this.sort_by}`)
-        this.blogs_categories = await this.$store.dispatch('fetchBlogCategories')
+<script setup>
+import { useStore } from 'vuex'
+import { ref, reactive, onBeforeMount, watchEffect } from 'vue'
 
-        this.$store.state.pagesInCrumbs.clear()
-        this.$store.state.pagesInCrumbs.add('Blog')
-    },
-    watch: {
-        async blogs_of_category(newValue){
-            // blogs_of_category = selected category
-            // If it changed get new blogs of pointed category or all blogs(with sort_by)
-            this.current_page=1
-            if (newValue) {
-                this.blogs = await this.$store.dispatch(
-                    'fetchBlogs', 
-                    `sort_by=${this.sort_by}&category=${newValue}`
-                )
-            }else{
-                this.blogs = await this.$store.dispatch(
-                    'fetchBlogs', 
-                    `sort_by=${this.sort_by}`
-                )
-            }
-        },
-        async sort_by(newValue){
-            // If sort_by changed get new blogs(by selected category if needed)
-            if (this.blogs_of_category) {
-                this.blogs = await this.$store.dispatch(
-                    'fetchBlogs', 
-                    `sort_by=${newValue}&category=${this.blogs_of_category}&pg=${this.current_page}`
-                )
-            }else{
-                this.blogs = await this.$store.dispatch(
-                    'fetchBlogs', 
-                    `sort_by=${newValue}&pg=${this.current_page}`
-                )
-            }
-        }
+
+const store = useStore()
+
+const blog_date_filters = reactive(['newest', 'latest'])
+const sort_by = ref('newest')
+const blogs = reactive({})
+const blogs_categories = reactive({})
+const blogs_of_category = ref('')
+const blogs_of_category_old = ref('')
+const current_page = ref(1)
+
+
+onBeforeMount(async () => {
+    Object.assign(
+        blogs_categories,
+        await store.dispatch('fetchBlogCategories')
+    )
+
+    store.state.pagesInCrumbs.clear()
+    store.state.pagesInCrumbs.add('Blog')
+})
+
+
+watchEffect(async () => {
+    const new_category_selected = blogs_of_category.value != blogs_of_category_old.value
+
+    if(current_page.value > 1 && new_category_selected) current_page.value = 1
+    if(new_category_selected){
+        blogs_of_category_old.value = blogs_of_category.value
     }
-}
+
+    Object.assign(
+        blogs,
+        await store.dispatch(
+            'fetchBlogs', 
+            `sort_by=${sort_by.value}&category=${blogs_of_category.value}&pg=${current_page.value}`
+        )
+    )
+})
 </script>
 
 <style scoped>

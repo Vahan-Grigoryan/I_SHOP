@@ -19,8 +19,22 @@ import PaymentProcessLoading from '@/components/UI/PaymentProcessLoading'
 
 
 export default [
-    MainTopSlider, MainBottomSlider, MiniProductsSlider, Brands,
-    HrefBlogBox, BlogSlide, Footer, BreadCrumbs, MySelect, 
-    OurProcs, ProfileContentEmpty, Pagination, SaleNewHit,
-    Slide, PaypalButtons, StripeButtons, Modal, PaymentProcessLoading
+    {...MainTopSlider, name: 'ui-main-top-slider'},
+    {...MainBottomSlider, name: 'ui-main-bottom-slider'},
+    {...MiniProductsSlider, name: 'mini-products-slider'},
+    {...Brands, name: 'ui-brands'},
+    {...HrefBlogBox, name: 'ui-href-blog-box'},
+    {...BlogSlide, name: 'ui-blog-slide'},
+    {...Footer, name: 'ui-footer'},
+    {...BreadCrumbs, name: 'ui-bread-crumbs'},
+    {...MySelect, name: 'ui-select'}, 
+    {...OurProcs, name: 'ui-our-procs'},
+    {...ProfileContentEmpty, name: 'ui-profile-empty'},
+    {...Pagination, name: 'ui-pagination'},
+    {...SaleNewHit, name: 'ui-detect-salenewhit'},
+    {...Slide, name: 'ui-slide'},
+    {...PaypalButtons, name: 'ui-paypal-btns'},
+    {...StripeButtons, name: 'ui-stripe-btns'},
+    {...Modal, name: 'ui-modal'},
+    {...PaymentProcessLoading, name: 'ui-payment-process-loading'}
 ]

@@ -112,45 +112,43 @@
 
 </template>
 
-<script>
-import { onMounted, ref } from 'vue';
-import Splide from '@splidejs/splide'
+<script setup>
+import { Splide, SplideSlide } from '@splidejs/vue-splide'
+import { useStore } from 'vuex'
+import { ref, onBeforeMount, onMounted } from 'vue'
 
 
-export default {
-    setup() {
-        const splide = ref();
-        let compare_field = ref('Select field for compare')
-        const options = ['all', 'weight', 'color', 'size']
+const store = useStore()
 
-        onMounted( () => {
-            const end  = splide.value.splide.Components.Controller.getEnd() + 1;
-            const bar = document.querySelector('.bar')
-            bar.style.width = `${bar.offsetWidth / end}px`
-        } );
-        
-        function splideMoved() {
-            const splide1_instance = splide.value.splide
-            const current_splide_i = splide1_instance.index
-            const pbar = document.querySelector('.progressbar')
-            const bar = document.querySelector('.bar')
-            const end  = splide1_instance.Components.Controller.getEnd() + 1;
-            bar.style.transform = `translateX(${current_splide_i*(pbar.offsetWidth / end)}px)`;
+const splide = ref(null)
+const compare_field = ref('Select field for compare')
+const options = ['all', 'weight', 'color', 'size']
 
-        }
-        
-        return {
-            splide,
-            compare_field,
-            options,
-            splideMoved,
-        }
-    },
-    async beforeMount(){
-        this.$store.state.pagesInCrumbs.clear()
-        this.$store.state.pagesInCrumbs.add('Compare cart')
-    },
+
+onMounted( () => {
+    console.log(splide.value)
+    const end  = splide.value.splide.Components.Controller.getEnd() + 1;
+    const bar = document.querySelector('.bar')
+    bar.style.width = `${bar.offsetWidth / end}px`
+})
+
+
+onBeforeMount(async () => {
+    store.state.pagesInCrumbs.clear()
+    store.state.pagesInCrumbs.add('Compare cart')
+})
+
+
+function splideMoved() {
+    const splide1_instance = splide.value.splide
+    const current_splide_i = splide1_instance.index
+    const pbar = document.querySelector('.progressbar')
+    const bar = document.querySelector('.bar')
+    const end = splide1_instance.Components.Controller.getEnd() + 1;
+    bar.style.transform = `translateX(${current_splide_i*(pbar.offsetWidth / end)}px)`;
 }
+
+
 </script>
 
 <style scoped>

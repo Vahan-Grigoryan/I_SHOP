@@ -37,38 +37,24 @@
 </swiper>
 </template>
 
-<script>
+<script setup>
 // First slider from top in Index page, 
 // didn't use anywhere except here
-
-
 import { EffectCoverflow, Navigation, Pagination, Autoplay} from 'swiper'
 import { Swiper, SwiperSlide } from 'swiper/vue';
-
 import 'swiper/css';
 import 'swiper/css/effect-coverflow'
 import 'swiper/css/pagination';
 
 
-export default {
-    name: 'ui-main-top-slider',
-    components: {
-      Swiper,
-      SwiperSlide,
-    },
-    props: {
-      slidesPerView: {
+const props = defineProps({
+    slidesPerView: {
         type: Number,
         default: 1
-      }
-    },
-    data(){
-      return {
-        modules: [EffectCoverflow, Navigation, Pagination, Autoplay]
-      }
-    },
-    
-}
+    }
+})
+const modules = [EffectCoverflow, Navigation, Pagination, Autoplay]
+
 </script>
 
 <style scoped>

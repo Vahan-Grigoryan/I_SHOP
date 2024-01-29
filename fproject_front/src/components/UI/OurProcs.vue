@@ -21,10 +21,6 @@
 
 <script>
 // Common ui component
-
-export default {
-   name: 'ui-our-procs' 
-}
 </script>
 
 <style scoped>

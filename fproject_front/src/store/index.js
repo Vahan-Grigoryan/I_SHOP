@@ -14,6 +14,8 @@ export default createStore({
     getImageUrl: state => after_server_domain => {
       // after_server_domain = raw image url(user photo)
       // after treatment give ready image url 
+      if (!after_server_domain) return ""
+
       const image_url = after_server_domain.at(0) === '"' ? after_server_domain.slice(1, -1) : after_server_domain
       if (image_url.includes('http') || image_url.includes('https')) {
         return image_url
@@ -25,7 +27,6 @@ export default createStore({
       }
     },
     setTokensInLS: state => tokens => {
-
       localStorage.setItem('access', tokens['access'])
       localStorage.setItem('refresh', tokens['refresh'])
     },
@@ -134,7 +135,7 @@ export default createStore({
       const filteredProducts = await axios.get(`${state.server_href}filter_products${filtering_url_params}`)
       return filteredProducts.data
     },
-    async fetchOrGetCategories({state}){
+    async fetchCategories({state}){
       // If cats_formated(in LS) exist return it else fetch formated categories, write in LS and return it
       const catsLS = localStorage.getItem('cats_formated')
       if (catsLS) {
@@ -148,28 +149,80 @@ export default createStore({
       }
       
     },
-    async commonRequestWithAuth({state}, {method, url_after_server_domain, data}){
-      // Request structure with auth based on localStorage.getItem('access')
-      const access_for_request = localStorage.getItem('access')
+    async commonRequestWithAuth({state, getters}, {method, url_after_server_domain, data}){
+        // Request structure with auth based on localStorage.getItem('access')
+        
+        const access_token = localStorage.getItem('access')
 
-      if (access_for_request) {
-        try{
-          const response = await axios({
-            method: method,
-            url: state.server_href + url_after_server_domain,
-            data: data,
-            headers: {'Authorization': `JWT ${access_for_request}`}
-          });
-          return response.data
-        }catch(err){
-          return err
+        if (access_token) {
+            try{
+                return await request_to_server_with_auth_tokens_control(
+                    state,
+                    getters,
+                    method,
+                    url_after_server_domain,
+                    data,
+                )
+            }catch(err){
+                return err
+            }
         }
-      }else{
-        return 
-      }
-
     }
   },
   modules: {
   }
 })
+
+async function request_to_server_with_auth_tokens_control(
+    state,
+    getters,
+    method,
+    url_after_server_domain,
+    request_data,
+){
+    // Request to server with handling tokens errors.
+    // When first error received(assumed that access token expired),
+    // check it origin and try update access token by refresh token,
+
+    const access_for_request = localStorage.getItem('access')
+    
+    try{
+        const response = await axios({
+            method: method,
+            url: state.server_href + url_after_server_domain,
+            data: request_data,
+            headers: {'Authorization': `JWT ${access_for_request}`}
+        })
+        return response.data
+    }catch(err){
+        // Expired access token handling
+        if (await get_new_access_token(state, getters) === "success"){
+            return await request_to_server_with_auth_tokens_control(
+                state,
+                getters,
+                method,
+                url_after_server_domain,
+                request_data,
+            )
+        }
+    }
+
+}
+
+async function get_new_access_token(state, getters){
+    // Get access token by refresh,
+    // if refresh expired del all user data and reload page
+
+    const refresh = localStorage.getItem('refresh')
+    try{
+        const access_token = await axios.post(
+            `${state.server_href}auth/jwt/refresh`,
+            { 'refresh': refresh }
+        )
+        localStorage.setItem('access', access_token.data['access'])
+        return "success"
+    }catch(_){
+        getters.delAllDataFromLocalStorage()
+        location.reload()
+    }
+}
