@@ -17,31 +17,37 @@
 
 </template>
 
-<script>
-export default {
-    data(){
-        return {
-            blog: {}
-        }
-    },
-    methods: {
-        async getBlog(id){
-            // Get blog by id,
-            // in desc replace all images urls to valid urls
-            // update blog content
-            window.scrollTo(0,0)
-            this.blog = await this.$store.dispatch('fetchBlog', id)
-            this.blog.desc = this.blog.desc.replaceAll('/media', `${this.$store.state.server_href}media`)
-            this.$refs['blog_content'].innerHTML = this.blog.desc
-        }
-    },
-    async beforeMount(){
-        this.getBlog(this.$route.params.id)
+<script setup>
+import { useRoute } from 'vue-router'
+import { useStore } from 'vuex'
+import { ref, reactive, onBeforeMount } from 'vue'
 
-        this.$store.state.pagesInCrumbs.clear()
-        this.$store.state.pagesInCrumbs.add('Article')
-    },
+
+const store = useStore()
+const route = useRoute()
+
+const blog = reactive({})
+const blog_content = ref(null)
+
+
+onBeforeMount(async () => {
+    getBlog(route.params.id)
+
+    store.state.pagesInCrumbs.clear()
+    store.state.pagesInCrumbs.add('Article')
+})
+
+
+async function getBlog(id){
+    // Get blog by id,
+    // in desc replace all images urls to valid urls
+    // update blog content
+    window.scrollTo(0,0)
+    Object.assign(blog, await store.dispatch('fetchBlog', id))
+    blog.desc = blog.desc.replaceAll('/media', `${store.state.server_href}media`)
+    blog_content.value.innerHTML = blog.desc
 }
+
 </script>
 
 <style scoped>

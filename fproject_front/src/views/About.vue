@@ -37,13 +37,18 @@
     
 </template>
 
-<script>
-export default {
-    async beforeMount(){
-        this.$store.state.pagesInCrumbs.clear()
-        this.$store.state.pagesInCrumbs.add('About')
-    },
-}
+<script setup>
+import { useStore } from 'vuex'
+import { onBeforeMount } from 'vue'
+
+
+const store = useStore()
+
+
+onBeforeMount(()=>{
+    store.state.pagesInCrumbs.clear()
+    store.state.pagesInCrumbs.add('About')
+})
 </script>
 
 <style scoped>

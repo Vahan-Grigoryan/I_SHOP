@@ -61,65 +61,56 @@ class="swiper-slide"
 </SplideSlide>
 </template>
 
-<script>
-export default {
-    name: 'ui-slide',
-    data(){
-        return {
-            user: JSON.parse(localStorage.getItem('current_user')),
-        }
+<script setup>
+import { useStore } from 'vuex'
+import { useRoute } from 'vue-router'
+
+
+const store = useStore()
+const route = useRoute()
+const emit = defineEmits()
+const props = defineProps({
+    product: Object,
+    top_right_btn_purpose: {
+        type: String,
+        default: 'like'
     },
-    props: {
-        product: Object,
-        top_right_btn_purpose: {
-            type: String,
-            default: 'like'
-        },
-    },
-    methods: {
-        async addLikedProduct(e){
-            // If authed user does not exist, redirect to /register page,
-            // else add user liked product name in store state liked_products_names for valid like button ui.
-            // If user on profile page, emit event for auto update liked products list
-            e.stopPropagation()
-            if ( !this.user ) {
-                this.$router.push('/register')
-            }else{
-                if (this.$route.name === 'profile') {
-                    this.$emit('add_liked_product', this.product)
-                }
-                
-                await this.$store.dispatch(
-                    'commonRequestWithAuth',
-                    {
-                        method: 'get',
-                        url_after_server_domain: `users_add_or_del_liked_product/${this.user['id']}/${this.product['id']}`,
-                    }
-                )
-                this.$store.commit('pushLikedProduct', this.product.name)
-                this.$emit('rerender_header')
-                
-                
-            }
-            
-        },
-        async delLikedProduct(e){
-            // If authed user does not exist, redirect to /register page,
-            // else add user liked product.
-            // If user on profile page auto update liked products list
-            e.stopPropagation()
-            
-            this.$store.commit('delLikedProduct', this.product.name)
-            await this.$store.dispatch(
-                'commonRequestWithAuth',
-                {
-                    method: 'delete',
-                    url_after_server_domain: `users_add_or_del_liked_product/${this.user['id']}/${this.product['id']}`,
-                }
-            )
-            this.$emit('del_liked_product', this.product)
-        }
+})
+
+const user = JSON.parse(localStorage.getItem('current_user'))
+
+
+async function addLikedProduct(e){
+    // Add user liked product name in store state liked_products_names for valid like button ui.
+    // If user on profile page, emit event for auto update liked products list
+    e.stopPropagation()
+    if (route.name === 'profile') {
+        emit('add_liked_product', props.product)
     }
+    
+    await store.dispatch(
+        'commonRequestWithAuth',
+        {
+            method: 'get',
+            url_after_server_domain: `users_add_or_del_liked_product/${user?.id}/${props.product['id']}`,
+        }
+    )
+    store.commit('pushLikedProduct', props.product.name)
+}
+async function delLikedProduct(e){
+    // Remove user liked product.
+    // If user on profile page auto update liked products list
+    e.stopPropagation()
+    
+    store.commit('delLikedProduct', props.product.name)
+    await store.dispatch(
+        'commonRequestWithAuth',
+        {
+            method: 'delete',
+            url_after_server_domain: `users_add_or_del_liked_product/${user?.id}/${props.product['id']}`,
+        }
+    )
+    emit('del_liked_product', props.product)
 }
 </script>
 

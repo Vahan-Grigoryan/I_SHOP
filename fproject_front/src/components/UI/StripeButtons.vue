@@ -17,63 +17,75 @@ v-else-if="purpose === 'refund'"
 </div>
 </template>
 
-<script>
-export default {
-    name: 'ui-stripe-btns',
-    data(){
-        return {
-            pay_loading: false,
-            refund_loading: false
+<script setup>
+
+import { ref, watch } from 'vue'
+import { useStore } from 'vuex'
+
+
+const store = useStore()
+const emit = defineEmits()
+const props = defineProps({
+    purpose: {
+        type: String,
+        required: true,
+    },
+    order_pk: {
+        type: Number,
+        required: true,
+    },
+    refund_payment_after_reason: {
+        type: Boolean,
+    },
+    approve_mail_checking:{
+        required: true,
+        type: Boolean,
+    }, 
+})
+
+const pay_loading = ref(false)
+const refund_loading = ref(false)
+
+async function refundOrder(){
+    // emit to top changed order for valid ui
+    refund_loading.value = true
+    const changedOrder = await store.dispatch(
+        'commonRequestWithAuth',
+        {
+            method: 'get',
+            url_after_server_domain: `stripe_refund_order/${props.order_pk}`,
         }
-    },
-    props: {
-        purpose: {
-            type: String,
-            required: true,
-        },
-        order_pk: {
-            type: Number,
-            required: true,
-        },
-        refund_payment_after_reason: {
-            type: Boolean,
-        },
-        approve_mail_checking:{
-            required: true,
-            type: Boolean,
-        }, 
-    },
-    watch: {
-        async refund_payment_after_reason(newValue){
-            // refund payment after reason is pointed and 
-            // emit to top changed order for valid ui
-            this.refund_loading = true
-            const changedOrder = await this.$store.dispatch(
-                'commonRequestWithAuth',
-                 {
-                    method: 'get',
-                    url_after_server_domain: `stripe_refund_order/${this.order_pk}`,
-                 }
-            )
-            this.$emit('received_changed_order', changedOrder)
-            this.refund_loading = false
-        },
-        async approve_mail_checking(newValue){
-            // pay order after approving mail checking
-            // emit to top changed order for valid ui
-            this.pay_loading = true
-            const changedOrder = await this.$store.dispatch(
-                'commonRequestWithAuth', 
-                {
-                    method: 'get',
-                    url_after_server_domain: `stripe_pay_order/${this.order_pk}`,
-                }
-            )
-            this.$emit('received_changed_order', changedOrder)
-            this.pay_loading = false
-        },
-    }
+    )
+    emit('received_changed_order', changedOrder)
+    refund_loading.value = false
 }
+
+async function createOrder(){
+    // emit to top changed order for valid ui
+    pay_loading.value = true
+    const changedOrder = await store.dispatch(
+        'commonRequestWithAuth', 
+        {
+            method: 'get',
+            url_after_server_domain: `stripe_pay_order/${props.order_pk}`,
+        }
+    )
+    emit('received_changed_order', changedOrder)
+    pay_loading.value = false
+}
+
+
+// pay order after approving mail checking
+watch(
+    () => props.approve_mail_checking,
+    async newValue => await createOrder()
+)
+
+// refund payment after reason is pointed and 
+watch(
+    () => props.refund_payment_after_reason,
+    async newValue => await refundOrder()
+)
 </script>
 
 <style scoped>

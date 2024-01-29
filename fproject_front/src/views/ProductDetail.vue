@@ -4,18 +4,37 @@ class="write_feedback_modal"
 v-model:modal_visible="write_feedback_visible"
 >
     <h2>Напишите свой отзыв о продукте:</h2>
-    <input type="text" placeholder="Заголовок*" v-model="comment_header">
-    <textarea name="" id="" cols="30" rows="10" placeholder="Текст отзыва*" v-model="comment_text"></textarea>
+    <input
+    :style="comment_inputs_styles['header']"
+    v-model="comment_header"
+    type="text"
+    placeholder="Заголовок*"
+    >
+    <textarea 
+    :style="comment_inputs_styles['message']"
+    v-model="comment_text"
+    cols="30"
+    rows="10" 
+    placeholder="Текст отзыва*" 
+    ></textarea>
     <div class="set_starts">
         <span>Ваша оценка:</span>&nbsp;&nbsp;
-        <img 
-        v-for="star_num in 5"
-        src="@/assets/img/star_gray.png"
-        :ref="`feedback_star${ star_num }`"
-        @mouseenter="setStarsUI(star_num)"
-        @mouseleave="delStartsUI"
-        @click="setStarsUI(star_num, for_click=true)"
-        >
+        <div v-for="star_num in 5">
+            <img
+            v-if="star_num <= stars['hovered']"
+            src="@/assets/img/star.png"
+            @mouseenter="stars['hovered'] = star_num"
+            @mouseleave="stars['hovered'] = stars['clicked']"
+            @click="stars['clicked'] = star_num"
+            >
+            <img
+            v-else
+            src="@/assets/img/star_gray.png"
+            @mouseenter="stars['hovered'] = star_num"
+            @mouseleave="stars['hovered'] = stars['clicked']"
+            @click="stars['clicked'] = star_num"
+            >
+        </div>
     </div>
     <button class="feedback_btn" @click="writeComment">
         <img src="@/assets/img/star_white.png">&nbsp;
@@ -30,6 +49,7 @@ v-model:modal_visible="write_feedback_visible"
     <div class="slider_and_content_flex">
         <div class="left_slider">
             <Splide
+                ref="main_detail_slider"
                 class="main_detail_slider"
                 :options="{ 
                     speed: 1000,
@@ -47,6 +67,7 @@ v-model:modal_visible="write_feedback_visible"
 
             </Splide>
             <Splide
+                ref="thumbs_slider"
                 class="thumbs"
                 :options="{ 
                     speed: 1000,
@@ -103,7 +124,7 @@ v-model:modal_visible="write_feedback_visible"
                         >
                         {{ product.comments.length }} отзыва
                     </p>
-                    <img :src="product.brand.image" class="brand_logo">
+                    <img :src="product.brand?.image" class="brand_logo">
                 </div>
                 <div v-else>
                     <div class="inline">
@@ -115,7 +136,7 @@ v-model:modal_visible="write_feedback_visible"
                         <h5>Код товара:</h5> &nbsp; &nbsp;
                         <span>{{ product.code }}</span>
                     </div>
-                    <img :src="product.brand.image" class="brand_logo">
+                    <img :src="product.brand?.image" class="brand_logo">
                 </div>
                 
             </div>
@@ -214,23 +235,23 @@ v-model:modal_visible="write_feedback_visible"
                     </div>
                     <div class="count">
                         <button class="inc_dec_btn" @click="decCount">-</button>
-                        <input type="number" v-model="count">
+                        <input type="text" v-model="count">
                         <button class="inc_dec_btn" @click="incCount">+</button>
 
                         <div :class="{
                             disable_message: true,
                             to_shake: count_disable_shake_class
                         }">
-                            Махимально доступно {{ product.quantity }}
+                            Максимально доступно {{ product.quantity }}
                         </div>
                     </div>
                 </div>
                 <br>
-                <div class="inline" v-if="user">
+                <div class="inline" v-if="user.id">
                     <button 
                     class="buy_btn"
                     @click="productToOrder"
-                    v-if="user && !$store.state.ordered_products_names.has(product.name)"
+                    v-if="user.id && !$store.state.ordered_products_names.has(product.name)"
                     >
                         <img src="@/assets/img/basket_white.png">
                         &nbsp;
@@ -241,7 +262,7 @@ v-model:modal_visible="write_feedback_visible"
                     @click="productToOrder"
                     style="background: gray;cursor: default"
                     disabled
-                    v-else-if="user && $store.state.ordered_products_names.has(product.name)"
+                    v-else-if="user.id && $store.state.ordered_products_names.has(product.name)"
                     >
                         Уже в корзине
                     </button>
@@ -312,7 +333,7 @@ v-model:modal_visible="write_feedback_visible"
         <div class="about_product_content_feedbacks" v-else-if="tab_active['feedbacks']">
             <div 
             class="about_product_content_feedback"
-            v-if="product.comments.length"
+            v-if="current_product_comments.length"
             v-for="comment in current_product_comments"
             >
                 <h3>{{ comment.comment_header }}</h3>
@@ -328,23 +349,28 @@ v-model:modal_visible="write_feedback_visible"
                     {{ comment.text }}
                 </span>
                 <div class="about_product_content_feedback_owner_box">
-                    <span class="owner_logo">
+                    <img
+                    class="comment_profile_image"
+                    v-if="comment.user.photo"
+                    :src="store.getters.getImageUrl(comment.user.photo)"
+                    >
+                    <span v-else class="owner_logo">
                         {{ comment.user.first_name.charAt(0) }}
                     </span>
                     <span>{{ `${comment.user.first_name} ${comment.user.last_name}` }}</span>
                 </div>
             </div>
             <div v-else style="text-align: center;">
-                <h1 v-if="user">Пока отзывов нет, будь первым!</h1>
+                <h1 v-if="user.id">Пока отзывов нет, будь первым!</h1>
                 <h2 v-else>Пока отзывов нет, зарегестрируйся чтобы написать отзыв!</h2>
             </div>
-            <div class="btns" v-if="product.comments.length != current_product_comments.length || user">
+            <div class="btns" v-if="product.comments.length != current_product_comments.length || user.id">
                 <button 
-                v-if="product.comments.length != current_product_comments.length"
+                v-if="product.comments.length > current_product_comments.length"
                 @click="add2comments(current_product_comments.length-1)"
                 >Больше отзывов</button>
                 &nbsp; &nbsp;
-                <button @click="write_feedback_visible = true" v-if="user">Оставить отзыв</button>
+                <button @click="write_feedback_visible = true" v-if="user.id">Оставить отзыв</button>
             </div>
             
         </div>
@@ -359,240 +385,238 @@ style="padding: 60px 0% 70px 0%;margin-top: 0px;"
 
 </template>
 
-<script>
+<script setup>
 import '@splidejs/vue-splide/css/sea-green'
-import Splide from '@splidejs/splide'
+import { Splide, SplideSlide } from '@splidejs/vue-splide'
+import { useRoute, useRouter } from 'vue-router'
+import { useStore } from 'vuex'
+import { ref, reactive, onBeforeMount, watch } from 'vue'
 
 
-export default {
-    data(){
-        return{
-            user: JSON.parse(localStorage.getItem('current_user')),
-            product: {},
-            current_product_comments: [],
-            similar_products: [],
-            count: 1,
-            count_disable_shake_class: false,
-            tab_active: {
-                'desc': true,
-                'characterictics': false,
-                'feedbacks': false
-            },
-            write_feedback_visible: false,
-            selected_resolution: '',
-            selected_color: '',
-            stars_mouse_enter_leave_available: true,
-            preview_images_visibles: {},
-            comment_header: '',
-            comment_text: '',
-            stars: 0,
-            buy_btn_styles: {
-                background: '#69CB87',
-                cursor: 'pointer'
+const store = useStore()
+const router = useRouter()
+const route = useRoute()
+const emit = defineEmits()
+
+const user = reactive(JSON.parse(localStorage.getItem('current_user')) || {})
+const product = reactive({})
+const current_product_comments = reactive([])
+const similar_products = reactive([])
+const count = ref(1) // product quantity
+const count_disable_shake_class = ref(false)
+const write_feedback_visible = ref(false)
+const selected_resolution = ref('')
+const selected_color = ref('')
+const preview_images_visibles = reactive({})
+const comment_header = ref('')
+const comment_text = ref('')
+const stars = reactive({
+    'hovered': 1,
+    'clicked': 1
+})
+const main_detail_slider = ref(null)
+const thumbs_slider = ref(null)
+const tab_active = reactive({
+    'desc': true,
+    'characterictics': false,
+    'feedbacks': false
+})
+const comment_inputs_styles = reactive({
+    'header': '',
+    'message': ''
+})
+
+
+onBeforeMount(async () => {
+    await getProduct(route.params.product_id)
+    store.state.pagesInCrumbs.clear()
+    store.state.pagesInCrumbs.add('Product')
+
+    if (user.id) {
+        // If user authed, add current product to viewed
+        await store.dispatch(
+            'commonRequestWithAuth',
+            {
+                method: 'get',
+                url_after_server_domain: `users_add_viewed_product/${user['id']}/${route.params.product_id}`,
             }
+        )    
+    }
+
+})
+
+
+watch(
+    write_feedback_visible,
+    newValue => {
+        // If write feedback modal visible block scroll opportunity
+        let [current_scrollX, current_scrollY] = [scrollX, scrollY]
+        if (newValue) {
+            window.onscroll = () => window.scrollTo(current_scrollX, current_scrollY)
+         
+        } 
+        else {
+            window.onscroll = () => window.scrollTo(scrollX, scrollY)
         }
-    },
-    methods: {
-        getColorClass(color){
-            // If any product available color clicked wrap in border it
-            return {
-                color: true,
-                color_selected: color === this.selected_color
-            }
-        },
-        decCount(){
-            this.count > 1 ? this.count-- : null
-        },
-        incCount(){
-            this.count < this.product.quantity ? this.count++ : null
-        },
-        setStarsUI(star_num, for_click=false){
-            // Need for commenting product
-            if (for_click) {
-                this.stars_mouse_enter_leave_available = false
-                this.stars = star_num
-            }
-            else{
-                this.stars_mouse_enter_leave_available = true
-            }
-            Object.keys(this.$refs).forEach(star_ref_key => {
-                if (star_ref_key.charAt(13) <= star_num) {
-                    this.$refs[star_ref_key][0].src = require('@/assets/img/star.png')
-                }
-            })
-            
-        },
-        delStartsUI(){
-            // Need for commenting product
-            if (this.stars_mouse_enter_leave_available) {
-                Object.keys(this.$refs).forEach(star_ref => {
-                    this.$refs[star_ref][0].src = require('@/assets/img/star_gray.png')
-                })
-            }
-            
-        },
-        setActiveTab(tab_name){
-            // Need for set active tab(desc, characteristics, comments)
-            Object.keys(this.tab_active).forEach( key => this.tab_active[key] = false )
-            this.tab_active[tab_name] = true
-        },
-        add2comments(last_el_index) { 
-            // Add 2 comments in comments list
-            const two_comments = this.product.comments.slice(last_el_index+1, last_el_index+3)
-            this.current_product_comments.push(...two_comments)
-        },
-        setSimilarProductPreviewImagesVisible(product_id, value){
-            // Need for show beautiful all images preview on each product in similar products
-            if (this.preview_images_visibles[product_id]) {
-                this.preview_images_visibles[product_id]=value
-            }
-        },
-        async getProduct(id){
-            // Get product by id and redurect to relevant route path,
-            // auto-select first resolution, first_color
-            // get firts comment pairs,
-            // get similar products if product not available
-            this.$router.push(`/products/${id}`)
-            this.product = await this.$store.dispatch('fetchProduct', id)
-            this.product.stars_avg = this.product.stars_avg 
-            this.selected_resolution = this.product.get_resolutions[0]
-            this.selected_color = this.product.colors.split(',')[0].trim()
-            this.current_product_comments = this.product.comments.slice(0, 2)
-            if (!this.product.available) {
-                this.similar_products = await this.$store.dispatch('fetchCategoryProducts', {
-                    category_name: this.product.category,
-                    product_id: this.product.id
-                })
+    }
+)
+watch(
+    count,
+    newValue => {
+        // Follow product count and valid it
+        if (/\d+/.test(count.value)){
+            count.value = Number(/\d+/.exec(count.value)[0])
+        } else { count.value = 1 }
 
-                // If product(in similar products have only 1 image left menu not show)
-                for (let i = 0; i < this.similar_products.length; i++) {
-                    if (this.similar_products[i].images.length > 1) {
-                        this.preview_images_visibles[this.similar_products[i].id] = 'none'
-                    }
-                }
-            }
-
-
-            const main_splide = new Splide('.main_detail_slider', { 
-                speed: 1000,
-                rewind: true,
-                pagination: false,
-                perMove: 1,
-            })
-            const thumbs_splide = new Splide('.thumbs', { 
-                speed: 1000,
-                rewind: true,
-                perPage: 6,
-                pagination: false,
-                isNavigation: true,
-                perMove: 1,
-                gap: 10
-            })
-            await main_splide.sync(thumbs_splide)
-            main_splide.mount()
-            thumbs_splide.mount()
-        },
-        async writeComment(){
-            // Create comment,
-            // add created comment top,
-            // comment creation modal close,
-            // set all inputs empty
-            const createComment = await this.$store.dispatch(
-                'commonRequestWithAuth',
-                {
-                    method: 'post',
-                    url_after_server_domain: `comments`,
-                    data: {
-                        user_id: this.user.id,
-                        product_id: this.$route.params.product_id,
-                        header: this.comment_header,
-                        text: this.comment_text,
-                        stars: this.stars
-                    }
-                }
-            )
-            this.product.comments.length++
-            this.current_product_comments.unshift(createComment)
-            this.write_feedback_visible = false
-            this.comment_header = ''
-            this.comment_text = ''
-            this.stars = 0
-        },
-        async pushLikedProduct(){
-            if (!this.$store.state.liked_products_names.has(this.product.name)) {
-                await this.$store.dispatch(
-                    'commonRequestWithAuth',
-                    {
-                        method: 'get',
-                        url_after_server_domain: `users_add_or_del_liked_product/${this.user['id']}/${this.product['id']}`,
-                    }
-                )
-                this.$store.commit('pushLikedProduct', this.product.name)
-                this.$emit('rerender_header')
-            }
-            
-        },
-        async productToOrder(){
-            // Add product in order with status pending, change vuex relevant state, rerender header
-            await this.$store.dispatch(
-                'commonRequestWithAuth', 
-                {
-                    method: 'post',
-                    url_after_server_domain: `users_add_or_del_order_product/${this.user['id']}/${this.product['id']}`,
-                    data: {
-                        quantity: this.count,
-                        color: this.selected_color,
-                        resolution: this.selected_resolution,
-                    }
-                }
-            )
-            this.$store.commit('pushOrderedProduct', this.product.name)
-            this.$emit('rerender_header')
+        if(newValue > product.quantity){
+            count.value = product.quantity
+            count_disable_shake_class.value = true
+            setTimeout(() => {
+                count_disable_shake_class.value = false
+            }, 3000)
         }
-    },
+    }
+)
 
-    async beforeMount(){
-        await this.getProduct(this.$route.params.product_id)
-        this.$store.state.pagesInCrumbs.clear()
-        this.$store.state.pagesInCrumbs.add('Product')
 
-        if (this.user) {
-            // If user authed, add current product to viewed
-            await this.$store.dispatch(
-                'commonRequestWithAuth',
-                {
-                    method: 'get',
-                    url_after_server_domain: `users_add_viewed_product/${this.user['id']}/${this.$route.params.product_id}`,
-                }
-            )
-        }
-    },
-    watch: {
-        write_feedback_visible(newValue){
-            // If write feedback modal visible block scroll opportunity
-            let [current_scrollX, current_scrollY] = [scrollX, scrollY]
-            if (newValue) {
-                window.onscroll = function () { window.scrollTo(current_scrollX, current_scrollY); };
-                
-            } 
-            else {
-                window.onscroll = function () { window.scrollTo(scrollX, scrollY); };
+function getColorClass(color){
+    // If any product available color clicked wrap in border it
+    return {
+        color: true,
+        color_selected: color === selected_color.value
+    }
+}
+function decCount(){
+    count.value > 1 ? count.value-- : null
+}
+function incCount(){
+    count.value < product.quantity ? count.value++ : null
+}
+function setActiveTab(tab_name){
+    // Need for set active tab(desc, characteristics, comments)
+    Object.keys(tab_active).forEach( key => tab_active[key] = false )
+    tab_active[tab_name] = true
+}
+function add2comments(last_el_index) { 
+    // Add 2 comments in comments list
+    const two_comments = product.comments.slice(last_el_index+1, last_el_index+3)
+    current_product_comments.push(...two_comments)
+}
+function setSimilarProductPreviewImagesVisible(product_id, value){
+    // Need for show beautiful all images preview on each product in similar products
+    if (preview_images_visibles[product_id]) {
+        preview_images_visibles[product_id]=value
+    }
+}
+async function getProduct(id){
+    // Get product by id and redurect to relevant route path,
+    // auto-select first resolution, first_color
+    // get firts comment pairs,
+    // get similar products if product not available
+    router.push(`/products/${id}`)
+    Object.assign(product, await store.dispatch('fetchProduct', id))
+    product.stars_avg = product.stars_avg 
+    selected_resolution.value = product.get_resolutions[0]
+    selected_color.value = product.colors.split(',')[0].trim()
+    current_product_comments.splice(
+        0,
+        2,
+        ...product.comments.slice(0, 2)
+    )
+    if (!product.available) {
+        const receive_similar_products = await store.dispatch(
+            'fetchCategoryProducts',
+            {
+                category_name: product.category,
+                product_id: product.id
             }
-        },
-        count(newValue){
-            // Follow product count and valid it
-            if(newValue > this.product.quantity){
-                this.count = this.product.quantity
-                this.count_disable_shake_class = true
-                setTimeout(() => {
-                    this.count_disable_shake_class = false
-                }, 3000)
-            }else if(newValue < 0){
-                this.count = 1
+        )
+        similar_products.push(...receive_similar_products)
+
+        // If product(in similar products have only 1 image left menu not show)
+        for (let i = 0; i < similar_products.length; i++) {
+            if (similar_products[i].images.length > 1) {
+                preview_images_visibles[similar_products[i].id] = 'none'
             }
         }
     }
+
+    await main_detail_slider.value.splide.sync(thumbs_slider.value.splide)
 }
+async function writeComment(){
+    // Create comment if valid fields provided else show relevant UI,
+    // add created comment top,
+    // comment creation modal close,
+    // set all inputs empty
+
+    let error_occured = false
+    if (!comment_header.value.trim()){
+        comment_inputs_styles['header'] = 'border: 2px solid red'
+        error_occured = true
+    } 
+    if (!comment_text.value.trim()){
+        comment_inputs_styles['message'] = 'border: 2px solid red'
+        error_occured = true
+    }
+    if (error_occured){
+        setTimeout(()=>{
+            comment_inputs_styles['header'] = ''
+            comment_inputs_styles['message'] = ''
+        }, 4000)
+
+        return
+    }
+
+    const createComment = await store.dispatch(
+        'commonRequestWithAuth',
+        {
+            method: 'post',
+            url_after_server_domain: `comments`,
+            data: {
+                user_id: user.id,
+                product_id: route.params.product_id,
+                header: comment_header.value,
+                text: comment_text.value,
+                stars: stars['clicked']
+            }
+        }
+    )
+
+    current_product_comments.unshift(createComment)
+    write_feedback_visible.value = false
+    comment_header.value = ''
+    comment_text.value = ''
+    stars.value = 1
+}
+async function pushLikedProduct(){
+    if (store.state.liked_products_names.has(product.name)) return
+    await store.dispatch(
+        'commonRequestWithAuth',
+        {
+            method: 'get',
+            url_after_server_domain: `users_add_or_del_liked_product/${user['id']}/${product['id']}`,
+        }
+    )
+    store.commit('pushLikedProduct', product.name)
+    
+}
+async function productToOrder(){
+    // Add product in order with status pending, change vuex relevant state
+    await store.dispatch(
+        'commonRequestWithAuth', 
+        {
+            method: 'post',
+            url_after_server_domain: `users_add_or_del_order_product/${user['id']}/${product['id']}`,
+            data: {
+                quantity: count.value,
+                color: selected_color.value,
+                resolution: selected_resolution.value,
+            }
+        }
+    )
+    store.commit('pushOrderedProduct', product.name)
+}
+
 </script>
 
 <style scoped>

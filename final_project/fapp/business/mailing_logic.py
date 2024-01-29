@@ -1,4 +1,3 @@
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.db import IntegrityError
 from fapp.tasks import send_mail_as_task
@@ -18,21 +17,21 @@ def send_first_mail_and_add_to_mail_list(mail=None):
         user = User.objects.get(email=mail)
         user.in_mailing_list = True
         user.save()
-        return {'Message': f'User mail subscribed successfully, check it!'}
-    except ObjectDoesNotExist:
+        return {"Message": "User mail subscribed successfully, check it on profile!"}
+    except User.DoesNotExist:
         try:
             IndependentMail.objects.create(mail=mail)
             send_mail_as_task.delay(
                 '(from Bernu Veikals)Experimental first message to your mail',
                 'Thanks for subscribing to this mailing list,'
                 'as you already understood, I made this opportunity without need registration,'
-                'why? Because I sowant!. If you will like some product from the mailing list,'
+                'why? Because I so want!. If you will like some product from the mailing list,'
                 'you will register yourself and buy\U0001F604\U0001F603\U0001F601',
                 (mail,)
             )
-            return {'Message': f'Independent mail subscribed successfully, check it!'}
+            return {"Message": "Independent mail subscribed successfully, check it!"}
         except IntegrityError:
-            return {'Error': 'Mail already exist!'}
+            return {"Error": "Mail already exist!"}
 
 def del_mail_from_mail_list(mail=None):
     """
@@ -44,14 +43,14 @@ def del_mail_from_mail_list(mail=None):
         user = User.objects.get(email=mail)
         user.in_mailing_list=False
         user.save()
-        return {'Message': f'User mail deleted from mail list successfully'}
-    except ObjectDoesNotExist:
+        return {"Message": "User mail deleted from mail list successfully"}
+    except User.DoesNotExist:
         try:
             independent_mail = IndependentMail.objects.get(mail=mail)
             independent_mail.delete()
-            return {'Message': f'Independent mail deleted successfully'}
-        except ObjectDoesNotExist:
-            return {"Error" : "Mail didn't match!"}
+            return {"Message": "Independent mail deleted successfully"}
+        except IndependentMail.DoesNotExist:
+            return {"Error" : "Mail not found!"}
 
 def send_msg_to_all_mails(subject=None, msg=None):
     """Send mail to all IndependentMail and User(user mail) objects"""

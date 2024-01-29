@@ -44,79 +44,75 @@
     </div>
 </template>
 
-<script>
+<script setup>
 // Common component with form whose purpose get messages from users in backend email
 import axios from 'axios';
+import { useStore } from 'vuex'
+import { ref, reactive, watch } from 'vue'
 
 
-export default {
-    name: 'ContactUsBox',
-    data(){
-        return {
-            mail_msg_name: '',
-            mail_msg_tel: '',
-            mail_msg_mail: '',
-            mail_msg_body: '',
-            submit_btn_text: 'Отправить сообщение',
+const store = useStore()
 
-            inputs_styles: {
-                name: {},
-                mail: {},
-                body: {}
-            } ,
-            send_btn_style: {},
 
-        }
-    },
-    methods: {
-        set_empty_all_inputs(){
-            this.mail_msg_name = ''
-            this.mail_msg_tel = ''
-            this.mail_msg_mail = ''
-            this.mail_msg_body = ''
-        },
-        validate_inputs(){
-            // Validate all inputs and show relevant ui if needed
-            if (!this.mail_msg_name.trim()) {
-                this.inputs_styles['name']['border'] = '2px solid red'
-            }
-            else if (!this.mail_msg_mail.trim()) {
-                this.inputs_styles['mail']['border'] = '2px solid red'
-            }
-            else if (!this.mail_msg_body.trim()) {
-                this.inputs_styles['body']['border'] = '2px solid red'
-            }else{
-                this.send_btn_style['background'] = '#69CB87'
-                this.submit_btn_text = 'Отправлено!'
-                setTimeout(() => {
-                    this.send_btn_style['background'] = '#74CCD8'
-                    this.submit_btn_text = 'Отправить сообщение'
-                }, 2000);
-                return true
-            }
+const mail_msg_name = ref('')
+const mail_msg_tel = ref('')
+const mail_msg_mail = ref('')
+const mail_msg_body = ref('')
+const submit_btn_text = ref('Отправить сообщение')
+const inputs_styles = reactive({
+    name: {},
+    mail: {},
+    body: {}
+})
+const send_btn_style = reactive({})
 
-            setTimeout(() => {
-                for (const key in this.inputs_styles) {
-                    this.inputs_styles[key]['border'] = '1px solid #74CCD8'
-                }
-            }, 2000);
 
-            return false
-        },
-        send_question() {
-            if (this.validate_inputs()) {
-                axios.post(`${this.$store.state.server_href}receive_mail`, {
-                    mail_msg_name: this.mail_msg_name,
-                    mail_msg_tel: this.mail_msg_tel,
-                    mail_msg_mail: this.mail_msg_mail,
-                    mail_msg_body: this.mail_msg_body,
-                })
-                this.set_empty_all_inputs()
-
-            }
-            
-        }
+function set_empty_all_inputs(){
+    mail_msg_name.value = ''
+    mail_msg_tel.value = ''
+    mail_msg_mail.value = ''
+    mail_msg_body.value = ''
+}
+function validate_inputs(){
+    // Validate all inputs and show relevant ui if needed
+    if (!mail_msg_name.value.trim()) {
+        inputs_styles['name']['border'] = '2px solid red'
     }
+    else if (!mail_msg_mail.value.trim()) {
+        inputs_styles['mail']['border'] = '2px solid red'
+    }
+    else if (!mail_msg_body.value.trim()) {
+        inputs_styles['body']['border'] = '2px solid red'
+    }else{
+        send_btn_style['background'] = '#69CB87'
+        submit_btn_text.value= 'Отправлено!'
+        setTimeout(() => {
+            send_btn_style['background'] = '#74CCD8'
+            submit_btn_text.value= 'Отправить сообщение'
+        }, 2000);
+        return true
+    }
+
+    setTimeout(() => {
+        for (const key in inputs_styles) {
+            inputs_styles[key]['border'] = '1px solid #74CCD8'
+        }
+    }, 2000);
+
+    return false
+}
+function send_question() {
+    if (validate_inputs()) {
+        axios.post(`${store.state.server_href}receive_mail`, {
+            mail_msg_name: mail_msg_name.value,
+            mail_msg_tel: mail_msg_tel.value,
+            mail_msg_mail: mail_msg_mail.value,
+            mail_msg_body: mail_msg_body.value,
+        })
+        set_empty_all_inputs()
+
+    }
+    
 }
 </script>
 

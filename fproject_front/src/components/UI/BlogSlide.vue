@@ -37,30 +37,30 @@ v-else
 </div>
 </template>
 
-<script>
+<script setup>
 // Blog slide for HrefBlogBox component(slider) and blog page
 // props:
-//      splide_slid: defines purpose of this component
+//      splide_slide: defines purpose of this component
 //      blog: one blog with params to view(see above)
 
-export default {
-    name: 'ui-blog-slide',
-    props: {
-        splide_slide: {
-            type: Boolean,
-            default: false
-        },
-        blog: {
-            type: Object
-        }
+import { useRouter } from 'vue-router'
+
+
+const router = useRouter()
+const emit = defineEmits()
+const props = defineProps({
+    splide_slide: {
+        type: Boolean,
+        default: false,
     },
-    methods: {
-        toBlogDetail(id){
-            this.$router.push(`/blog_detail/${id}`)
-            this.$emit('change_blog', id)
-        }
-    }
+    blog: Object,
+})
+
+function toBlogDetail(id){
+    router.push(`/blog_detail/${id}`)
+    emit('change_blog', id)
 }
+
 </script>
 
 <style scoped>

@@ -21,7 +21,7 @@
                     </div>
                     <ui-select 
                     v-for="[left_category_key, left_category_value] in Object.entries(categories)"
-                    :ref="left_category_key"
+                    :ref="el => left_cat_refs[left_category_key] = el"
                     :selected_option="left_category_key"
                     >
                         <template #custom_content>
@@ -215,7 +215,6 @@
                     v-for="product in products.results"
                     :key="product.id"
                     :product="product"
-                    @rerender_header="$emit('rerender_header')"
                     >
                     </ui-slide>
                     
@@ -238,206 +237,223 @@
 
 </template>
 
-<script>
+<script setup>
 /*
 This page logic:
 All filters received from other pages will override all previously filters,
 and will be active only received filter(the only one).
 All filters that selected on filters page(this page) will be added to active filters 
 */
-export default {
-    data(){
-        return {
-            price_box_visible: false,
-            brand_box_visible: false,
-            color_box_visible: false,
-            products_sort_option: 'newest',
-            current_pagination_page: 1,
-            categories: JSON.parse(localStorage.getItem('cats_formated')), 
-            brands: [],
-            colors: [],
-            products: [],
-            active_filters_visible: false,
-            active_filters_ru: {
-                categories: 'Категории',
-                priceGte: 'Цена больше чем или равно',
-                priceLte: 'Цена меньше чем или равно', 
-                colors: 'Цвета',
-                brands: 'Бренды',
-            },
-            active_filters: new Map(),
-            selected_filters: {
-                categories: new Set(),
-                centerCategoriesCheckedState: new Map(),
-                priceGte: '',
-                priceLte: '', 
-                colors: new Set(),
-                brands: new Set(),
-            },
 
-        }
-    },
-    methods: {
-        setCenterCategoryActive(center_category_key, center_category_value){
-            // Activate all subcategories of center category or deactivate if activated
-            const centerCategoryState = this.selected_filters['centerCategoriesCheckedState'].get(center_category_key)
-            if (centerCategoryState) {
-                for (const right_category of center_category_value) {
-                    this.selected_filters['categories'].delete(right_category)
-                }
-                this.selected_filters['centerCategoriesCheckedState'].set(center_category_key, false)
-            } else {
-                for (const right_category of center_category_value) {
-                    this.selected_filters['categories'].add(right_category)
-                }
-                this.selected_filters['centerCategoriesCheckedState'].set(center_category_key, true)
-            }
-        },
-        addOrDelFilterEntity(filters_key, entity){
-            // Set filter entity active(ex. category, brand, color by each one)
-            this.selected_filters[filters_key].has(entity)?
-                this.selected_filters[filters_key].delete(entity):
-                this.selected_filters[filters_key].add(entity)
-        },
-        check_all_values(){
-            // Check if at least one filter selected
-            return this.selected_filters['categories'].size ||
-                this.selected_filters['brands'].size ||
-                this.selected_filters['colors'].size ||
-                this.selected_filters['priceGte'] ||
-                this.selected_filters['priceLte'] 
-        },
-        getActiveFilters(){
-            // Set or del(key in this.active_filters) active filters for page ui and request to server
-            const filters = this.selected_filters
-            for (const key in filters) {
-                if (
-                    key !== 'centerCategoriesCheckedState' && 
-                    (
-                        filters[key].size || !['string', 'object'].includes(typeof filters[key])
-                    )
-                ) {
-                    // In this if checking what filter changed and her value add to active filters
-                    this.active_filters.set(key, filters[key])
-                }else{
-                    this.active_filters.delete(key)
-                }
-                
-            }
-        },
-        active_filters_to_null(){
-            // Reset active filters, it visible, and selected categories
-            this.selected_filters = {
-                categories: new Set(),
-                centerCategoriesCheckedState: new Map(),
-                priceGte: '',
-                priceLte: '', 
-                colors: new Set(),
-                brands: new Set(),
-            }
-        },
-        filterUnselect(active_filters_key, filter){
-            // Unselect pointed filter of active filters
-            if (typeof this.active_filters.get(active_filters_key) === 'object') {
-                this.active_filters.get(active_filters_key).delete(filter)
+import { useRoute } from 'vue-router'
+import { useStore } from 'vuex'
+import { ref, reactive, onBeforeMount, watch } from 'vue'
 
-            } else {
-                this.active_filters.delete(active_filters_key)
-                this.selected_filters[active_filters_key] = ''
-            }
-        },
-        convertActiveFiltersToUrlParamsForRequest(){
-            // Construct url params for request like: param=paramValue1,paramValue2&priceLte=9 of active_filters
-            let requestUrlParams = ''
-            for (const [key, value] of this.active_filters.entries()) {
-                const filterUrlParamValue = typeof value == 'object'? [...value].join(','): value
-                requestUrlParams += `${key}=${filterUrlParamValue}&`
-            }
-            requestUrlParams = requestUrlParams.slice(0, requestUrlParams.length-1)
-            return requestUrlParams
-        },
-        async getFilteredProducts(paginate_to=1){
-            // Add additional url params(or not) to filter and straightaway fetch new products
-            // Also paginate to page if needs
-            
-            const urlParams = this.convertActiveFiltersToUrlParamsForRequest()
-            let url = urlParams? `&${urlParams}`: ''
-            url += this.$route.query['search_query']? `&name=${this.$route.query['search_query']}`: ''
-            this.products = await this.$store.dispatch(
-                'fetchFilteredProducts', 
-                `?sort_by=${this.products_sort_option}${url}&pg=${paginate_to}`
-            )
-            this.current_pagination_page = paginate_to
-            
-        }
-    },
-    async beforeMount(){
-        // Get available filters from server.
-        // Check if user redirected there with any 
-        // $route.query param(excluded search_query), activate relevant filters
-        // else just get all products without filters.
-        // After above clear $route.query(line 399)
-        this.$store.state.pagesInCrumbs.clear()
-        this.$store.state.pagesInCrumbs.add('Search and filter products')
 
-        const availableFilters = await this.$store.dispatch('fetchAvailableFilters')
-        this.brands = await availableFilters['brands']
-        this.colors = await availableFilters['colors']
+const store = useStore()
+const route = useRoute()
 
-        if(this.$route.query['center_category']){
-            //if provided center category, set all right categories(children cats) of pointed center category
-            const [left_cat, center_cat] = this.$route.query['center_category'].split(',')
-            for (const right_category of this.categories[left_cat][center_cat]) {
-                this.selected_filters['categories'].add(right_category);
-            }
-            this.$refs[left_cat][0].options_visible_filters=true;
-            this.$refs[left_cat][0].click
-        }
-        if(this.$route.query['right_category']){
-            // if provided right_category, add it into categories for filtering
-            this.selected_filters['categories'].add(this.$route.query['right_category'])
-        }
-        if(this.$route.query['brand']){
-            // if provided brand, add it into brands for filtering
-            this.selected_filters['brands'].add(this.$route.query['brand'])
-        }
-        if(await !this.products.length) await this.getFilteredProducts()
-        window.location.href = window.location.href.split('?')[0]
-    },
-    watch: {
-        selected_filters: {
-            async handler(newValue){
-                // If at least one filter selected show active filters box.
-                // Get new active filters,
-                this.active_filters_visible = this.check_all_values()
-                this.getActiveFilters()
-                await this.getFilteredProducts()
-                
-            },
-            deep: true
-        },
-        async products_sort_option(newValue){
-            await this.getFilteredProducts(this.current_pagination_page)
-        },
-        '$route.query': {
-            async handler(newValue){
-                // if received any filter from other page add it to relevant this.selected_filters key
-                // or just call getFilteredProducts()
-                if(newValue['right_category']){
-                    this.selected_filters['categories'].add(newValue['right_category'])
-                }
-                if(newValue['search_query'] || newValue['search_query'] == ''){
-                    // if search_query url param exists
-                    // (this mean search_query=any or search_query=''(if deleted after search))
-                    // because it can be deleted after
-                    // searching, we need to get new filtered products in both of cases
-                    await this.getFilteredProducts()
-                }
-            },
-            deep: true,
-        },
-    },
+const price_box_visible = ref(false)
+const brand_box_visible = ref(false)
+const color_box_visible = ref(false)
+const products_sort_option = ref('newest')
+const current_pagination_page = ref(1)
+const categories = reactive(JSON.parse(localStorage.getItem('cats_formated')))
+const brands = reactive([])
+const colors = reactive([])
+const products = reactive({})
+const active_filters_visible = ref(false)
+const left_cat_refs = reactive({})
+const active_filters_ru = {
+    categories: 'Категории',
+    priceGte: 'Цена больше чем или равно',
+    priceLte: 'Цена меньше чем или равно', 
+    colors: 'Цвета',
+    brands: 'Бренды',
 }
+const active_filters = reactive(new Map())
+const selected_filters = reactive({
+    categories: new Set(),
+    centerCategoriesCheckedState: new Map(),
+    priceGte: '',
+    priceLte: '', 
+    colors: new Set(),
+    brands: new Set(),
+})
+
+
+onBeforeMount(async () => {
+    // Get available filters from server.
+    // Check if user redirected there with any 
+    // $route.query param(excluded search_query), activate relevant filters
+    // else just get all products without filters.
+    // After above clear $route.query
+    store.state.pagesInCrumbs.clear()
+    store.state.pagesInCrumbs.add('Search and filter products')
+
+    const availableFilters = await store.dispatch('fetchAvailableFilters')
+    brands.splice(0, brands.length, ...await availableFilters['brands'])
+    colors.splice(0, colors.length, ...await availableFilters['colors'])
+
+    if(route.query['center_category']){
+        //if provided center category, set all right categories(children cats) of pointed center category
+        const [left_cat, center_cat] = route.query['center_category'].split(',')
+        for (const right_category of categories[left_cat][center_cat]) {
+            selected_filters['categories'].add(right_category)
+        }
+        left_cat_refs[left_cat].options_visible_filters=true 
+        left_cat_refs[left_cat].click 
+    }
+    if(route.query['right_category']){
+        // if provided right_category, add it into categories for filtering
+        selected_filters['categories'].add(route.query['right_category'])
+    }
+    if(route.query['brand']){
+        // if provided brand, add it into brands for filtering
+        selected_filters['brands'].add(route.query['brand'])
+    }
+    if(await !products.length) await getFilteredProducts()
+    window.location.href = window.location.href.split('?')[0]
+
+})
+
+
+watch(
+    selected_filters,
+    async () => {
+        // If at least one filter selected show active filters box.
+        // Get new active filters,
+        active_filters_visible.value = check_all_values()
+        getActiveFilters()
+        await getFilteredProducts()
+    },
+    {deep: true}
+)
+watch(
+    () => route.query,
+    async newValue => {
+        // if received any filter from other page add it to relevant this.selected_filters key
+        // or just call getFilteredProducts()
+        if(newValue['right_category']){
+            selected_filters['categories'].add(newValue['right_category'])
+        }
+        if(newValue['search_query'] || newValue['search_query'] == ''){
+            // if search_query url param exists
+            // (this mean search_query=any or search_query=''(if deleted after search))
+            // because it can be deleted after
+            // searching, we need to get new filtered products in both of cases
+            await getFilteredProducts()
+        }
+    },
+    {deep: true}
+)
+watch(
+    products_sort_option,
+    async () => {
+        await getFilteredProducts(current_pagination_page.value)
+    }
+)
+
+
+function setCenterCategoryActive(center_category_key, center_category_value){
+    // Activate all subcategories of center category or deactivate if activated
+    const centerCategoryState = selected_filters['centerCategoriesCheckedState'].get(center_category_key)
+    if (centerCategoryState) {
+        for (const right_category of center_category_value) {
+            selected_filters['categories'].delete(right_category)
+        }
+        selected_filters['centerCategoriesCheckedState'].set(center_category_key, false)
+    } else {
+        for (const right_category of center_category_value) {
+            selected_filters['categories'].add(right_category)
+        }
+        selected_filters['centerCategoriesCheckedState'].set(center_category_key, true)
+    }
+}
+function addOrDelFilterEntity(filters_key, entity){
+    // Set/remove filter entity active(ex. category, brand, color by each one)
+    selected_filters[filters_key].has(entity)?
+        selected_filters[filters_key].delete(entity):
+        selected_filters[filters_key].add(entity)
+}
+function check_all_values(){
+    // Check if at least one filter selected
+    return selected_filters['categories'].size ||
+        selected_filters['brands'].size ||
+        selected_filters['colors'].size ||
+        selected_filters['priceGte'] ||
+        selected_filters['priceLte'] 
+}
+function getActiveFilters(){
+    // Set or del(key in this.active_filters) active filters for page ui and request to server
+    const filters = selected_filters
+    for (const key in filters) {
+        if (
+            key !== 'centerCategoriesCheckedState' && 
+            (
+                filters[key].size || !['string', 'object'].includes(typeof filters[key])
+            )
+        ) {
+            // In this if checking what filter changed and her value add to active filters
+            active_filters.set(key, filters[key])
+        }else{
+            active_filters.delete(key)
+        }
+        
+    }
+}
+function active_filters_to_null(){
+    // Reset active filters, it visible, and selected categories
+    Object.assign(
+        selected_filters,
+        {
+            categories: new Set(),
+            centerCategoriesCheckedState: new Map(),
+            priceGte: '',
+            priceLte: '', 
+            colors: new Set(),
+            brands: new Set(),
+        }
+    )
+}
+function filterUnselect(active_filters_key, filter){
+    // Unselect pointed filter of active filters
+    if (typeof active_filters.get(active_filters_key) === 'object') {
+        active_filters.get(active_filters_key).delete(filter)
+
+    } else {
+        active_filters.delete(active_filters_key)
+        selected_filters[active_filters_key] = ''
+    }
+}
+function convertActiveFiltersToUrlParamsForRequest(){
+    // Construct url params for request like: param=paramValue1,paramValue2&priceLte=9 of active_filters
+    let requestUrlParams = ''
+    for (const [key, value] of active_filters.entries()) {
+        const filterUrlParamValue = typeof value == 'object'? [...value].join(','): value
+        requestUrlParams += `${key}=${filterUrlParamValue}&`
+    }
+    requestUrlParams = requestUrlParams.slice(0, requestUrlParams.length-1)
+    return requestUrlParams
+}
+async function getFilteredProducts(paginate_to=1){
+    // Add additional url params(or not) to filter and straightaway fetch new products
+    // Also paginate to page if needs
+    
+    const urlParams = convertActiveFiltersToUrlParamsForRequest()
+    let url = urlParams? `&${urlParams}`: ''
+    url += route.query['search_query']? `&name=${route.query['search_query']}`: ''
+    Object.assign(
+        products,
+        ...[await store.dispatch(
+            'fetchFilteredProducts', 
+            `?sort_by=${products_sort_option.value}${url}&pg=${paginate_to}`
+        )]
+    )
+    current_pagination_page.value = paginate_to
+    
+}
+
 </script>
 
 <style scoped>

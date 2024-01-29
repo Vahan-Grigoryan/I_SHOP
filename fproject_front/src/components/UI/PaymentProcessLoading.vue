@@ -2,13 +2,12 @@
     <slot v-if="!loading_circle" />
     <div v-else class="loading_circle"></div>
 </template>
-<script>
-export default {
-    name: 'ui-payment-process-loading',
-    props: { 
-        loading_circle: false,
-    },
-}
+
+<script setup>
+
+const props = defineProps({
+    loading_circle: false,
+})
 </script>
 <style>
 .loading_circle {

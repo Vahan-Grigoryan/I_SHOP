@@ -10,23 +10,24 @@
     </div>
 </template>
 
-<script>
-export default {
-    name: 'ui-detect-salenewhit',
-    props: {
-        sale_new_hit: String
-    },
-    methods: {
-        getBoxClass(productSaleNewHit){
-            const definition = {
-                sale: {sale_hit_new_box50: true},
-                new: {sale_hit_new_boxnew: true},
-                hit: {sale_hit_new_boxhit: true},
-            }
-            return definition[productSaleNewHit]
-            
-        }
+<script setup>
+// Determine css class for relevant slide top left circle
+
+import { useRouter } from 'vue-router'
+
+
+const props = defineProps({
+    sale_new_hit: String,
+})
+
+
+function getBoxClass(productSaleNewHit){
+    const definition = {
+        sale: {sale_hit_new_box50: true},
+        new: {sale_hit_new_boxnew: true},
+        hit: {sale_hit_new_boxhit: true},
     }
+    return definition[productSaleNewHit]
 }
 </script>
 

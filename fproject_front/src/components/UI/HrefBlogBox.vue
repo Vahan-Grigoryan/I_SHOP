@@ -25,35 +25,33 @@
     </mini-products-slider>
 </template>
 
-<script>
-// Component above footer in Index page, common slider,
+<script setup>
+// This component footer in Index page, common slider,
 // with custom header and bottom_button content
 
+import { reactive, onBeforeMount } from 'vue'
+import { useStore } from 'vuex'
 
-export default {
-  name: 'ui-href-blog-box',
-  data(){
-    return {
-        blogs: []
-    }
-  },
-  props: {
+
+const store = useStore()
+const props = defineProps({
     header_text: {
         type: String,
         default: 'Наш блог'
-    }
-  },
-  async beforeMount(){
-    const blogs = await this.$store.dispatch('fetchBlogsIndex')
-    this.blogs = blogs
-  }
-}
+    },
+})
+
+const blogs = reactive([])
+
+onBeforeMount(async () => {
+    blogs.push(...(await store.dispatch('fetchBlogsIndex')))
+    
+})
 </script>
 
 <style scoped>
 .splide_blog_slide{
     background: #D6F4FA;
-    margin-top: 70px;
 }
 .splide_blog_slide button{
     font-size: 15px;

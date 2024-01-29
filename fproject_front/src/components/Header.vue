@@ -1,35 +1,35 @@
 <template>
 <div class="auth_modal_wrapper" v-if="auth_modal_visible"></div>
 <div class="auth_modal" v-if="auth_modal_visible">
-  <img
-  src="@/assets/img/clear.png"
-  class="auth_modal_close_img"
-  @click="auth_modal_visible = false"
-  >
-  <h2>Авторизуйтесь!</h2>
-  <span class="error_message" style="text-align: center;">{{ account_not_found }}</span>
-  <input type="email" placeholder="Электронная почта*" v-model="email">
-  <span class="error_message">{{ auth_email_error }}</span>
-  <input type="password" placeholder="Пароль*" v-model="password">
-  <span class="error_message">{{ auth_password_error }}</span>
-  <button 
-  class="basic_auth"
-  type="submit"
-  @click="authUser"
-  >
-    Авторизоватся
-  </button>
-  <span class="or_span">Или</span>
-  <a  
-  class="google_auth" 
-  :href="`${$store.state.server_href}oauth_registration?from_url=${$route.path}`"
-  >
-    <img src="@/assets/img/Google.png"> &nbsp;
-    Войти через Google
-  </a>
-  <h3>У Вас еще нет аккаунта?</h3>
-  <span>Зарегистрированным пользователям возвращается <strong>0,5%</strong> от стоимости покупки</span>
-  <button class="or_reg_btn" @click="$router.push('/register')">Зарегестрироватся</button>
+    <img
+    src="@/assets/img/clear.png"
+    class="auth_modal_close_img"
+    @click="auth_modal_visible = false"
+    >
+    <h2>Авторизуйтесь!</h2>
+    <span class="error_message" style="text-align: center;">{{ account_not_found }}</span>
+    <input type="email" placeholder="Электронная почта*" v-model="email">
+    <span class="error_message">{{ auth_errors['auth_email_error'] }}</span>
+    <input type="password" placeholder="Пароль*" v-model="password">
+    <span class="error_message">{{ auth_errors['auth_password_error'] }}</span>
+    <button 
+    class="basic_auth"
+    type="submit"
+    @click="authUser"
+    >
+        Авторизоватся
+    </button>
+    <span class="or_span">Или</span>
+    <a  
+    class="google_auth" 
+    :href="`${$store.state.server_href}oauth_registration?from_url=${$route.path}`"
+    >
+        <img src="@/assets/img/Google.png"> &nbsp;
+        Войти через Google
+    </a>
+    <h3>У Вас еще нет аккаунта?</h3>
+    <span>Зарегистрированным пользователям возвращается <strong>0,5%</strong> от стоимости покупки</span>
+    <button class="or_reg_btn" @click="redirect_to_registration">Зарегестрироватся</button>
 </div>
 <header>
     <div class="top_nav">
@@ -130,7 +130,7 @@
         
         <div class="bottom_nav__profile_box">
           <div 
-          v-if="user" 
+          v-if="user?.id" 
           class="authorintacated" 
           :style="getUserBackground"
           @click="$router.push(`/profile/${user.id}`)"
@@ -148,18 +148,18 @@
               
         </div>
         <a 
-        v-if="user"
+        v-if="user?.id"
         @click="redirectTo('liked')"
         class="bottom_nav__liked" 
-        :data-count='user.liked_products_count'
+        :data-count='$store.state.liked_products_names.size'
         >
           <img src="@/assets/img/Liked.png">
         </a>
         <a 
-        v-if="user"
+        v-if="user?.id"
         @click="redirectTo('orders')"
         class="bottom_nav__basket"
-        :data-basket='user.ordered_products_count'
+        :data-basket='$store.state.ordered_products_names.size'
         >
           <img src="@/assets/img/Basket.png">
         </a>
@@ -167,216 +167,244 @@
 </header>
 </template>
 
-<script>
+<script setup>
 // Header for project without slots, with dropwdown mega menu and many hrefs
-import redirectTo from '@/mixins/redirectToProfilePart'
 import axios from 'axios'
+import { useRouter, useRoute } from 'vue-router'
+import { useStore } from 'vuex'
+import { ref, reactive, onBeforeMount, computed, watch } from 'vue'
 
-export default {
-    name: 'Header',
-    data(){
-      return {
-        user: JSON.parse(localStorage.getItem('current_user')),
-        search_query: '',
-        mega_menu_visible: false,
-        auth_modal_visible: false,
-        categories:{},
-        categories_without_images: {},
-        categories_visibiltiy: {
-          left_categories: {},
-          center_categories: {}
-        },
-        center_categories: [],
-        right_categories: [],
-        select_plug1: true,
-        select_plug2: true,
-        email: '',
-        password: '',
-        auth_email_error: '',
-        auth_password_error: '',
-        account_not_found: '',
-        
-      }
-    },
-    mixins: [redirectTo],
-    methods: {
-      selectLeftCategory(left_category){
-        // If left category clicked mega menu visible = false, and redirect to /mega_category.
-        // with query param
-        this.mega_menu_visible=false
-        this.$router.push({ path:`/mega_category/${left_category}`, query:{'left_category': left_category} })
-      },
-      selectRightCategory(right_category){
-        // If right category clicked mega menu visible = false, and redirect to /product_filters with params.
-        this.mega_menu_visible=false
-        this.$router.push({ path:'/product_filters', query:{'right_category': right_category} })
-      },
-      change_search_text(e){
-        // If user input search text, redirect to /product_filters with query param 
-        this.search_query = e.target.value
-        if (this.search_query.length>2 || this.search_query.length==0) {
-            this.$router.push({ path:'/product_filters', query:{'search_query': this.search_query} })
+
+const router = useRouter()
+const route = useRoute()
+const store = useStore()
+
+let user = reactive(JSON.parse(localStorage.getItem('current_user')) || {})
+const search_query = ref('')
+const mega_menu_visible = ref(false)
+const auth_modal_visible = ref(false)
+const categories = reactive({})
+const categories_without_images = reactive({})
+const categories_visibiltiy = reactive({
+  left_categories: {},
+  center_categories: {}
+})
+const center_categories = reactive([])
+const right_categories = reactive([])
+const select_plug1 = ref(true)
+const select_plug2 = ref(true)
+const email = ref('')
+const password = ref('')
+const auth_errors = reactive({
+    auth_email_error: '',
+    auth_password_error: ''
+})
+const account_not_found = ref('')
+
+
+const getUserBackground = computed( () => {
+    if (!['None', 'null', null].includes(user.photo)) {
+        return {
+            background: `url("${store.getters.getImageUrl(user.photo)}") 50% 50% / cover no-repeat`,
         }
-      },
-      getImage(category){
-        // Get left category image url
-        return `http://localhost:8000${this.categories[category]['image']}`
-      },
-      getImageReplace(category){
-        // Get left category replace image url
-        return `http://localhost:8000${this.categories[category]['image_replace']}`
-      },
-      showCategories(category, center=false){
-        // If left category hover - show center categories
-        // If center category hover - show right categories
-        if (center){
-          Object.keys(this.categories_visibiltiy['center_categories']).forEach( key => {
-            this.categories_visibiltiy[key] = false
-          })
-          this.select_plug2  = false
-        }
-        else{
-          Object.keys(this.categories_visibiltiy['left_categories']).forEach( key => {
-            this.categories_visibiltiy[key] = false
-          })
-          this.select_plug1 = false
-        }
-        this.categories_visibiltiy[category+'_visible']=true
-        
-      },
-      toPaymant(){
-        if (this.user) {
-          // to payment page...
-        } else {
-          this.auth_modal_visible = true
-        }
-      },
-      async authUser(){
-        // Common Auth:
-        // 1)Create request to ...auth/jwt/create for getting tokens, after this`
-        //    if account not found, show error message in this.account_not_found,
-        //    if account found, set relevant values in localStorage.
-        // 
-        // 2)Create request to ...users_mini_info?email=${this.email} get few info about acc, after this
-        //    set relevant values in localStorage,
-        //    overwrite user,
-        //    redirect to profile page.
-        this.auth_email_error = ''
-        this.auth_password_error = ''
-        this.account_not_found = ''
-        try{
-          const createTokens = await axios.post(`${this.$store.state.server_href}auth/jwt/create`, {
-            email: this.email,
-            password: this.password
-          })
-          
-          if (createTokens.data.detail) {
-            this.account_not_found = createTokens.data.detail
-          }else{
-            this.$store.getters.setTokensInLS(createTokens.data)
-            const user = await this.$store.dispatch(
-              'commonRequestWithAuth',
-              {
-                method: 'get',
-                url_after_server_domain: `users_mini_info?email=${this.email}`,
-              }
-            )
-            this.$store.getters.setUserInLS(user)
-            this.user = JSON.parse(localStorage.getItem('current_user'))
-            this.auth_modal_visible = false
-            this.$router.push(`/profile/${this.user.id}`)
-          }
-          
-        }catch(err){
-          const response = err.response.data
-          const detected_error = response.detail || response['non_field_errors']?.[0]
-          if (detected_error) {
-            this.account_not_found = detected_error 
-          } else {
-            Object.keys(response).forEach(key => {
-              this.$data[`auth_${key}_error`]=response[key][0]
-            })
-          }
-          
-        }
-      },
-    },
-    computed: {
-      // Get backgroun url or color for user preview
-      getUserBackground(){
-        if (!['None', 'null', null].includes(this.user.photo)) {
-          return {
-            background: `url("${this.$store.getters.getImageUrl(this.user.photo)}") 50% 50% / cover no-repeat`,
-          }
-        } else {
-          return {
+    } else {
+        return {
             background: `#74CCD8`,
-          }
         }
-        
-      },
-    },
-    async beforeMount(){
-      this.categories = await this.$store.dispatch('fetchOrGetCategories')
-      // If user exist(in LS) update info about it
-      if (this.user) {
-        this.user = await this.$store.dispatch(
-          'commonRequestWithAuth',
-          {
-            method: 'get',
-            url_after_server_domain: `users_mini_info?id=${this.user.id}`,
-          }
+    }
+    
+})
+
+
+onBeforeMount(async () => {
+    Object.assign(categories, await store.dispatch('fetchCategories'))
+    // If user exist(in LS) update info about it,
+    // set liked and ordered products names in vuex
+    if (user?.id) {
+        const new_user = await store.dispatch(
+            'commonRequestWithAuth',
+            {
+                method: 'get',
+                url_after_server_domain: `users_mini_info?id=${user.id}`,
+            }
         )
-        this.$store.getters.setUserInLS(this.user)
-      }
-      
-      // Manipulations for vaild dropdown menu ui
-      let categories_without_images = {}
-      Object.keys(this.categories).forEach( left_category_key => {
-        categories_without_images[left_category_key]={}
-        Object.keys(this.categories[left_category_key]).forEach( left_category_content_key => {
-          if (left_category_content_key != 'image' && left_category_content_key != 'image_replace') {
-            categories_without_images[left_category_key][left_category_content_key] = 
-            this.categories[left_category_key][left_category_content_key]
-          }
+        Object.assign(user, new_user)
+        set_relevant_products_names_in_store(user)      
+        store.getters.setUserInLS(user)
+    }
+     
+    // Manipulations for vaild dropdown menu ui
+    let create_categories_without_images = {}
+    Object.keys(categories).forEach( left_category_key => {
+        create_categories_without_images[left_category_key]={}
+        Object.keys(categories[left_category_key]).forEach( left_category_content_key => {
+            if (left_category_content_key != 'image' && left_category_content_key != 'image_replace') {
+                create_categories_without_images[left_category_key][left_category_content_key] = 
+                categories[left_category_key][left_category_content_key]
+            }
         })
-
-      })
-
-      this.categories_without_images = categories_without_images
-      for (let [category_key, category_value] of Object.entries(this.categories_without_images)) {
-        this.center_categories = [
-          ...this.center_categories, 
-          [category_key, [...Object.keys(category_value)]]
-        ]
-        for (let [key2, value2] of Object.entries(category_value)) {
-          this.categories_visibiltiy['left_categories'][`${category_key}_visible`] = false
-          this.categories_visibiltiy['center_categories'][`${key2}_visible`] = false
-          this.right_categories = [
-            ...this.right_categories, 
-            [key2, [...Object.values(value2)]]
-          ]
+    
+    })
+    
+    Object.assign(categories_without_images, create_categories_without_images)
+    for (const [category_key, category_value] of Object.entries(categories_without_images)) {
+        center_categories.splice(0, center_categories.length, ...[
+            ...center_categories, 
+            [category_key, [...Object.keys(category_value)]]
+        ])
+        for (const [key2, value2] of Object.entries(category_value)) {
+            categories_visibiltiy['left_categories'][`${category_key}_visible`] = false
+            categories_visibiltiy['center_categories'][`${key2}_visible`] = false
+            right_categories.splice(0, right_categories.length, ...[
+                ...right_categories, 
+                [key2, [...Object.values(value2)]]
+            ])
         }
-      }
-    },
-    watch: {
-        '$route.path': {
-            handler(newValue){
-                // set search_query to empty on redirects to other pages, exclude filters page
-                if(newValue !== '/product_filters') this.search_query=''
-            }
-        },
-        auth_modal_visible(newValue){
-            // If auth modal visible block scroll opportunity
-            if (newValue) {
-            window.onscroll = function () { window.scrollTo(0, 0); };
-            } 
-            else {
-            window.onscroll = function () { window.scrollTo(scrollX, scrollY); };
-            }
-        },
+    }
+})
+
+
+watch(
+    () => route.path,
+    newValue => {
+        // set search_query to empty on redirects to other pages, exclude filters page
+        if(newValue !== '/product_filters') search_query.value = ''
+    }
+)
+
+watch(
+    auth_modal_visible,
+    newValue => {
+        // If auth modal visible block scroll opportunity
+        if (newValue) {
+            window.onscroll = () => window.scrollTo(0, 0)
+        } 
+        else {
+            window.onscroll = () => window.scrollTo(scrollX, scrollY)
+        }
+    }
+)
+
+function set_relevant_products_names_in_store(from_user){
+    from_user.liked_products_names.forEach(
+        store.state.liked_products_names.add,
+        store.state.liked_products_names
+    )
+    from_user.ordered_products_names.forEach(
+        store.state.ordered_products_names.add,
+        store.state.ordered_products_names
+    )
+}
+function redirectTo(where){
+    store.commit('setProfileContent', where)
+    router.push(`/profile/${user?.id}`)
+}
+function redirect_to_registration(){
+    router.push('/register')
+    auth_modal_visible.value = false
+}
+function selectLeftCategory(left_category){
+    // If left category clicked mega menu visible = false, and redirect to /mega_category.
+    // with query param
+    mega_menu_visible.value=false
+    router.push({ path:`/mega_category/${left_category}`, query:{'left_category': left_category} })
+}
+function selectRightCategory(right_category){
+    // If right category clicked mega menu visible = false, and redirect to /product_filters with params.
+    mega_menu_visible.value=false
+    router.push({ path:'/product_filters', query:{'right_category': right_category} })
+}
+function change_search_text(e){
+    // If user input search text, redirect to /product_filters with query param 
+    search_query.value = e.target.value
+    if (search_query.value.length>2 || search_query.value.length==0) {
+        router.push({ path:'/product_filters', query:{'search_query': search_query.value} })
     }
 }
+function getImage(category){
+    // Get left category image url
+    return `http://localhost:8000${categories[category]['image']}`
+}
+function getImageReplace(category){
+    // Get left category replace image url
+    return `http://localhost:8000${categories[category]['image_replace']}`
+}
+function showCategories(category, center=false){
+    // If left category hover - show center categories
+    // If center category hover - show right categories
+    if (center){
+        Object.keys(categories_visibiltiy['center_categories']).forEach( key => {
+            categories_visibiltiy[key] = false
+        })
+        select_plug2.value  = false
+    }
+    else{
+        Object.keys(categories_visibiltiy['left_categories']).forEach( key => {
+            categories_visibiltiy[key] = false
+        })
+        select_plug1.value = false
+    }
+    categories_visibiltiy[category+'_visible']=true
+  
+}
+function toPaymant(){
+    if (user?.id) {
+        redirectTo("orders")
+    } else {
+        auth_modal_visible.value = true
+    }
+}
+async function authUser(){
+    // Common Auth:
+    // 1)Create request to ...auth/jwt/create for getting tokens, after this`
+    //    if account not found, show error message in this.account_not_found,
+    //    if account found, set relevant values in localStorage.
+    // 
+    // 2)Create request to ...users_mini_info?email=${this.email} get few info about acc, after this
+    //    set relevant values in localStorage,
+    //    overwrite user,
+    //    set liked and ordered products names in vuex,
+    //    redirect to profile page.
+
+    auth_errors['auth_email_error'] = ''
+    auth_errors['auth_password_error'] = ''
+    account_not_found.value = ''
+    try{
+        const createTokens = await axios.post(`${store.state.server_href}auth/jwt/create`, {
+            email: email.value,
+            password: password.value
+        })
+     
+        store.getters.setTokensInLS(createTokens.data)
+        const receiveUser = await store.dispatch(
+            'commonRequestWithAuth',
+            {
+                method: 'get',
+                url_after_server_domain: `users_mini_info?email=${email.value}`,
+            }
+        )
+
+        set_relevant_products_names_in_store(receiveUser)
+
+        Object.assign(user, receiveUser)
+        store.getters.setUserInLS(receiveUser)
+        auth_modal_visible.value = false
+        router.push(`/profile/${receiveUser.id}`)
+     
+    }catch(err){
+        const response = err.response.data
+        const detected_error = response.detail || response['non_field_errors']?.[0]
+        if (detected_error) {
+            account_not_found.value = detected_error 
+        } else {
+            Object.keys(response).forEach(key => {
+                auth_errors[`auth_${key}_error`]=response[key][0]
+            })
+        }
+     
+    }
+}
+    
 </script>
 
 <style scoped>

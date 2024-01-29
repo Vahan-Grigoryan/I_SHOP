@@ -1,6 +1,5 @@
-from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
-from fapp.models import User, SortViewedProducts, Product
+from fapp.models import User, SortViewedProducts, Product, Order
 
 
 def add_or_del_viewed_product(user_pk, product_pk):
@@ -26,8 +25,8 @@ def add_or_del_viewed_product(user_pk, product_pk):
 
 def add_order_product(post_data, user_pk, product_pk):
     """
-    Add product into user order with null status,
-    else create user order with null status and add products.
+    Add product into user order with null status if order exist,
+    else create user order with null status and add product.
     Also point through model values for view user selected options for product.
     """
     user, product = User.objects.get(pk=user_pk), Product.objects.get(pk=product_pk)
@@ -38,7 +37,7 @@ def add_order_product(post_data, user_pk, product_pk):
             through_defaults=dict(post_data.items())
         )
 
-    except ObjectDoesNotExist:
+    except Order.DoesNotExist:
         user.orders.create().order_products.add(
             product,
             through_defaults=dict(post_data.items())

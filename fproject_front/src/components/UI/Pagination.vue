@@ -25,28 +25,24 @@
 </div>
 </template>
 
-<script>
+<script setup>
 // Pagination for this project, used in many places
 // props:
 //      pages: how many pages are available for redirect in each pagination page
 //      page_active: current page if user want to go to specific page
 
+const props = defineProps({
+    pages: Number,
+    page_active: Number,
+})
 
-export default {
-    name: 'ui-pagination',
-    props: {
-        pages: Number,
-        page_active: Number,
-    },
-    methods: {
-        getClasses(page){
-            return {
-                page_a: true,
-                pagination_a_active: this.page_active == page
-            }
-        },
-    },
+function getClasses(page){
+    return {
+        page_a: true,
+        pagination_a_active: props.page_active == page
+    }
 }
+
 </script>
 
 <style scoped>
@@ -90,23 +86,4 @@ export default {
     color:white;
     border: none
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 </style>

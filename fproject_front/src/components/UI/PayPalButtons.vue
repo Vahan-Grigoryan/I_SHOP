@@ -17,77 +17,81 @@ class="paypal_reject"
 </div>
 </template>
 
-<script>
-export default {
-    name: 'ui-paypal-btns',
-    data(){
-        return {
-            pay_loading: false,
-            refund_loading: false,
-        }
+<script setup>
+
+import { ref, watch } from 'vue'
+import { useStore } from 'vuex'
+
+
+const store = useStore()
+const emit = defineEmits()
+const props = defineProps({
+    order_pk: {
+        type: Number,
+        required: true,
     },
-    props: {
-        order_pk: {
-            type: Number,
-            required: true,
-        },
-        purpose: {
-            type: String,
-            required: true,
-        },
-        approve_mail_checking: {
-            type: Boolean,
-            default: false,
-        },
-        refund_payment_after_reason: {
-            type: Boolean,
-            default: false,
-        }
+    purpose: {
+        type: String,
+        required: true,
     },
-    methods: {
-        async createOrder(){
-            // Create paypal order
-            this.pay_loading = true
-            const response = await this.$store.dispatch(
-                'commonRequestWithAuth', 
-                {
-                    method: 'post',
-                    url_after_server_domain: `paypal_create_order/${this.order_pk}`,
-                    data: {
-                        approved_url: location.href,
-                        cancel_url: location.href
-                    }
-                }
-            )
-            location.href = response['purchase_url']
-            this.pay_loading = false
-        },
-        async refundOrder(){
-            // Refund captured order and pass received changed order to parent 
-            this.refund_loading = true
-            const changed_order = await this.$store.dispatch(
-                'commonRequestWithAuth', 
-                {
-                    method: 'get',
-                    url_after_server_domain: `paypal_refund_order/${this.order_pk}`,
-                }
-            )
-            this.$emit('received_changed_order', changed_order)
-            this.refund_loading = false
-        }
+    approve_mail_checking: {
+        type: Boolean,
+        default: false,
     },
-    watch: {
-        async approve_mail_checking(newValue){
-            // If mail checking approved - pay order
-            if (newValue) await this.createOrder()
-        },
-        async refund_payment_after_reason(newValue){
-            // If refund reason pointed - refund payment
-            if (newValue) await this.refundOrder()
-        }
+    refund_payment_after_reason: {
+        type: Boolean,
+        default: false,
     }
+})
+
+const pay_loading = ref(false)
+const refund_loading = ref(false)
+
+
+async function createOrder(){
+    // Create paypal order
+    pay_loading.value = true
+    const response = await store.dispatch(
+        'commonRequestWithAuth', 
+        {
+            method: 'post',
+            url_after_server_domain: `paypal_create_order/${props.order_pk}`,
+            data: {
+                approved_url: location.href,
+                cancel_url: location.href
+            }
+        }
+    )
+    location.href = response['purchase_url']
+    pay_loading.value = false
 }
 
+async function refundOrder(){
+    // Refund captured order and pass received changed order to parent 
+    refund_loading.value = true
+    const changed_order = await store.dispatch(
+        'commonRequestWithAuth', 
+        {
+            method: 'get',
+            url_after_server_domain: `paypal_refund_order/${props.order_pk}`,
+        }
+    )
+    emit('received_changed_order', changed_order)
+    refund_loading.value = false
+}
+
+
+// If mail checking approved - pay order
+watch(
+    () => props.approve_mail_checking,
+    async newValue => await createOrder()
+)
+
+// If refund reason pointed - refund payment
+watch(
+    () => props.refund_payment_after_reason,
+    async newValue => await refundOrder()
+)
 </script>
 
 <style scoped>

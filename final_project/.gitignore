@@ -6,9 +6,10 @@
 .vscode
 *.pyc
 
+/all_statics/
+/media/
 /fapp/migrations/
 /payments/migrations/
-/all_statics/
 
 *.log
 celerybeat-schedule

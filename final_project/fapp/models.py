@@ -4,7 +4,6 @@ from fapp.business import distribution_of_logic
 from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from ckeditor_uploader import fields as ckmediafields
@@ -37,16 +36,6 @@ class User(AbstractUser):
         return self.email
 
 
-    def liked_products_count(self):
-        return self.liked_products.count()
-
-    def ordered_products_count(self):
-        """Get user products in order without status"""
-        try:
-            return self.orders.get(status__isnull=True).order_products.count()
-        except ObjectDoesNotExist:
-            return 0
-
 class IndependentMail(models.Model):
     """
     This model has been created for give users possible receive info about new products without registration(with only email).
@@ -56,6 +45,7 @@ class IndependentMail(models.Model):
 
     def __str__(self):
         return self.mail
+
 
 class Brand(models.Model):
     """Common brand model, can it may have products"""

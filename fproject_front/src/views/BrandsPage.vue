@@ -18,27 +18,32 @@
 </ui-brands>
 </template>
 
-<script>
-export default {
-    data(){
-        return {
-            brands: [],
-            current_pagination_page: 1
-        }
-    },
-    methods: {
-        async getPaginatedBrands(page){
-            this.brands = await this.$store.dispatch('fetchBrands', page)
-            this.current_pagination_page = page
-        }
-    },
-    async beforeMount(){
-        this.$store.state.pagesInCrumbs.clear()
-        this.$store.state.pagesInCrumbs.add('Brands')
+<script setup>
+import { useRoute } from 'vue-router'
+import { useStore } from 'vuex'
+import { ref, reactive, onBeforeMount } from 'vue'
 
-        this.brands = await this.$store.dispatch('fetchBrands')
-    },
+
+const store = useStore()
+const route = useRoute()
+
+const brands = reactive({})
+const current_pagination_page = ref(1)
+
+
+onBeforeMount(async () => {
+    store.state.pagesInCrumbs.clear()
+    store.state.pagesInCrumbs.add('Brands')
+
+    Object.assign(brands, await store.dispatch('fetchBrands'))
+})
+
+
+async function getPaginatedBrands(page){
+    Object.assign(brands, await store.dispatch('fetchBrands', page))
+    current_pagination_page.value = page
 }
+
 </script>
 
 <style scoped>

@@ -1,6 +1,6 @@
 <template>
     <swiper 
-        :modules="modules"
+        :modules="[Navigation]"
         :slides-per-view="4"
         :space-between="10"
         :loop="true"
@@ -36,30 +36,14 @@
 
 </template>
 
-<script>
+<script setup>
 // Second slider from top in Index page, 
 // didn't use anywhere except here
 
 import { Navigation } from 'swiper'
 import { Swiper, SwiperSlide } from 'swiper/vue';
-
 import 'swiper/css';
-import 'swiper/css/navigation';
 
-
-export default {
-    name: 'ui-main-bottom-slider',
-    components: {
-      Swiper,
-      SwiperSlide,
-    },
-    data(){
-        return {
-            modules: [Navigation]
-        }
-    },
-    
-}
 </script>
 
 <style scoped>

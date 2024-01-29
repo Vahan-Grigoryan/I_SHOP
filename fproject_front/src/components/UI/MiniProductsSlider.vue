@@ -20,40 +20,24 @@
 </div>
 </template>
 
-<script>
+<script setup>
 // Slider component with custom content, header, bottom section in this project,
 // used in many places
-
-
-import { Navigation, Autoplay} from 'swiper'
+import { Navigation, Autoplay } from 'swiper'
 import { Swiper, SwiperSlide } from 'swiper/vue';
-
+import { defineProps } from 'vue';
 import 'swiper/css';
 import 'swiper/css/effect-coverflow'
 import 'swiper/css/pagination';
 
-import '@splidejs/vue-splide/css/sea-green';
 
-
-
-export default {
-  name: 'mini-products-slider',
-  components: {
-    Swiper,
-    SwiperSlide,
-  },
-  props:{
+const props = defineProps({
     slidesPerPage: {
-      type: Number,
-      default: 4
+        type: Number,
+        default: 4
     }
-  },
-  data(){
-      return {
-        modules: [Navigation, Autoplay]
-      }
-  },
-}
+})
+
 </script>
 
 <style>                                                     /* STYLES NOT SCOPED */
