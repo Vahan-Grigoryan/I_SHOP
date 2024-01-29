@@ -14,4 +14,3 @@
 *.log
 celerybeat-schedule
 celerybeat-schedule.*
-db.sqlite3
